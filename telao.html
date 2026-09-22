@@ -213,9 +213,17 @@
             }
 
             const imgPreload = new Image();
-            imgPreload.src = fotoDaVez.url_imagem;
+            
+
+            
+            let timeoutCarregamento = setTimeout(() => {
+                imgPreload.onload = null; 
+                decidirProximo(); 
+            }, 3500);
             
             imgPreload.onload = () => {
+                clearTimeout(timeoutCarregamento); 
+
                 transicaoApagarTudo();
 
                 setTimeout(() => {
@@ -238,7 +246,13 @@
                     setTimeout(decidirProximo, 7000);
                 }, 800); 
             };
-            imgPreload.onerror = () => { decidirProximo(); };
+            
+            imgPreload.onerror = () => { 
+                clearTimeout(timeoutCarregamento);
+                decidirProximo(); 
+            };
+
+            imgPreload.src = fotoDaVez.url_imagem;
         }
 
         function renderizarComunicado() {
@@ -247,8 +261,16 @@
 
             if(com.tipo === 'imagem' || com.url_imagem) {
                 const imgPreload = new Image();
-                imgPreload.src = com.url_imagem;
+                
+
+                let timeoutCarregamento = setTimeout(() => {
+                    imgPreload.onload = null;
+                    decidirProximo();
+                }, 3500);
+
                 imgPreload.onload = () => {
+                    clearTimeout(timeoutCarregamento);
+                    
                     transicaoApagarTudo();
                     setTimeout(() => {
                         comsExibidosNoCiclo++;
@@ -262,8 +284,16 @@
                         setTimeout(decidirProximo, 15000); 
                     }, 800);
                 };
-                imgPreload.onerror = () => { decidirProximo(); };
+
+                imgPreload.onerror = () => { 
+                    clearTimeout(timeoutCarregamento);
+                    decidirProximo(); 
+                };
+
+                imgPreload.src = com.url_imagem;
+
             } else {
+
                 transicaoApagarTudo();
                 setTimeout(() => {
                     comsExibidosNoCiclo++;
