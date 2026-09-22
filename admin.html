@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Moderação - Dia das Crianças</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #2c3e50; color: white; padding: 10px; text-align: center; }
+        h1 { margin-top: 10px; font-size: 22px; color: #f1c40f; }
+        p { font-size: 14px; color: #ecf0f1; margin-bottom: 20px; }
+        
+        h2 { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 30px; font-size: 18px; border-bottom: 1px solid #555; padding-bottom: 10px; color: #e67e22; }
+        h2.telao-titulo { color: #2ecc71; }
+
+        .grid-fotos { display: grid; grid-template-columns: repeat(auto-fit, minmax(95px, 1fr)); gap: 10px; margin-bottom: 30px; }
+        .card { background: #34495e; padding: 8px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+        
+        .card img { width: 100%; aspect-ratio: 1 / 1; border-radius: 6px; object-fit: cover; cursor: pointer; transition: opacity 0.2s; }
+        .card img:hover { opacity: 0.7; }
+        
+        .nome { font-weight: bold; margin: 8px 0; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #eee; }
+        
+        .btn-group { display: flex; flex-direction: column; gap: 5px; }
+        button { padding: 8px 5px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 11px; width: 100%; }
+        
+        .btn-aprovar { background-color: #2ecc71; color: white; }
+        .btn-aprovar:hover { background-color: #27ae60; }
+        .btn-recusar { background-color: #e74c3c; color: white; }
+        .btn-recusar:hover { background-color: #c0392b; }
+        .btn-apagar { background-color: #95a5a6; color: white; }
+        .btn-apagar:hover { background-color: #7f8c8d; }
+        
+        .vazio { margin-top: 10px; color: #bdc3c7; font-style: italic; grid-column: 1 / -1; }
+
+        #modalVerFoto { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9); align-items: center; justify-content: center; flex-direction: column; }
+        #modalImg { max-width: 95%; max-height: 85vh; border-radius: 8px; object-fit: contain; }
+        .fechar-modal { position: absolute; top: 15px; right: 25px; color: white; font-size: 35px; font-weight: bold; cursor: pointer; }
+        .fechar-modal:hover { color: #bbb; }
+    </style>
+</head>
+<body>
+
+    <h1>Moderação - Dia das Crianças</h1>
+    <p>Aprove as fotos da infância da equipe.</p>
+
+    <!-- PENDENTES -->
+    <h2>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+        Aguardando Aprovação
+    </h2>
+    <div class="grid-fotos" id="listaPendentes"></div>
+
+    <!-- NA TV -->
+    <h2 class="telao-titulo">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect>
+            <polyline points="17 2 12 7 7 2"></polyline>
+        </svg>
+        Já estão na TV
+    </h2>
+    <div class="grid-fotos" id="listaAprovadas"></div>
+
+    <div id="modalVerFoto">
+        <span class="fechar-modal" onclick="fecharModal()">&times;</span>
+        <img id="modalImg" src="" alt="Foto Ampliada">
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+        import { getFirestore, collection, query, where, onSnapshot, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyB8ZK0jSY-1E9y90TLfznxi9PI8mf_bJuc",
+            authDomain: "festadafirmafcv.firebaseapp.com",
+            projectId: "festadafirmafcv",
+            storageBucket: "festadafirmafcv.firebasestorage.app",
+            messagingSenderId: "930815464098",
+            appId: "1:930815464098:web:890c2300a6e1a79abd3dfb"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        
+        const listaPendentes = document.getElementById('listaPendentes');
+        const listaAprovadas = document.getElementById('listaAprovadas');
+
+        // BUSCANDO DA NOVA COLEÇÃO "fotos_criancas"
+        const qPendentes = query(collection(db, "fotos_criancas"), where("status", "==", "pendente"));
+        onSnapshot(qPendentes, (snapshot) => {
+            listaPendentes.innerHTML = ""; 
+            if (snapshot.empty) {
+                listaPendentes.innerHTML = "<p class='vazio'>Nenhuma foto pendente.</p>";
+                return;
+            }
+            snapshot.forEach((documento) => {
+                const dados = documento.data();
+                const id = documento.id;
+                const imagemLeve = dados.url_thumb ? dados.url_thumb : dados.url_imagem;
+
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `
+                    <img src="${imagemLeve}" loading="lazy" onclick="abrirModal('${dados.url_imagem}')" title="Clique para visualizar">
+                    <div class="nome" title="${dados.nome}">${dados.nome}</div>
+                    <div class="btn-group">
+                        <button class="btn-aprovar" onclick="atualizarStatus('${id}', 'aprovado')">Aprovar</button>
+                        <button class="btn-recusar" onclick="excluirFoto('${id}')">Recusar</button>
+                    </div>
+                `;
+                listaPendentes.appendChild(card);
+            });
+        });
+
+        const qAprovadas = query(collection(db, "fotos_criancas"), where("status", "==", "aprovado"));
+        onSnapshot(qAprovadas, (snapshot) => {
+            listaAprovadas.innerHTML = ""; 
+            if (snapshot.empty) {
+                listaAprovadas.innerHTML = "<p class='vazio'>A TV está vazia.</p>";
+                return;
+            }
+            snapshot.forEach((documento) => {
+                const dados = documento.data();
+                const id = documento.id;
+                const imagemLeve = dados.url_thumb ? dados.url_thumb : dados.url_imagem;
+
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `
+                    <img src="${imagemLeve}" loading="lazy" onclick="abrirModal('${dados.url_imagem}')" title="Clique para visualizar">
+                    <div class="nome" title="${dados.nome}">${dados.nome}</div>
+                    <div class="btn-group">
+                        <button class="btn-apagar" onclick="excluirFoto('${id}')">Remover</button>
+                    </div>
+                `;
+                listaAprovadas.appendChild(card);
+            });
+        });
+
+        window.atualizarStatus = async (idDocumento, novoStatus) => {
+            try {
+                await updateDoc(doc(db, "fotos_criancas", idDocumento), { status: novoStatus });
+            } catch (erro) {
+                console.error(erro);
+            }
+        };
+
+        window.excluirFoto = async (idDocumento) => {
+            const confirmar = confirm("Tem certeza que deseja apagar essa foto?");
+            if(confirmar) {
+                try {
+                    await deleteDoc(doc(db, "fotos_criancas", idDocumento));
+                } catch (erro) {
+                    console.error("Erro ao apagar:", erro);
+                    alert("Erro ao apagar a foto.");
+                }
+            }
+        };
+
+        window.abrirModal = (urlOriginal) => {
+            document.getElementById('modalImg').src = urlOriginal;
+            document.getElementById('modalVerFoto').style.display = 'flex';
+        };
+
+        window.fecharModal = () => {
+            document.getElementById('modalVerFoto').style.display = 'none';
+            document.getElementById('modalImg').src = "";
+        };
+    </script>
+</body>
+</html>
