@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TV Interativa - Dia das Crianças</title>
-
+    <!-- Tag que transforma em PWA -->
+    <link rel="manifest" href="manifest.json">
+    <!-- Fonte Montserrat -->
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         body { 
@@ -13,6 +15,15 @@
             display: flex; justify-content: center; align-items: center; height: 100vh; position: relative;
         }
         
+        /* Botão de Tela Cheia */
+        #btnFullscreen {
+            position: absolute; top: 20px; right: 20px; z-index: 9999;
+            background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.5);
+            padding: 10px 15px; border-radius: 8px; cursor: pointer; font-family: 'Montserrat', sans-serif;
+            font-weight: 600; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); transition: 0.3s;
+        }
+        #btnFullscreen:hover { background: rgba(255,255,255,0.4); }
+
         .container-master { 
             width: 100%; height: 100vh; display: flex; justify-content: center; align-items: center; 
             position: absolute; top:0; left:0; 
@@ -60,6 +71,8 @@
 </head>
 <body>
 
+    <button id="btnFullscreen">📺 Tela Cheia</button>
+
     <div id="aguardando">Aguardando conteúdos...</div>
 
     <div class="container-master escondido" id="camadaImagem">
@@ -84,6 +97,14 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
         import { getFirestore, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
+        // LÓGICA DO BOTÃO TELA CHEIA
+        document.getElementById('btnFullscreen').addEventListener('click', () => {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => console.log(err));
+                document.getElementById('btnFullscreen').style.display = 'none'; // Esconde após clicar
+            }
+        });
+
         const firebaseConfig = {
             apiKey: "AIzaSyB8ZK0jSY-1E9y90TLfznxi9PI8mf_bJuc",
             authDomain: "festadafirmafcv.firebaseapp.com",
@@ -98,14 +119,11 @@
 
         let fotosAprovadas = [];
         let comunicadosAtivos = [];
-        
         let estadoAtual = 'FOTOS'; 
         let indexFoto = -1;
         let indexCom = -1;
-        
         let fotosExibidasNoCiclo = 0; 
         let comsExibidosNoCiclo = 0;  
-        
         let loopRodando = false;
         let maiorNumeroExibido = 0;
         let pularParaNova = false; 
@@ -196,34 +214,20 @@
         function renderizarFoto() {
             if (pularParaNova) {
                 let indiceDaNova = fotosAprovadas.findIndex(f => (f.numeroFila || 0) > maiorNumeroExibido);
-                if (indiceDaNova !== -1) {
-                    indexFoto = indiceDaNova;
-                } else {
-                    indexFoto = (indexFoto + 1) >= fotosAprovadas.length ? 0 : (indexFoto + 1); 
-                }
+                if (indiceDaNova !== -1) { indexFoto = indiceDaNova; } else { indexFoto = (indexFoto + 1) >= fotosAprovadas.length ? 0 : (indexFoto + 1); }
                 pularParaNova = false;
             } else {
                 indexFoto = (indexFoto + 1) >= fotosAprovadas.length ? 0 : (indexFoto + 1); 
             }
 
             const fotoDaVez = fotosAprovadas[indexFoto];
-            
-            if ((fotoDaVez.numeroFila || 0) > maiorNumeroExibido) {
-                maiorNumeroExibido = fotoDaVez.numeroFila;
-            }
+            if ((fotoDaVez.numeroFila || 0) > maiorNumeroExibido) { maiorNumeroExibido = fotoDaVez.numeroFila; }
 
             const imgPreload = new Image();
-            
-
-            
-            let timeoutCarregamento = setTimeout(() => {
-                imgPreload.onload = null; 
-                decidirProximo(); 
-            }, 3500);
+            let timeoutCarregamento = setTimeout(() => { imgPreload.onload = null; decidirProximo(); }, 3500);
             
             imgPreload.onload = () => {
                 clearTimeout(timeoutCarregamento); 
-
                 transicaoApagarTudo();
 
                 setTimeout(() => {
@@ -246,12 +250,7 @@
                     setTimeout(decidirProximo, 7000);
                 }, 800); 
             };
-            
-            imgPreload.onerror = () => { 
-                clearTimeout(timeoutCarregamento);
-                decidirProximo(); 
-            };
-
+            imgPreload.onerror = () => { clearTimeout(timeoutCarregamento); decidirProximo(); };
             imgPreload.src = fotoDaVez.url_imagem;
         }
 
@@ -261,16 +260,10 @@
 
             if(com.tipo === 'imagem' || com.url_imagem) {
                 const imgPreload = new Image();
-                
-
-                let timeoutCarregamento = setTimeout(() => {
-                    imgPreload.onload = null;
-                    decidirProximo();
-                }, 3500);
+                let timeoutCarregamento = setTimeout(() => { imgPreload.onload = null; decidirProximo(); }, 3500);
 
                 imgPreload.onload = () => {
                     clearTimeout(timeoutCarregamento);
-                    
                     transicaoApagarTudo();
                     setTimeout(() => {
                         comsExibidosNoCiclo++;
@@ -284,16 +277,9 @@
                         setTimeout(decidirProximo, 15000); 
                     }, 800);
                 };
-
-                imgPreload.onerror = () => { 
-                    clearTimeout(timeoutCarregamento);
-                    decidirProximo(); 
-                };
-
+                imgPreload.onerror = () => { clearTimeout(timeoutCarregamento); decidirProximo(); };
                 imgPreload.src = com.url_imagem;
-
             } else {
-
                 transicaoApagarTudo();
                 setTimeout(() => {
                     comsExibidosNoCiclo++;
