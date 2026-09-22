@@ -35,7 +35,7 @@
 <body>
 
     <div class="container">
-        <h2>Dia das Crianças FCV 🧸</h2>
+        <h2>Dia das Crianças FCV</h2>
         <p>Envie sua foto de infância para a TV do Corredor!</p>
 
         <input type="text" id="nomeInput" placeholder="Seu nome (ex: João Silva)">
@@ -43,11 +43,9 @@
         <div class="obs">O nome e setor serão exibidos na TV com a foto.</div>
         
         <div class="botoes-acao">
-            <button class="btn-acao" id="btnGaleria">Escolher Foto</button>
-            <button class="btn-acao" id="btnCamera">Usar Câmera</button>
+            <button class="btn-acao" id="btnGaleria">Escolher Foto da Galeria</button>
         </div>
 
-        <input type="file" id="inputCamera" accept="image/*" capture="environment">
         <input type="file" id="inputGaleria" accept="image/*">
 
         <div id="previewContainer">
@@ -78,16 +76,13 @@
 
         let arquivoSelecionado = null;
 
-        const btnCamera = document.getElementById('btnCamera');
         const btnGaleria = document.getElementById('btnGaleria');
-        const inputCamera = document.getElementById('inputCamera');
         const inputGaleria = document.getElementById('inputGaleria');
         const previewContainer = document.getElementById('previewContainer');
         const fotoPreview = document.getElementById('fotoPreview');
         const btnEnviar = document.getElementById('btnEnviar');
         const mensagem = document.getElementById('mensagem');
 
-        btnCamera.addEventListener('click', () => inputCamera.click());
         btnGaleria.addEventListener('click', () => inputGaleria.click());
 
         function processarArquivo(evento) {
@@ -103,7 +98,6 @@
             }
         }
 
-        inputCamera.addEventListener('change', processarArquivo);
         inputGaleria.addEventListener('change', processarArquivo);
 
         btnEnviar.addEventListener('click', async () => {
