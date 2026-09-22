@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TV Interativa - Dia das Crianças</title>
+    <style>
+        body { 
+            margin: 0; padding: 0; background-color: #000; color: white; 
+            font-family: Arial, sans-serif; overflow: hidden;
+            display: flex; justify-content: center; align-items: center; height: 100vh;
+        }
+        
+        .container-foto { 
+            position: relative; 
+            text-align: center; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            height: 100vh;
+        }
+
+        #fotoPainel { 
+            max-width: 100%; 
+            max-height: 100vh; 
+            object-fit: contain; 
+            transition: opacity 1s ease-in-out; 
+        }
+
+        .escondido { opacity: 0; }
+        .visivel { opacity: 1; }
+
+        .nome-rodape { 
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 26px; 
+            color: rgba(255, 255, 255, 0.9);
+            background-color: rgba(255, 152, 0, 0.8); /* Fundo laranja combinando com o tema infantil */
+            padding: 10px 30px;
+            border-radius: 30px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            transition: opacity 1s ease-in-out;
+            backdrop-filter: blur(5px);
+        }
+
+        #aguardando { font-size: 32px; color: #ff9800; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div id="aguardando">Aguardando as fotos da nossa infância... 🧸</div>
+
+    <div class="container-foto" id="containerFoto" style="display: none;">
+        <img id="fotoPainel" class="visivel" src="" alt="Foto Infância">
+        <div class="nome-rodape" id="nomePainel"></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+        import { getFirestore, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyB8ZK0jSY-1E9y90TLfznxi9PI8mf_bJuc",
+            authDomain: "festadafirmafcv.firebaseapp.com",
+            projectId: "festadafirmafcv",
+            storageBucket: "festadafirmafcv.firebasestorage.app",
+            messagingSenderId: "930815464098",
+            appId: "1:930815464098:web:890c2300a6e1a79abd3dfb"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        let fotosAprovadas = [];
+        let indexAtual = -1; 
+        let carrosselRodando = false;
+        
+        const imgEl = document.getElementById('fotoPainel');
+        const nomeEl = document.getElementById('nomePainel');
+        const container = document.getElementById('containerFoto');
+        const aguardando = document.getElementById('aguardando');
+
+        // BUSCANDO DA NOVA COLEÇÃO
+        const q = query(collection(db, "fotos_criancas"), where("status", "==", "aprovado"));
+
+        onSnapshot(q, (snapshot) => {
+            fotosAprovadas = [];
+            snapshot.forEach((doc) => {
+                fotosAprovadas.push(doc.data());
+            });
+
+            if (fotosAprovadas.length > 0 && !carrosselRodando) {
+                aguardando.style.display = "none";
+                container.style.display = "flex";
+                carrosselRodando = true;
+                mostrarProximaFoto();
+            }
+        });
+
+        function mostrarProximaFoto() {
+            if (fotosAprovadas.length === 0) {
+                aguardando.style.display = "block";
+                container.style.display = "none";
+                carrosselRodando = false;
+                indexAtual = -1;
+                return;
+            }
+
+            let proximoIndex = indexAtual + 1;
+            if (proximoIndex >= fotosAprovadas.length) {
+                proximoIndex = 0; 
+            }
+
+            if (fotosAprovadas.length === 1 && indexAtual !== -1) {
+                setTimeout(mostrarProximaFoto, 6000);
+                return;
+            }
+
+            const fotoDaVez = fotosAprovadas[proximoIndex];
+
+            imgEl.classList.remove('visivel');
+            imgEl.classList.add('escondido');
+            nomeEl.style.opacity = 0;
+
+            setTimeout(() => {
+                
+                const imgPreload = new Image();
+                imgPreload.src = fotoDaVez.url_imagem;
+                
+                imgPreload.onload = () => {
+                    indexAtual = proximoIndex;
+                    
+                    imgEl.src = fotoDaVez.url_imagem;
+                    if(fotoDaVez.nome === "Anônimo") {
+                        nomeEl.style.display = 'none';
+                    } else {
+                        nomeEl.style.display = 'block';
+                        nomeEl.innerText = fotoDaVez.nome;
+                    }
+
+                    imgEl.classList.remove('escondido');
+                    imgEl.classList.add('visivel');
+                    nomeEl.style.opacity = 1;
+
+                    setTimeout(mostrarProximaFoto, 6000);
+                };
+
+                imgPreload.onerror = () => {
+                    indexAtual = proximoIndex;
+                    mostrarProximaFoto();
+                };
+
+            }, 1000); 
+        }
+    </script>
+</body>
+</html>
