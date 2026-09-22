@@ -1,0 +1,21 @@
+{
+  "name": "TV Interativa FCV",
+  "short_name": "TV FCV",
+  "start_url": "./telao.html",
+  "display": "fullscreen",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "orientation": "landscape",
+  "icons": [
+    {
+      "src": "https://i.ibb.co/c1m5wXY/fcv-logo.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://i.ibb.co/c1m5wXY/fcv-logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
