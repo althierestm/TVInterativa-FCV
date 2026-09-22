@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TV Interativa - Dia das Crianças</title>
-    <!-- Fonte Montserrat -->
+
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         body { 
@@ -15,12 +15,13 @@
         
         .container-master { width: 100%; height: 100vh; display: flex; justify-content: center; align-items: center; position: absolute; top:0; left:0; }
 
-        /* Container de Fotos/Artes */
-        #imgPainel { max-width: 100%; max-height: 100vh; object-fit: contain; transition: opacity 1s ease-in-out; }
+        #imgPainel { width: 100%; height: 100vh; object-fit: contain; transition: opacity 1s ease-in-out; }
+        
+        .modo-arte { object-fit: cover !important; }
+
         .escondido { opacity: 0; pointer-events: none; }
         .visivel { opacity: 1; pointer-events: auto; }
 
-        /* Estilo iOS Moderno (Glassmorphism) para a etiqueta de nome */
         .nome-rodape { 
             position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
             background: rgba(255, 255, 255, 0.15);
@@ -34,13 +35,11 @@
         .nome-rodape .titular { font-size: 26px; font-weight: 700; letter-spacing: 1px; text-shadow: 0 2px 4px rgba(0,0,0,0.4); }
         .nome-rodape .setor { font-size: 16px; font-weight: 400; opacity: 0.9; margin-top: 4px; text-shadow: 0 1px 2px rgba(0,0,0,0.4); }
 
-        /* Número Discreto no Canto Inferior Esquerdo */
         #numeroDiscreto {
             position: absolute; bottom: 15px; left: 20px; font-size: 20px; font-weight: 700;
             color: rgba(255, 255, 255, 0.5); z-index: 10; text-shadow: 0 1px 3px rgba(0,0,0,0.8); transition: opacity 1s;
         }
 
-        /* Container de Comunicados de Texto */
         #containerTexto {
             width: 80%; text-align: center; background: rgba(34, 67, 135, 0.85);
             backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
@@ -52,7 +51,6 @@
 
         #aguardando { font-size: 32px; color: #ff9800; font-weight: 700; z-index: 50; }
 
-        /* Barra de Progresso Inferior */
         #barraProgressoContainer { position: absolute; bottom: 0; left: 0; width: 100%; height: 6px; background: rgba(255,255,255,0.1); z-index: 20; }
         #barraProgresso { height: 100%; width: 0%; background: linear-gradient(to right, #224387, #002061); }
     </style>
@@ -61,7 +59,6 @@
 
     <div id="aguardando">Aguardando conteúdos...</div>
 
-    <!-- Camada 1: Fotos dos Colaboradores ou Artes Visuais -->
     <div class="container-master escondido" id="camadaImagem">
         <img id="imgPainel" src="" alt="Painel">
         <div class="nome-rodape" id="nomePainel">
@@ -70,7 +67,6 @@
         </div>
     </div>
 
-    <!-- Camada 2: Textos de Comunicados -->
     <div class="container-master escondido" id="camadaTexto">
         <div id="containerTexto">
             <span class="aviso-label">📢 Mural da Fundação</span>
@@ -101,10 +97,9 @@
         let comunicadosAtivos = [];
         let indexFoto = -1;
         let indexCom = -1;
-        let contadorCiclo = 0; // Conta quantas fotos já passaram
+        let contadorCiclo = 0; 
         let loopRodando = false;
         
-        // Elementos da Interface
         const camadaImagem = document.getElementById('camadaImagem');
         const imgPainel = document.getElementById('imgPainel');
         const nomePainel = document.getElementById('nomePainel');
@@ -118,7 +113,6 @@
         const aguardando = document.getElementById('aguardando');
         const barraProgresso = document.getElementById('barraProgresso');
 
-        // Escuta Banco
         onSnapshot(query(collection(db, "fotos_criancas"), where("status", "==", "aprovado")), (snapshot) => {
             fotosAprovadas = [];
             snapshot.forEach(doc => fotosAprovadas.push(doc.data()));
@@ -149,7 +143,6 @@
             }, 50);
         }
 
-        // Cérebro da fila
         function decidirProximo() {
             if (fotosAprovadas.length === 0 && comunicadosAtivos.length === 0) {
                 loopRodando = false;
@@ -161,25 +154,23 @@
                 return;
             }
 
-            // A lógica sólida: Exibe 1 comunicado a cada 3 fotos exibidas
             let deveMostrarComunicado = false;
             if (comunicadosAtivos.length > 0) {
                 if (fotosAprovadas.length === 0) {
-                    deveMostrarComunicado = true; // Se não tem foto, mostra só comunicados
+                    deveMostrarComunicado = true;
                 } else if (contadorCiclo >= 3) {
-                    deveMostrarComunicado = true; // Bateu a meta de 3 fotos
+                    deveMostrarComunicado = true;
                 }
             }
 
             if (deveMostrarComunicado) {
-                contadorCiclo = 0; // Zera a contagem das fotos
+                contadorCiclo = 0; 
                 renderizarComunicado();
             } else {
                 renderizarFoto();
             }
         }
 
-        // RENDERIZA FOTO DE CRIANÇA
         function renderizarFoto() {
             indexFoto = (indexFoto + 1) >= fotosAprovadas.length ? 0 : (indexFoto + 1);
             const fotoDaVez = fotosAprovadas[indexFoto];
@@ -191,13 +182,14 @@
                 imgPreload.src = fotoDaVez.url_imagem;
                 
                 imgPreload.onload = () => {
-                    contadorCiclo++; // Contabiliza que uma foto passou
+                    contadorCiclo++; 
+                    
+                    imgPainel.classList.remove('modo-arte');
                     
                     imgPainel.src = fotoDaVez.url_imagem;
                     numDiscreto.innerText = fotoDaVez.numeroFila ? `#${fotoDaVez.numeroFila}` : "";
                     numDiscreto.style.opacity = 1;
 
-                    // Crachá
                     if(fotoDaVez.nome === "Anônimo" && !fotoDaVez.setor) {
                         nomePainel.style.display = 'none';
                     } else {
@@ -208,14 +200,13 @@
 
                     camadaImagem.classList.remove('escondido'); camadaImagem.classList.add('visivel');
                     animarBarra(7000); 
-                    setTimeout(decidirProximo, 7000); // 7 Segundos para Foto
+                    setTimeout(decidirProximo, 7000);
                 };
 
-                imgPreload.onerror = () => { decidirProximo(); }; // Pula em caso de erro
+                imgPreload.onerror = () => { decidirProximo(); };
             }, 1000);
         }
 
-        // RENDERIZA COMUNICADO (Pode ser Texto ou Arte Visual)
         function renderizarComunicado() {
             indexCom = (indexCom + 1) >= comunicadosAtivos.length ? 0 : (indexCom + 1);
             const com = comunicadosAtivos[indexCom];
@@ -224,32 +215,32 @@
 
             setTimeout(() => {
                 if(com.tipo === 'imagem' || com.url_imagem) {
-                    // É UMA ARTE: Usa a camada de imagem, mas esconde o crachá e número
                     const imgPreload = new Image();
                     imgPreload.src = com.url_imagem;
                     imgPreload.onload = () => {
+                        
+                        imgPainel.classList.add('modo-arte');
+                        
                         imgPainel.src = com.url_imagem;
-                        nomePainel.style.display = 'none'; // Esconde nome
-                        numDiscreto.style.opacity = 0;     // Esconde número
+                        nomePainel.style.display = 'none'; 
+                        numDiscreto.style.opacity = 0;     
                         
                         camadaImagem.classList.remove('escondido'); camadaImagem.classList.add('visivel');
                         animarBarra(15000); 
-                        setTimeout(decidirProximo, 15000); // 15 Segundos para Arte
+                        setTimeout(decidirProximo, 15000); 
                     };
                     imgPreload.onerror = () => { decidirProximo(); };
                 } else {
-                    // É UM TEXTO: Usa a camada do bloco azul
                     textoDoComunicado.innerText = com.texto;
                     numDiscreto.style.opacity = 0;
                     
                     camadaTexto.classList.remove('escondido'); camadaTexto.classList.add('visivel');
                     animarBarra(15000); 
-                    setTimeout(decidirProximo, 15000); // 15 Segundos para Texto
+                    setTimeout(decidirProximo, 15000); 
                 }
             }, 1000);
         }
 
-        // Utilitário para apagar a tela suavemente entre as trocas
         function transicaoApagarTudo() {
             camadaImagem.classList.remove('visivel'); camadaImagem.classList.add('escondido');
             camadaTexto.classList.remove('visivel'); camadaTexto.classList.add('escondido');
