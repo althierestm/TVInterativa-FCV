@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dia das Crianças - Fundação</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; background-color: #f0f8ff; padding: 20px; }
+        .container { max-width: 400px; margin: 0 auto; background: white; padding: 30px 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border-top: 5px solid #ff9800; }
+        h2 { color: #333; margin-bottom: 5px; }
+        p { color: #666; margin-bottom: 25px; font-size: 14px; }
+        .obs { font-size: 11px; color: #888; margin-top: -5px; margin-bottom: 20px; text-align: left; padding-left: 5%; }
+        
+        input[type="text"] { width: 90%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; }
+        input[type="file"] { display: none; }
+
+        .botoes-acao { display: flex; gap: 10px; width: 90%; margin: 0 auto; }
+        .btn-acao { flex: 1; padding: 12px; border: 1px solid #ccc; background-color: #f9f9f9; color: #333; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 14px; }
+        .btn-acao:hover { background-color: #eee; }
+
+        #previewContainer { display: none; margin-top: 20px; }
+        #previewContainer p { margin-bottom: 5px; font-size: 12px; color: #555; font-weight: bold; }
+        #fotoPreview { max-width: 90%; max-height: 250px; border-radius: 8px; object-fit: cover; border: 1px solid #ccc; }
+
+        #btnEnviar { background-color: #ff9800; color: white; border: none; padding: 15px 20px; width: 90%; font-size: 16px; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 20px; }
+        #btnEnviar:hover { background-color: #e68a00; }
+        #btnEnviar:disabled { background-color: #ccc; cursor: not-allowed; }
+        #mensagem { margin-top: 20px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Dia das Crianças FCV 🧸</h2>
+        <p>Envie uma foto sua de quando era criança para a nossa TV interativa!</p>
+
+        <input type="text" id="nomeInput" placeholder="Seu nome hoje (ex: João Silva)">
+        <div class="obs">Observação: O nome será exibido na TV junto com a sua foto.</div>
+        
+        <div class="botoes-acao">
+            <button class="btn-acao" id="btnGaleria">Escolher da Galeria</button>
+            <button class="btn-acao" id="btnCamera">Tirar Foto de uma Foto</button>
+        </div>
+
+        <input type="file" id="inputCamera" accept="image/*" capture="environment">
+        <input type="file" id="inputGaleria" accept="image/*">
+
+        <div id="previewContainer">
+            <p>Sua foto de infância:</p>
+            <img id="fotoPreview" src="" alt="Pré-visualização">
+        </div>
+        
+        <button id="btnEnviar">Enviar para a TV</button>
+        <div id="mensagem"></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyB8ZK0jSY-1E9y90TLfznxi9PI8mf_bJuc",
+            authDomain: "festadafirmafcv.firebaseapp.com",
+            projectId: "festadafirmafcv",
+            storageBucket: "festadafirmafcv.firebasestorage.app",
+            messagingSenderId: "930815464098",
+            appId: "1:930815464098:web:890c2300a6e1a79abd3dfb"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const IMGBB_API_KEY = "767bd935a2b389a4fbfad4f8d92bfae7"; 
+
+        let arquivoSelecionado = null;
+
+        const btnCamera = document.getElementById('btnCamera');
+        const btnGaleria = document.getElementById('btnGaleria');
+        const inputCamera = document.getElementById('inputCamera');
+        const inputGaleria = document.getElementById('inputGaleria');
+        const previewContainer = document.getElementById('previewContainer');
+        const fotoPreview = document.getElementById('fotoPreview');
+        const btnEnviar = document.getElementById('btnEnviar');
+        const mensagem = document.getElementById('mensagem');
+
+        btnCamera.addEventListener('click', () => inputCamera.click());
+        btnGaleria.addEventListener('click', () => inputGaleria.click());
+
+        function processarArquivo(evento) {
+            const arquivo = evento.target.files[0];
+            if (arquivo) {
+                arquivoSelecionado = arquivo;
+                const leitor = new FileReader();
+                leitor.onload = function(e) {
+                    fotoPreview.src = e.target.result;
+                    previewContainer.style.display = 'block';
+                }
+                leitor.readAsDataURL(arquivo);
+            }
+        }
+
+        inputCamera.addEventListener('change', processarArquivo);
+        inputGaleria.addEventListener('change', processarArquivo);
+
+        btnEnviar.addEventListener('click', async () => {
+            const nome = document.getElementById('nomeInput').value || "Anônimo";
+
+            if (!arquivoSelecionado) {
+                mensagem.innerText = "Por favor, escolha uma foto primeiro.";
+                mensagem.style.color = "red";
+                return;
+            }
+
+            mensagem.innerText = "Enviando sua foto, aguarde...";
+            mensagem.style.color = "orange";
+            btnEnviar.disabled = true;
+
+            const formData = new FormData();
+            formData.append("image", arquivoSelecionado);
+
+            try {
+                const respostaImgBB = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+                    method: 'POST',
+                    body: formData
+                });
+                const dadosImgBB = await respostaImgBB.json();
+                
+                const linkDaFoto = dadosImgBB.data.url; 
+                const linkThumb = dadosImgBB.data.thumb.url; 
+
+                // NOVO DIRETÓRIO: "fotos_criancas"
+                await addDoc(collection(db, "fotos_criancas"), {
+                    nome: nome,
+                    url_imagem: linkDaFoto,
+                    url_thumb: linkThumb,
+                    status: "pendente",
+                    timestamp: serverTimestamp()
+                });
+
+                mensagem.innerText = "Foto enviada com sucesso! Olhe para a TV.";
+                mensagem.style.color = "green";
+                
+                document.getElementById('nomeInput').value = "";
+                arquivoSelecionado = null;
+                previewContainer.style.display = 'none';
+                inputCamera.value = "";
+                inputGaleria.value = "";
+
+            } catch (erro) {
+                console.error(erro);
+                mensagem.innerText = "Ocorreu um erro ao enviar. Tente novamente.";
+                mensagem.style.color = "red";
+            } finally {
+                btnEnviar.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>
