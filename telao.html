@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TV Interativa - Dia das Crianças</title>
-
+    <!-- Tag que transforma em PWA -->
     <link rel="manifest" href="manifest.json">
-   
+    <!-- Fonte Montserrat -->
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         body { 
@@ -15,6 +15,7 @@
             display: flex; justify-content: center; align-items: center; height: 100vh; position: relative;
         }
         
+        /* Botão de Tela Cheia */
         #btnFullscreen {
             position: absolute; top: 20px; right: 20px; z-index: 9999;
             background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.5);
@@ -23,11 +24,13 @@
         }
         #btnFullscreen:hover { background: rgba(255,255,255,0.4); }
 
+        /* Marca D'água Fixa (Tamanho levemente aumentado) */
         .marca-dagua {
             position: absolute; top: 30px; right: 30px; width: 140px;
             opacity: 0.7; z-index: 9990; pointer-events: none;
         }
 
+        /* QR Code (Apenas nas fotos) */
         .qr-code-tv {
             position: absolute; bottom: 30px; right: 30px; width: 90px;
             background: rgba(255,255,255,0.9); padding: 5px; border-radius: 8px;
@@ -36,13 +39,14 @@
             pointer-events: none;
         }
 
+        /* Relógio Glassmorphism (Apenas nos comunicados) */
         #relogioTV {
             position: absolute; bottom: 30px; right: 30px;
-            background: rgba(255, 255, 255, 0.85); /* Fundo branco translúcido */
+            background: rgba(255, 255, 255, 0.85);
             backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.5);
             box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            border-radius: 12px; color: #224387; /* Azul FCV */
+            border-radius: 12px; color: #224387; 
             padding: 10px 20px; text-align: center;
             font-size: 28px; font-weight: 700; letter-spacing: 1px;
             transition: opacity 0.8s ease-in-out, transform 0.8s ease-in-out; 
@@ -53,6 +57,14 @@
             width: 100%; height: 100vh; display: flex; justify-content: center; align-items: center; 
             position: absolute; top:0; left:0; 
             transition: opacity 0.8s ease-in-out, transform 0.8s ease-in-out; 
+        }
+
+        /* NOVO: Background exclusivo para a camada de fotos */
+        #camadaImagem {
+            background-image: url('escaneie%20e%20mande%20a%20sua.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
         }
 
         .escondido { opacity: 0; pointer-events: none; transform: scale(1.02); }
@@ -100,6 +112,7 @@
     
     <img src="MKTFCV.png" class="marca-dagua" alt="MKT FCV">
     
+    <!-- Alternam de lugar dependendo do conteúdo -->
     <img src="qcoude%20fotos.png" id="qrCodeTV" class="qr-code-tv escondido" alt="QR Code">
     <div id="relogioTV" class="escondido">--:--</div>
 
@@ -134,6 +147,7 @@
             }
         });
 
+        // Motor do Relógio
         function atualizarRelogio() {
             const agora = new Date();
             const horaString = agora.toLocaleTimeString('pt-BR', { 
