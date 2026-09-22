@@ -13,20 +13,19 @@
             display: flex; justify-content: center; align-items: center; height: 100vh; position: relative;
         }
         
-        .container-master { width: 100%; height: 100vh; display: flex; justify-content: center; align-items: center; position: relative; }
+        .container-master { width: 100%; height: 100vh; display: flex; justify-content: center; align-items: center; position: absolute; top:0; left:0; }
 
-        /* Container de Fotos */
-        #fotoPainel { max-width: 100%; max-height: 100vh; object-fit: contain; transition: opacity 1s ease-in-out; }
-        .escondido { opacity: 0; }
-        .visivel { opacity: 1; }
+        /* Container de Fotos/Artes */
+        #imgPainel { max-width: 100%; max-height: 100vh; object-fit: contain; transition: opacity 1s ease-in-out; }
+        .escondido { opacity: 0; pointer-events: none; }
+        .visivel { opacity: 1; pointer-events: auto; }
 
-        /* Estilo iOS Moderno (Glassmorphism) */
+        /* Estilo iOS Moderno (Glassmorphism) para a etiqueta de nome */
         .nome-rodape { 
             position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
-            background: rgba(255, 255, 255, 0.15); /* Fundo muito transparente */
-            backdrop-filter: blur(20px); /* Efeito de vidro borrado */
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.3); /* Borda suave brilhante */
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
             border-radius: 20px; color: #ffffff;
             padding: 12px 35px; text-align: center;
@@ -38,20 +37,20 @@
         /* Número Discreto no Canto Inferior Esquerdo */
         #numeroDiscreto {
             position: absolute; bottom: 15px; left: 20px; font-size: 20px; font-weight: 700;
-            color: rgba(255, 255, 255, 0.5); z-index: 10; text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+            color: rgba(255, 255, 255, 0.5); z-index: 10; text-shadow: 0 1px 3px rgba(0,0,0,0.8); transition: opacity 1s;
         }
 
-        /* Container de Comunicados */
-        #containerComunicado {
-            display: none; width: 80%; text-align: center; background: rgba(34, 67, 135, 0.85);
+        /* Container de Comunicados de Texto */
+        #containerTexto {
+            width: 80%; text-align: center; background: rgba(34, 67, 135, 0.85);
             backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
             padding: 50px; border-radius: 30px; border: 1px solid rgba(255,255,255,0.2);
             box-shadow: 0 10px 40px rgba(0,0,0,0.5); transition: opacity 1s ease-in-out;
         }
-        #textoComunicado { font-size: 50px; font-weight: 700; line-height: 1.3; margin: 0; color: #fff; }
+        #textoDoComunicado { font-size: 50px; font-weight: 700; line-height: 1.3; margin: 0; color: #fff; }
         .aviso-label { font-size: 20px; color: #ff9800; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 20px; display: block;}
 
-        #aguardando { font-size: 32px; color: #ff9800; font-weight: 700; }
+        #aguardando { font-size: 32px; color: #ff9800; font-weight: 700; z-index: 50; }
 
         /* Barra de Progresso Inferior */
         #barraProgressoContainer { position: absolute; bottom: 0; left: 0; width: 100%; height: 6px; background: rgba(255,255,255,0.1); z-index: 20; }
@@ -62,23 +61,24 @@
 
     <div id="aguardando">Aguardando conteúdos...</div>
 
-    <div class="container-master" id="containerFoto" style="display: none;">
-        <img id="fotoPainel" class="visivel" src="" alt="Foto Infância">
+    <!-- Camada 1: Fotos dos Colaboradores ou Artes Visuais -->
+    <div class="container-master escondido" id="camadaImagem">
+        <img id="imgPainel" src="" alt="Painel">
         <div class="nome-rodape" id="nomePainel">
             <div class="titular" id="lblNome"></div>
             <div class="setor" id="lblSetor"></div>
         </div>
     </div>
 
-    <div class="container-master" id="divComunicadoMaster" style="display: none;">
-        <div id="containerComunicado" class="visivel">
-            <span class="aviso-label">📢 Comunicado Interno</span>
-            <h1 id="textoComunicado"></h1>
+    <!-- Camada 2: Textos de Comunicados -->
+    <div class="container-master escondido" id="camadaTexto">
+        <div id="containerTexto">
+            <span class="aviso-label">📢 Mural da Fundação</span>
+            <h1 id="textoDoComunicado"></h1>
         </div>
     </div>
 
     <div id="numeroDiscreto"></div>
-
     <div id="barraProgressoContainer"><div id="barraProgresso"></div></div>
 
     <script type="module">
@@ -99,25 +99,26 @@
 
         let fotosAprovadas = [];
         let comunicadosAtivos = [];
-        let indexFotoAtual = -1;
-        let indexComAtual = 0;
-        let fotosExibidasNoCiclo = 0; // Conta até 3
+        let indexFoto = -1;
+        let indexCom = -1;
+        let contadorCiclo = 0; // Conta quantas fotos já passaram
         let loopRodando = false;
         
-        // Elementos
-        const imgEl = document.getElementById('fotoPainel');
+        // Elementos da Interface
+        const camadaImagem = document.getElementById('camadaImagem');
+        const imgPainel = document.getElementById('imgPainel');
+        const nomePainel = document.getElementById('nomePainel');
         const lblNome = document.getElementById('lblNome');
         const lblSetor = document.getElementById('lblSetor');
-        const nomePainel = document.getElementById('nomePainel');
-        const containerFoto = document.getElementById('containerFoto');
-        const containerCom = document.getElementById('divComunicadoMaster');
-        const boxCom = document.getElementById('containerComunicado');
-        const txtCom = document.getElementById('textoComunicado');
+        
+        const camadaTexto = document.getElementById('camadaTexto');
+        const textoDoComunicado = document.getElementById('textoDoComunicado');
+        
         const numDiscreto = document.getElementById('numeroDiscreto');
         const aguardando = document.getElementById('aguardando');
         const barraProgresso = document.getElementById('barraProgresso');
 
-        // Escuta Fotos (ordenadas no front para evitar criação de index manual)
+        // Escuta Banco
         onSnapshot(query(collection(db, "fotos_criancas"), where("status", "==", "aprovado")), (snapshot) => {
             fotosAprovadas = [];
             snapshot.forEach(doc => fotosAprovadas.push(doc.data()));
@@ -125,7 +126,6 @@
             iniciarSePronto();
         });
 
-        // Escuta Comunicados
         onSnapshot(collection(db, "comunicados_criancas"), (snapshot) => {
             comunicadosAtivos = [];
             snapshot.forEach(doc => comunicadosAtivos.push(doc.data()));
@@ -136,7 +136,7 @@
             if ((fotosAprovadas.length > 0 || comunicadosAtivos.length > 0) && !loopRodando) {
                 aguardando.style.display = "none";
                 loopRodando = true;
-                avancarFila();
+                decidirProximo();
             }
         }
 
@@ -149,78 +149,55 @@
             }, 50);
         }
 
-        function avancarFila() {
+        // Cérebro da fila
+        function decidirProximo() {
             if (fotosAprovadas.length === 0 && comunicadosAtivos.length === 0) {
                 loopRodando = false;
                 aguardando.style.display = "block";
-                containerFoto.style.display = "none";
-                containerCom.style.display = "none";
-                numDiscreto.innerText = "";
+                camadaImagem.classList.add('escondido'); camadaImagem.classList.remove('visivel');
+                camadaTexto.classList.add('escondido'); camadaTexto.classList.remove('visivel');
+                numDiscreto.style.opacity = 0;
                 barraProgresso.style.width = "0%";
                 return;
             }
 
-            // A CADA 3 FOTOS, EXIBE 1 COMUNICADO (SE EXISTIR)
-            if (fotosExibidasNoCiclo >= 3 && comunicadosAtivos.length > 0) {
-                fotosExibidasNoCiclo = 0; // reseta ciclo
-                exibirComunicado();
-                return;
-            }
-            
-            // SE NÃO TEM FOTO MAS TEM COMUNICADO, FICA RODANDO COMUNICADO
-            if (fotosAprovadas.length === 0 && comunicadosAtivos.length > 0) {
-                exibirComunicado();
-                return;
+            // A lógica sólida: Exibe 1 comunicado a cada 3 fotos exibidas
+            let deveMostrarComunicado = false;
+            if (comunicadosAtivos.length > 0) {
+                if (fotosAprovadas.length === 0) {
+                    deveMostrarComunicado = true; // Se não tem foto, mostra só comunicados
+                } else if (contadorCiclo >= 3) {
+                    deveMostrarComunicado = true; // Bateu a meta de 3 fotos
+                }
             }
 
-            // FLUXO NORMAL DE FOTOS
-            exibirFoto();
+            if (deveMostrarComunicado) {
+                contadorCiclo = 0; // Zera a contagem das fotos
+                renderizarComunicado();
+            } else {
+                renderizarFoto();
+            }
         }
 
-        function exibirComunicado() {
-            if (indexComAtual >= comunicadosAtivos.length) indexComAtual = 0;
-            const com = comunicadosAtivos[indexComAtual];
-            
-            // Esconde foto, mostra comunicado
-            containerFoto.style.display = "none";
-            containerCom.style.display = "flex";
-            numDiscreto.innerText = "";
-            boxCom.classList.remove('visivel'); boxCom.classList.add('escondido');
+        // RENDERIZA FOTO DE CRIANÇA
+        function renderizarFoto() {
+            indexFoto = (indexFoto + 1) >= fotosAprovadas.length ? 0 : (indexFoto + 1);
+            const fotoDaVez = fotosAprovadas[indexFoto];
 
-            setTimeout(() => {
-                txtCom.innerText = com.texto;
-                boxCom.classList.remove('escondido'); boxCom.classList.add('visivel');
-                animarBarra(15000); // 15 Segundos
-                
-                setTimeout(() => {
-                    indexComAtual++;
-                    avancarFila();
-                }, 15000);
-            }, 1000);
-        }
-
-        function exibirFoto() {
-            let proximoIndex = indexFotoAtual + 1;
-            if (proximoIndex >= fotosAprovadas.length) proximoIndex = 0;
-            const fotoDaVez = fotosAprovadas[proximoIndex];
-
-            containerCom.style.display = "none";
-            containerFoto.style.display = "flex";
-            
-            imgEl.classList.remove('visivel'); imgEl.classList.add('escondido');
-            nomePainel.style.opacity = 0;
+            transicaoApagarTudo();
 
             setTimeout(() => {
                 const imgPreload = new Image();
                 imgPreload.src = fotoDaVez.url_imagem;
                 
                 imgPreload.onload = () => {
-                    indexFotoAtual = proximoIndex;
-                    fotosExibidasNoCiclo++;
+                    contadorCiclo++; // Contabiliza que uma foto passou
                     
-                    imgEl.src = fotoDaVez.url_imagem;
+                    imgPainel.src = fotoDaVez.url_imagem;
                     numDiscreto.innerText = fotoDaVez.numeroFila ? `#${fotoDaVez.numeroFila}` : "";
+                    numDiscreto.style.opacity = 1;
 
+                    // Crachá
                     if(fotoDaVez.nome === "Anônimo" && !fotoDaVez.setor) {
                         nomePainel.style.display = 'none';
                     } else {
@@ -229,18 +206,54 @@
                         lblSetor.innerText = fotoDaVez.setor ? fotoDaVez.setor : "";
                     }
 
-                    imgEl.classList.remove('escondido'); imgEl.classList.add('visivel');
-                    nomePainel.style.opacity = 1;
-
-                    animarBarra(7000); // 7 Segundos
-                    setTimeout(avancarFila, 7000);
+                    camadaImagem.classList.remove('escondido'); camadaImagem.classList.add('visivel');
+                    animarBarra(7000); 
+                    setTimeout(decidirProximo, 7000); // 7 Segundos para Foto
                 };
 
-                imgPreload.onerror = () => {
-                    indexFotoAtual = proximoIndex;
-                    avancarFila();
-                };
+                imgPreload.onerror = () => { decidirProximo(); }; // Pula em caso de erro
             }, 1000);
+        }
+
+        // RENDERIZA COMUNICADO (Pode ser Texto ou Arte Visual)
+        function renderizarComunicado() {
+            indexCom = (indexCom + 1) >= comunicadosAtivos.length ? 0 : (indexCom + 1);
+            const com = comunicadosAtivos[indexCom];
+
+            transicaoApagarTudo();
+
+            setTimeout(() => {
+                if(com.tipo === 'imagem' || com.url_imagem) {
+                    // É UMA ARTE: Usa a camada de imagem, mas esconde o crachá e número
+                    const imgPreload = new Image();
+                    imgPreload.src = com.url_imagem;
+                    imgPreload.onload = () => {
+                        imgPainel.src = com.url_imagem;
+                        nomePainel.style.display = 'none'; // Esconde nome
+                        numDiscreto.style.opacity = 0;     // Esconde número
+                        
+                        camadaImagem.classList.remove('escondido'); camadaImagem.classList.add('visivel');
+                        animarBarra(15000); 
+                        setTimeout(decidirProximo, 15000); // 15 Segundos para Arte
+                    };
+                    imgPreload.onerror = () => { decidirProximo(); };
+                } else {
+                    // É UM TEXTO: Usa a camada do bloco azul
+                    textoDoComunicado.innerText = com.texto;
+                    numDiscreto.style.opacity = 0;
+                    
+                    camadaTexto.classList.remove('escondido'); camadaTexto.classList.add('visivel');
+                    animarBarra(15000); 
+                    setTimeout(decidirProximo, 15000); // 15 Segundos para Texto
+                }
+            }, 1000);
+        }
+
+        // Utilitário para apagar a tela suavemente entre as trocas
+        function transicaoApagarTudo() {
+            camadaImagem.classList.remove('visivel'); camadaImagem.classList.add('escondido');
+            camadaTexto.classList.remove('visivel'); camadaTexto.classList.add('escondido');
+            numDiscreto.style.opacity = 0;
         }
     </script>
 </body>
