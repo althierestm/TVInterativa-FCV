@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Moderação - Dia das Crianças</title>
-    <!-- Fonte Montserrat -->
+
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Montserrat', sans-serif; background-color: #2c3e50; color: white; padding: 15px; text-align: center; }
@@ -15,29 +15,28 @@
         h2.telao-titulo { color: #2ecc71; }
         h2.comunicado-titulo { color: #3498db; }
 
-        .grid-fotos { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 12px; margin-bottom: 30px; }
-        .card { background: #34495e; padding: 10px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); position: relative; }
+        .grid-fotos { display: grid; grid-template-columns: repeat(auto-fill, minmax(85px, 1fr)); gap: 8px; margin-bottom: 30px; }
+        .card { background: #34495e; padding: 6px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); position: relative; }
         
-        .badge-numero { position: absolute; top: -5px; right: -5px; background: #e74c3c; color: white; border-radius: 50%; width: 22px; height: 22px; font-size: 11px; font-weight: bold; display: flex; justify-content: center; align-items: center; }
+        .badge-numero { position: absolute; top: -5px; right: -5px; background: #e74c3c; color: white; border-radius: 50%; width: 20px; height: 20px; font-size: 10px; font-weight: bold; display: flex; justify-content: center; align-items: center; z-index: 2; }
 
-        .card img { width: 100%; aspect-ratio: 1 / 1; border-radius: 6px; object-fit: cover; cursor: pointer; transition: opacity 0.2s; }
-        .card img:hover { opacity: 0.7; }
+        .card img { width: 100%; aspect-ratio: 1 / 1; border-radius: 4px; object-fit: cover; }
         
-        .nome { font-weight: 700; margin: 8px 0 2px 0; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff; }
-        .setor { font-weight: 400; font-size: 10px; color: #bdc3c7; margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .nome { font-weight: 700; margin: 6px 0 2px 0; font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff; }
+        .setor { font-weight: 400; font-size: 9px; color: #bdc3c7; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         
-        .btn-group { display: flex; flex-direction: column; gap: 6px; }
-        button { font-family: 'Montserrat', sans-serif; padding: 8px 5px; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 11px; width: 100%; }
+        .btn-group { display: flex; flex-direction: column; gap: 4px; }
+        button { font-family: 'Montserrat', sans-serif; padding: 5px 2px; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 9px; width: 100%; }
         
+        .btn-ver { background-color: #3498db; color: white; }
+        .btn-ver:hover { background-color: #2980b9; }
         .btn-aprovar { background-color: #2ecc71; color: white; }
         .btn-aprovar:hover { background-color: #27ae60; }
-        .btn-recusar { background-color: #e74c3c; color: white; }
-        .btn-recusar:hover { background-color: #c0392b; }
-        .btn-apagar { background-color: #95a5a6; color: white; }
+        .btn-apagar { background-color: #e74c3c; color: white; }
+        .btn-apagar:hover { background-color: #c0392b; }
         
         .vazio { margin-top: 10px; color: #bdc3c7; font-style: italic; grid-column: 1 / -1; font-size: 13px; }
 
-        /* PAINEL DE COMUNICADOS APRIMORADO */
         .painel-comunicados { background: #34495e; padding: 15px; border-radius: 8px; max-width: 600px; margin: 0 auto 30px auto; display: flex; flex-wrap: wrap; gap: 15px; text-align: left; }
         .col-com { flex: 1; min-width: 250px; display: flex; flex-direction: column; gap: 8px; }
         .col-divisor { border-left: 2px dashed #7f8c8d; padding-left: 15px; }
@@ -47,18 +46,16 @@
         .btn-texto { background: #3498db; color: white; padding: 10px; font-size: 12px; }
         .btn-arte { background: #8e44ad; color: white; padding: 10px; font-size: 12px; }
         .btn-enviar-arte { background: #f39c12; color: white; padding: 10px; font-size: 12px; display: none; }
-        
         #msgUploadCom { font-size: 11px; color: #f1c40f; text-align: center; font-weight: bold; margin-top: 5px; }
 
-        /* Lista de comunicados ativos */
         .lista-comunicados { max-width: 600px; margin: 0 auto; text-align: left; }
         .item-comunicado { background: #2c3e50; padding: 12px; border-radius: 6px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid #3498db; font-size: 13px; gap: 10px; }
         .item-com-img { width: 40px; height: 40px; object-fit: cover; border-radius: 4px; cursor: pointer; }
-        .btn-remover-com { width: auto; padding: 5px 10px; background: #e74c3c; margin: 0; }
+        .btn-remover-com { width: auto; padding: 5px 10px; background: #e74c3c; margin: 0; font-size: 11px; }
 
-        #modalVerFoto { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9); align-items: center; justify-content: center; }
+        #modalVerFoto { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.95); align-items: center; justify-content: center; }
         #modalImg { max-width: 95%; max-height: 85vh; border-radius: 8px; object-fit: contain; }
-        .fechar-modal { position: absolute; top: 15px; right: 25px; color: white; font-size: 35px; font-weight: bold; cursor: pointer; }
+        .fechar-modal { position: absolute; top: 15px; right: 25px; color: white; font-size: 40px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -66,22 +63,18 @@
     <h1>Moderação FCV</h1>
     <p>Aprove fotos e insira artes ou avisos para a TV.</p>
 
-    <!-- COMUNICADOS -->
     <h2 class="comunicado-titulo">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
         Mural de Comunicados (Textos e Artes)
     </h2>
-    
     <div class="painel-comunicados">
-        <!-- Lado Texto -->
         <div class="col-com">
             <span style="font-size: 12px; font-weight: bold; color: #3498db;">📝 Aviso em Texto</span>
             <input type="text" id="inputComunicadoTxt" placeholder="Digite um recado curto...">
             <button class="btn-texto" id="btnAddComTxt">Publicar Texto na TV</button>
         </div>
-        <!-- Lado Imagem -->
         <div class="col-com col-divisor">
-            <span style="font-size: 12px; font-weight: bold; color: #8e44ad;">🖼️ Arte em Imagem (Cartaz)</span>
+            <span style="font-size: 12px; font-weight: bold; color: #8e44ad;">🖼️ Arte (Sempre tela cheia)</span>
             <input type="file" id="inputComunicadoImg" accept="image/*" style="display:none;">
             <button class="btn-arte" id="btnSelectComImg">Escolher Imagem</button>
             <button class="btn-enviar-arte" id="btnUploadComImg">🚀 Enviar Arte para TV</button>
@@ -90,15 +83,14 @@
     </div>
     <div class="lista-comunicados" id="listaComunicados"></div>
 
-    <!-- PENDENTES -->
     <h2>
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
         Aguardando Aprovação
     </h2>
     <div class="grid-fotos" id="listaPendentes"></div>
 
-    <!-- NA TV -->
-    <h2 class="telao-titulo">
+
+     <h2 class="telao-titulo">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg>
         Já estão na TV
     </h2>
@@ -130,24 +122,26 @@
         const listaAprovadas = document.getElementById('listaAprovadas');
         const listaComunicados = document.getElementById('listaComunicados');
 
-        // --- SISTEMA DE FOTOS ---
         const renderizarCard = (dados, id, ehPendente) => {
+
             const imagemLeve = dados.url_thumb ? dados.url_thumb : dados.url_imagem;
             const numero = dados.numeroFila ? dados.numeroFila : "-";
             const setor = dados.setor ? dados.setor : "Sem setor";
             
             let botoes = ehPendente ? 
-                `<button class="btn-aprovar" onclick="atualizarStatus('${id}', 'aprovado')">Aprovar</button>
-                 <button class="btn-recusar" onclick="excluirFoto('${id}')">Recusar</button>` : 
-                `<button class="btn-apagar" onclick="excluirFoto('${id}')">Remover</button>`;
+                `<button class="btn-ver" onclick="abrirModal('${dados.url_imagem}')">👁️ Ver Maior</button>
+                 <button class="btn-aprovar" onclick="atualizarStatus('${id}', 'aprovado')">✅ Aprovar</button>
+                 <button class="btn-apagar" onclick="excluirFoto('${id}')">🗑️ Apagar</button>` : 
+                `<button class="btn-ver" onclick="abrirModal('${dados.url_imagem}')">👁️ Ver Maior</button>
+                 <button class="btn-apagar" onclick="excluirFoto('${id}')">🗑️ Remover da TV</button>`;
 
             const card = document.createElement('div');
             card.className = 'card';
             card.innerHTML = `
                 <div class="badge-numero">${numero}</div>
-                <img src="${imagemLeve}" loading="lazy" onclick="abrirModal('${dados.url_imagem}')">
-                <div class="nome">${dados.nome}</div>
-                <div class="setor">${setor}</div>
+                <img src="${imagemLeve}" loading="lazy">
+                <div class="nome" title="${dados.nome}">${dados.nome}</div>
+                <div class="setor" title="${setor}">${setor}</div>
                 <div class="btn-group">${botoes}</div>
             `;
             return card;
@@ -166,12 +160,10 @@
         });
 
         window.atualizarStatus = async (id, status) => { await updateDoc(doc(db, "fotos_criancas", id), { status }); };
-        window.excluirFoto = async (id) => { if(confirm("Apagar foto?")) await deleteDoc(doc(db, "fotos_criancas", id)); };
+        window.excluirFoto = async (id) => { if(confirm("Tem certeza que deseja apagar?")) await deleteDoc(doc(db, "fotos_criancas", id)); };
 
-        // --- SISTEMA DE COMUNICADOS (Texto e Imagem) ---
         let arteSelecionada = null;
         
-        // 1. Enviar Texto
         document.getElementById('btnAddComTxt').addEventListener('click', async () => {
             const input = document.getElementById('inputComunicadoTxt');
             if(input.value.trim() === "") return;
@@ -179,7 +171,6 @@
             input.value = "";
         });
 
-        // 2. Enviar Arte (Imagem)
         document.getElementById('btnSelectComImg').addEventListener('click', () => { document.getElementById('inputComunicadoImg').click(); });
         
         document.getElementById('inputComunicadoImg').addEventListener('change', (e) => {
@@ -224,7 +215,6 @@
             }
         });
 
-        // Listar Comunicados
         onSnapshot(collection(db, "comunicados_criancas"), (snapshot) => {
             listaComunicados.innerHTML = "";
             if(snapshot.empty) return listaComunicados.innerHTML = "<p class='vazio' style='text-align:center;'>Nenhum comunicado ativo.</p>";
@@ -254,7 +244,6 @@
 
         window.excluirComunicado = async (id) => { await deleteDoc(doc(db, "comunicados_criancas", id)); };
 
-        // --- MODAL ---
         window.abrirModal = (url) => { document.getElementById('modalImg').src = url; document.getElementById('modalVerFoto').style.display = 'flex'; };
         window.fecharModal = () => { document.getElementById('modalVerFoto').style.display = 'none'; };
     </script>
