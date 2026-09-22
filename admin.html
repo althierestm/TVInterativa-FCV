@@ -4,61 +4,79 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Moderação - Dia das Crianças</title>
+    <!-- Fonte Montserrat -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: Arial, sans-serif; background-color: #2c3e50; color: white; padding: 10px; text-align: center; }
-        h1 { margin-top: 10px; font-size: 22px; color: #f1c40f; }
+        body { font-family: 'Montserrat', sans-serif; background-color: #2c3e50; color: white; padding: 15px; text-align: center; }
+        h1 { margin-top: 10px; font-size: 24px; color: #f1c40f; font-weight: 700; }
         p { font-size: 14px; color: #ecf0f1; margin-bottom: 20px; }
         
-        h2 { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 30px; font-size: 18px; border-bottom: 1px solid #555; padding-bottom: 10px; color: #e67e22; }
+        h2 { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 40px; font-size: 18px; border-bottom: 1px solid #555; padding-bottom: 10px; color: #e67e22; }
         h2.telao-titulo { color: #2ecc71; }
+        h2.comunicado-titulo { color: #3498db; }
 
-        .grid-fotos { display: grid; grid-template-columns: repeat(auto-fit, minmax(95px, 1fr)); gap: 10px; margin-bottom: 30px; }
-        .card { background: #34495e; padding: 8px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+        .grid-fotos { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 12px; margin-bottom: 30px; }
+        .card { background: #34495e; padding: 10px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); position: relative; }
         
+        /* Etiqueta de número no card */
+        .badge-numero { position: absolute; top: -5px; right: -5px; background: #e74c3c; color: white; border-radius: 50%; width: 22px; height: 22px; font-size: 11px; font-weight: bold; display: flex; justify-content: center; align-items: center; }
+
         .card img { width: 100%; aspect-ratio: 1 / 1; border-radius: 6px; object-fit: cover; cursor: pointer; transition: opacity 0.2s; }
         .card img:hover { opacity: 0.7; }
         
-        .nome { font-weight: bold; margin: 8px 0; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #eee; }
+        .nome { font-weight: 700; margin: 8px 0 2px 0; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff; }
+        .setor { font-weight: 400; font-size: 10px; color: #bdc3c7; margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         
-        .btn-group { display: flex; flex-direction: column; gap: 5px; }
-        button { padding: 8px 5px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 11px; width: 100%; }
+        .btn-group { display: flex; flex-direction: column; gap: 6px; }
+        button { font-family: 'Montserrat', sans-serif; padding: 8px 5px; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 11px; width: 100%; }
         
         .btn-aprovar { background-color: #2ecc71; color: white; }
         .btn-aprovar:hover { background-color: #27ae60; }
         .btn-recusar { background-color: #e74c3c; color: white; }
         .btn-recusar:hover { background-color: #c0392b; }
         .btn-apagar { background-color: #95a5a6; color: white; }
-        .btn-apagar:hover { background-color: #7f8c8d; }
         
-        .vazio { margin-top: 10px; color: #bdc3c7; font-style: italic; grid-column: 1 / -1; }
+        .vazio { margin-top: 10px; color: #bdc3c7; font-style: italic; grid-column: 1 / -1; font-size: 13px; }
 
-        #modalVerFoto { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9); align-items: center; justify-content: center; flex-direction: column; }
+        /* Estilos da Sessão de Comunicados */
+        .painel-comunicados { background: #34495e; padding: 15px; border-radius: 8px; max-width: 500px; margin: 0 auto 30px auto; display: flex; gap: 10px; }
+        #inputComunicado { font-family: 'Montserrat', sans-serif; flex: 1; padding: 10px; border-radius: 6px; border: 1px solid #7f8c8d; background: #2c3e50; color: white; }
+        #btnAddComunicado { width: auto; padding: 0 15px; background: #3498db; color: white; }
+        .lista-comunicados { max-width: 500px; margin: 0 auto; text-align: left; }
+        .item-comunicado { background: #2c3e50; padding: 12px; border-radius: 6px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid #3498db; font-size: 13px; }
+        .btn-remover-com { width: auto; padding: 5px 10px; background: #e74c3c; margin: 0; }
+
+        #modalVerFoto { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9); align-items: center; justify-content: center; }
         #modalImg { max-width: 95%; max-height: 85vh; border-radius: 8px; object-fit: contain; }
         .fechar-modal { position: absolute; top: 15px; right: 25px; color: white; font-size: 35px; font-weight: bold; cursor: pointer; }
-        .fechar-modal:hover { color: #bbb; }
     </style>
 </head>
 <body>
 
-    <h1>Moderação - Dia das Crianças</h1>
-    <p>Aprove as fotos da infância da equipe.</p>
+    <h1>Moderação FCV</h1>
+    <p>Aprove fotos e insira comunicados para a TV.</p>
+
+    <!-- COMUNICADOS -->
+    <h2 class="comunicado-titulo">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+        Mural de Comunicados
+    </h2>
+    <div class="painel-comunicados">
+        <input type="text" id="inputComunicado" placeholder="Digite um aviso ou recado...">
+        <button id="btnAddComunicado">Publicar</button>
+    </div>
+    <div class="lista-comunicados" id="listaComunicados"></div>
 
     <!-- PENDENTES -->
     <h2>
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="10"></circle>
-            <polyline points="12 6 12 12 16 14"></polyline>
-        </svg>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
         Aguardando Aprovação
     </h2>
     <div class="grid-fotos" id="listaPendentes"></div>
 
     <!-- NA TV -->
     <h2 class="telao-titulo">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect>
-            <polyline points="17 2 12 7 7 2"></polyline>
-        </svg>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg>
         Já estão na TV
     </h2>
     <div class="grid-fotos" id="listaAprovadas"></div>
@@ -70,7 +88,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
-        import { getFirestore, collection, query, where, onSnapshot, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+        import { getFirestore, collection, query, where, onSnapshot, doc, updateDoc, deleteDoc, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyB8ZK0jSY-1E9y90TLfznxi9PI8mf_bJuc",
@@ -86,88 +104,78 @@
         
         const listaPendentes = document.getElementById('listaPendentes');
         const listaAprovadas = document.getElementById('listaAprovadas');
+        const listaComunicados = document.getElementById('listaComunicados');
 
-        // BUSCANDO DA NOVA COLEÇÃO "fotos_criancas"
-        const qPendentes = query(collection(db, "fotos_criancas"), where("status", "==", "pendente"));
-        onSnapshot(qPendentes, (snapshot) => {
+        // --- SISTEMA DE FOTOS ---
+        const renderizarCard = (dados, id, ehPendente) => {
+            const imagemLeve = dados.url_thumb ? dados.url_thumb : dados.url_imagem;
+            const numero = dados.numeroFila ? dados.numeroFila : "-";
+            const setor = dados.setor ? dados.setor : "Sem setor";
+            
+            let botoes = '';
+            if(ehPendente) {
+                botoes = `
+                    <button class="btn-aprovar" onclick="atualizarStatus('${id}', 'aprovado')">Aprovar</button>
+                    <button class="btn-recusar" onclick="excluirFoto('${id}')">Recusar</button>
+                `;
+            } else {
+                botoes = `<button class="btn-apagar" onclick="excluirFoto('${id}')">Remover</button>`;
+            }
+
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.innerHTML = `
+                <div class="badge-numero">${numero}</div>
+                <img src="${imagemLeve}" loading="lazy" onclick="abrirModal('${dados.url_imagem}')">
+                <div class="nome">${dados.nome}</div>
+                <div class="setor">${setor}</div>
+                <div class="btn-group">${botoes}</div>
+            `;
+            return card;
+        };
+
+        onSnapshot(query(collection(db, "fotos_criancas"), where("status", "==", "pendente")), (snapshot) => {
             listaPendentes.innerHTML = ""; 
-            if (snapshot.empty) {
-                listaPendentes.innerHTML = "<p class='vazio'>Nenhuma foto pendente.</p>";
-                return;
-            }
-            snapshot.forEach((documento) => {
-                const dados = documento.data();
-                const id = documento.id;
-                const imagemLeve = dados.url_thumb ? dados.url_thumb : dados.url_imagem;
-
-                const card = document.createElement('div');
-                card.className = 'card';
-                card.innerHTML = `
-                    <img src="${imagemLeve}" loading="lazy" onclick="abrirModal('${dados.url_imagem}')" title="Clique para visualizar">
-                    <div class="nome" title="${dados.nome}">${dados.nome}</div>
-                    <div class="btn-group">
-                        <button class="btn-aprovar" onclick="atualizarStatus('${id}', 'aprovado')">Aprovar</button>
-                        <button class="btn-recusar" onclick="excluirFoto('${id}')">Recusar</button>
-                    </div>
-                `;
-                listaPendentes.appendChild(card);
-            });
+            if (snapshot.empty) return listaPendentes.innerHTML = "<p class='vazio'>Nenhuma foto pendente.</p>";
+            snapshot.forEach(doc => listaPendentes.appendChild(renderizarCard(doc.data(), doc.id, true)));
         });
 
-        const qAprovadas = query(collection(db, "fotos_criancas"), where("status", "==", "aprovado"));
-        onSnapshot(qAprovadas, (snapshot) => {
+        onSnapshot(query(collection(db, "fotos_criancas"), where("status", "==", "aprovado")), (snapshot) => {
             listaAprovadas.innerHTML = ""; 
-            if (snapshot.empty) {
-                listaAprovadas.innerHTML = "<p class='vazio'>A TV está vazia.</p>";
-                return;
-            }
-            snapshot.forEach((documento) => {
-                const dados = documento.data();
-                const id = documento.id;
-                const imagemLeve = dados.url_thumb ? dados.url_thumb : dados.url_imagem;
+            if (snapshot.empty) return listaAprovadas.innerHTML = "<p class='vazio'>A TV está vazia.</p>";
+            snapshot.forEach(doc => listaAprovadas.appendChild(renderizarCard(doc.data(), doc.id, false)));
+        });
 
-                const card = document.createElement('div');
-                card.className = 'card';
-                card.innerHTML = `
-                    <img src="${imagemLeve}" loading="lazy" onclick="abrirModal('${dados.url_imagem}')" title="Clique para visualizar">
-                    <div class="nome" title="${dados.nome}">${dados.nome}</div>
-                    <div class="btn-group">
-                        <button class="btn-apagar" onclick="excluirFoto('${id}')">Remover</button>
-                    </div>
+        window.atualizarStatus = async (id, status) => { await updateDoc(doc(db, "fotos_criancas", id), { status }); };
+        window.excluirFoto = async (id) => { if(confirm("Apagar foto?")) await deleteDoc(doc(db, "fotos_criancas", id)); };
+
+        // --- SISTEMA DE COMUNICADOS ---
+        document.getElementById('btnAddComunicado').addEventListener('click', async () => {
+            const input = document.getElementById('inputComunicado');
+            if(input.value.trim() === "") return;
+            await addDoc(collection(db, "comunicados_criancas"), { texto: input.value, timestamp: serverTimestamp() });
+            input.value = "";
+        });
+
+        onSnapshot(collection(db, "comunicados_criancas"), (snapshot) => {
+            listaComunicados.innerHTML = "";
+            if(snapshot.empty) return listaComunicados.innerHTML = "<p class='vazio' style='text-align:center;'>Nenhum comunicado ativo.</p>";
+            snapshot.forEach(docSnap => {
+                const div = document.createElement('div');
+                div.className = 'item-comunicado';
+                div.innerHTML = `
+                    <span>${docSnap.data().texto}</span>
+                    <button class="btn-remover-com" onclick="excluirComunicado('${docSnap.id}')">Excluir</button>
                 `;
-                listaAprovadas.appendChild(card);
+                listaComunicados.appendChild(div);
             });
         });
 
-        window.atualizarStatus = async (idDocumento, novoStatus) => {
-            try {
-                await updateDoc(doc(db, "fotos_criancas", idDocumento), { status: novoStatus });
-            } catch (erro) {
-                console.error(erro);
-            }
-        };
+        window.excluirComunicado = async (id) => { await deleteDoc(doc(db, "comunicados_criancas", id)); };
 
-        window.excluirFoto = async (idDocumento) => {
-            const confirmar = confirm("Tem certeza que deseja apagar essa foto?");
-            if(confirmar) {
-                try {
-                    await deleteDoc(doc(db, "fotos_criancas", idDocumento));
-                } catch (erro) {
-                    console.error("Erro ao apagar:", erro);
-                    alert("Erro ao apagar a foto.");
-                }
-            }
-        };
-
-        window.abrirModal = (urlOriginal) => {
-            document.getElementById('modalImg').src = urlOriginal;
-            document.getElementById('modalVerFoto').style.display = 'flex';
-        };
-
-        window.fecharModal = () => {
-            document.getElementById('modalVerFoto').style.display = 'none';
-            document.getElementById('modalImg').src = "";
-        };
+        // --- MODAL ---
+        window.abrirModal = (url) => { document.getElementById('modalImg').src = url; document.getElementById('modalVerFoto').style.display = 'flex'; };
+        window.fecharModal = () => { document.getElementById('modalVerFoto').style.display = 'none'; };
     </script>
 </body>
 </html>
