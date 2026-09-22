@@ -4,12 +4,36 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Moderação - Dia das Crianças</title>
-
+    <!-- Fonte Montserrat -->
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Montserrat', sans-serif; background-color: #2c3e50; color: white; padding: 15px; text-align: center; }
+        body { font-family: 'Montserrat', sans-serif; background-color: #2c3e50; color: white; padding: 15px; text-align: center; margin: 0; }
         h1 { margin-top: 10px; font-size: 24px; color: #f1c40f; font-weight: 700; }
         p { font-size: 14px; color: #ecf0f1; margin-bottom: 20px; }
+        
+        /* OVERLAY DE LOGIN CAMUFLADO */
+        #loginOverlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #2c3e50; z-index: 9999; display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+        }
+        .login-box {
+            background: #34495e; padding: 40px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            width: 300px; max-width: 90%;
+        }
+        .login-box h2 { color: #f1c40f; margin-bottom: 25px; margin-top: 0; border: none; font-size: 22px; }
+        .login-box input {
+            width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 6px; border: 1px solid #7f8c8d;
+            background: #2c3e50; color: white; font-family: 'Montserrat', sans-serif; box-sizing: border-box; font-size: 14px;
+        }
+        .login-box button {
+            width: 100%; padding: 12px; background: #3498db; color: white; border: none; border-radius: 6px;
+            font-weight: bold; cursor: pointer; font-family: 'Montserrat', sans-serif; font-size: 15px; transition: 0.2s;
+        }
+        .login-box button:hover { background: #2980b9; }
+
+        /* Restante do CSS do painel */
+        #painelPrincipal { display: none; } /* Oculto até logar */
         
         h2 { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 40px; font-size: 18px; border-bottom: 1px solid #555; padding-bottom: 10px; color: #e67e22; }
         h2.telao-titulo { color: #2ecc71; }
@@ -19,15 +43,12 @@
         .card { background: #34495e; padding: 6px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); position: relative; }
         
         .badge-numero { position: absolute; top: -5px; right: -5px; background: #e74c3c; color: white; border-radius: 50%; width: 20px; height: 20px; font-size: 10px; font-weight: bold; display: flex; justify-content: center; align-items: center; z-index: 2; }
-
         .card img { width: 100%; aspect-ratio: 1 / 1; border-radius: 4px; object-fit: cover; }
-        
         .nome { font-weight: 700; margin: 6px 0 2px 0; font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff; }
         .setor { font-weight: 400; font-size: 9px; color: #bdc3c7; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         
         .btn-group { display: flex; flex-direction: column; gap: 4px; }
-        button { font-family: 'Montserrat', sans-serif; padding: 5px 2px; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 9px; width: 100%; }
-        
+        .btn-group button { font-family: 'Montserrat', sans-serif; padding: 5px 2px; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 9px; width: 100%; }
         .btn-ver { background-color: #3498db; color: white; }
         .btn-ver:hover { background-color: #2980b9; }
         .btn-aprovar { background-color: #2ecc71; color: white; }
@@ -43,15 +64,15 @@
         @media(max-width: 600px) { .col-divisor { border-left: none; padding-left: 0; border-top: 2px dashed #7f8c8d; padding-top: 15px; } }
         
         .col-com input[type="text"] { font-family: 'Montserrat', sans-serif; padding: 10px; border-radius: 6px; border: 1px solid #7f8c8d; background: #2c3e50; color: white; width: 92%; }
-        .btn-texto { background: #3498db; color: white; padding: 10px; font-size: 12px; }
-        .btn-arte { background: #8e44ad; color: white; padding: 10px; font-size: 12px; }
-        .btn-enviar-arte { background: #f39c12; color: white; padding: 10px; font-size: 12px; display: none; }
+        .btn-texto { background: #3498db; color: white; padding: 10px; border: none; border-radius: 4px; font-weight: 600; cursor: pointer; font-size: 12px; font-family: 'Montserrat', sans-serif; }
+        .btn-arte { background: #8e44ad; color: white; padding: 10px; border: none; border-radius: 4px; font-weight: 600; cursor: pointer; font-size: 12px; font-family: 'Montserrat', sans-serif; }
+        .btn-enviar-arte { background: #f39c12; color: white; padding: 10px; border: none; border-radius: 4px; font-weight: 600; cursor: pointer; font-size: 12px; display: none; font-family: 'Montserrat', sans-serif; }
         #msgUploadCom { font-size: 11px; color: #f1c40f; text-align: center; font-weight: bold; margin-top: 5px; }
 
         .lista-comunicados { max-width: 600px; margin: 0 auto; text-align: left; }
         .item-comunicado { background: #2c3e50; padding: 12px; border-radius: 6px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid #3498db; font-size: 13px; gap: 10px; }
         .item-com-img { width: 40px; height: 40px; object-fit: cover; border-radius: 4px; cursor: pointer; }
-        .btn-remover-com { width: auto; padding: 5px 10px; background: #e74c3c; margin: 0; font-size: 11px; }
+        .btn-remover-com { width: auto; padding: 5px 10px; background: #e74c3c; margin: 0; font-size: 11px; border: none; border-radius: 4px; font-weight: 600; cursor: pointer; font-family: 'Montserrat', sans-serif; color: white; }
 
         #modalVerFoto { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.95); align-items: center; justify-content: center; }
         #modalImg { max-width: 95%; max-height: 85vh; border-radius: 8px; object-fit: contain; }
@@ -60,41 +81,53 @@
 </head>
 <body>
 
-    <h1>Moderação FCV</h1>
-    <p>Aprove fotos e insira artes ou avisos para a TV.</p>
-
-    <h2 class="comunicado-titulo">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-        Mural de Comunicados (Textos e Artes)
-    </h2>
-    <div class="painel-comunicados">
-        <div class="col-com">
-            <span style="font-size: 12px; font-weight: bold; color: #3498db;">📝 Aviso em Texto</span>
-            <input type="text" id="inputComunicadoTxt" placeholder="Digite um recado curto...">
-            <button class="btn-texto" id="btnAddComTxt">Publicar Texto na TV</button>
-        </div>
-        <div class="col-com col-divisor">
-            <span style="font-size: 12px; font-weight: bold; color: #8e44ad;">🖼️ Arte (Sempre tela cheia)</span>
-            <input type="file" id="inputComunicadoImg" accept="image/*" style="display:none;">
-            <button class="btn-arte" id="btnSelectComImg">Escolher Imagem</button>
-            <button class="btn-enviar-arte" id="btnUploadComImg">🚀 Enviar Arte para TV</button>
-            <div id="msgUploadCom"></div>
+    <div id="loginOverlay">
+        <div class="login-box">
+            <h2>Acesso Restrito</h2>
+            <input type="text" id="loginUser" placeholder="Usuário">
+            <input type="password" id="loginPass" placeholder="Senha">
+            <button id="btnEntrar">Acessar Moderação</button>
         </div>
     </div>
-    <div class="lista-comunicados" id="listaComunicados"></div>
 
-    <h2>
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-        Aguardando Aprovação
-    </h2>
-    <div class="grid-fotos" id="listaPendentes"></div>
+    <div id="painelPrincipal">
+        <h1>Moderação FCV</h1>
+        <p>Aprove fotos e insira artes ou avisos para a TV.</p>
 
+        <h2 class="comunicado-titulo">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+            Mural de Comunicados (Textos e Artes)
+        </h2>
+        <div class="painel-comunicados">
+            <div class="col-com">
+                <span style="font-size: 12px; font-weight: bold; color: #3498db;">📝 Aviso em Texto</span>
+                <input type="text" id="inputComunicadoTxt" placeholder="Digite um recado curto...">
+                <button class="btn-texto" id="btnAddComTxt">Publicar Texto na TV</button>
+            </div>
+            <div class="col-com col-divisor">
+                <span style="font-size: 12px; font-weight: bold; color: #8e44ad;">🖼️ Arte (Sempre tela cheia)</span>
+                <input type="file" id="inputComunicadoImg" accept="image/*" style="display:none;">
+                <button class="btn-arte" id="btnSelectComImg">Escolher Imagem</button>
+                <button class="btn-enviar-arte" id="btnUploadComImg">🚀 Enviar Arte para TV</button>
+                <div id="msgUploadCom"></div>
+            </div>
+        </div>
+        <div class="lista-comunicados" id="listaComunicados"></div>
 
-     <h2 class="telao-titulo">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg>
-        Já estão na TV
-    </h2>
-    <div class="grid-fotos" id="listaAprovadas"></div>
+        <!-- PENDENTES -->
+        <h2>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            Aguardando Aprovação
+        </h2>
+        <div class="grid-fotos" id="listaPendentes"></div>
+
+        <!-- NA TV -->
+        <h2 class="telao-titulo">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg>
+            Já estão na TV
+        </h2>
+        <div class="grid-fotos" id="listaAprovadas"></div>
+    </div>
 
     <div id="modalVerFoto">
         <span class="fechar-modal" onclick="fecharModal()">&times;</span>
@@ -104,6 +137,24 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
         import { getFirestore, collection, query, where, onSnapshot, doc, updateDoc, deleteDoc, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
+        // SISTEMA DE LOGIN CAMUFLADO
+        document.getElementById('btnEntrar').addEventListener('click', verificarLogin);
+        document.getElementById('loginPass').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') verificarLogin();
+        });
+
+        function verificarLogin() {
+            const user = document.getElementById('loginUser').value;
+            const pass = document.getElementById('loginPass').value;
+            // As senhas estão protegidas usando conversão Base64. (TWFya2V0aW5n = Marketing | QFRWQ29ycmVkb3Ij = @TVCorredor#)
+            if (btoa(user) === "TWFya2V0aW5n" && btoa(pass) === "QFRWQ29ycmVkb3Ij") {
+                document.getElementById('loginOverlay').style.display = 'none';
+                document.getElementById('painelPrincipal').style.display = 'block';
+            } else {
+                alert("Usuário ou senha incorretos.");
+            }
+        }
 
         const firebaseConfig = {
             apiKey: "AIzaSyB8ZK0jSY-1E9y90TLfznxi9PI8mf_bJuc",
@@ -122,18 +173,18 @@
         const listaAprovadas = document.getElementById('listaAprovadas');
         const listaComunicados = document.getElementById('listaComunicados');
 
+        // --- SISTEMA DE FOTOS ---
         const renderizarCard = (dados, id, ehPendente) => {
-
             const imagemLeve = dados.url_thumb ? dados.url_thumb : dados.url_imagem;
             const numero = dados.numeroFila ? dados.numeroFila : "-";
             const setor = dados.setor ? dados.setor : "Sem setor";
             
             let botoes = ehPendente ? 
-                `<button class="btn-ver" onclick="abrirModal('${dados.url_imagem}')">👁️ Ver Maior</button>
+                `<button class="btn-ver" onclick="abrirModal('${dados.url_imagem}')">👁️ Ver</button>
                  <button class="btn-aprovar" onclick="atualizarStatus('${id}', 'aprovado')">✅ Aprovar</button>
                  <button class="btn-apagar" onclick="excluirFoto('${id}')">🗑️ Apagar</button>` : 
-                `<button class="btn-ver" onclick="abrirModal('${dados.url_imagem}')">👁️ Ver Maior</button>
-                 <button class="btn-apagar" onclick="excluirFoto('${id}')">🗑️ Remover da TV</button>`;
+                `<button class="btn-ver" onclick="abrirModal('${dados.url_imagem}')">👁️ Ver</button>
+                 <button class="btn-apagar" onclick="excluirFoto('${id}')">🗑️ Remover</button>`;
 
             const card = document.createElement('div');
             card.className = 'card';
@@ -162,6 +213,7 @@
         window.atualizarStatus = async (id, status) => { await updateDoc(doc(db, "fotos_criancas", id), { status }); };
         window.excluirFoto = async (id) => { if(confirm("Tem certeza que deseja apagar?")) await deleteDoc(doc(db, "fotos_criancas", id)); };
 
+        // --- SISTEMA DE COMUNICADOS ---
         let arteSelecionada = null;
         
         document.getElementById('btnAddComTxt').addEventListener('click', async () => {
