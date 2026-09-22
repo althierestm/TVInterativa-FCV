@@ -18,7 +18,6 @@
         .grid-fotos { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 12px; margin-bottom: 30px; }
         .card { background: #34495e; padding: 10px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); position: relative; }
         
-        /* Etiqueta de número no card */
         .badge-numero { position: absolute; top: -5px; right: -5px; background: #e74c3c; color: white; border-radius: 50%; width: 22px; height: 22px; font-size: 11px; font-weight: bold; display: flex; justify-content: center; align-items: center; }
 
         .card img { width: 100%; aspect-ratio: 1 / 1; border-radius: 6px; object-fit: cover; cursor: pointer; transition: opacity 0.2s; }
@@ -38,12 +37,23 @@
         
         .vazio { margin-top: 10px; color: #bdc3c7; font-style: italic; grid-column: 1 / -1; font-size: 13px; }
 
-        /* Estilos da Sessão de Comunicados */
-        .painel-comunicados { background: #34495e; padding: 15px; border-radius: 8px; max-width: 500px; margin: 0 auto 30px auto; display: flex; gap: 10px; }
-        #inputComunicado { font-family: 'Montserrat', sans-serif; flex: 1; padding: 10px; border-radius: 6px; border: 1px solid #7f8c8d; background: #2c3e50; color: white; }
-        #btnAddComunicado { width: auto; padding: 0 15px; background: #3498db; color: white; }
-        .lista-comunicados { max-width: 500px; margin: 0 auto; text-align: left; }
-        .item-comunicado { background: #2c3e50; padding: 12px; border-radius: 6px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid #3498db; font-size: 13px; }
+        /* PAINEL DE COMUNICADOS APRIMORADO */
+        .painel-comunicados { background: #34495e; padding: 15px; border-radius: 8px; max-width: 600px; margin: 0 auto 30px auto; display: flex; flex-wrap: wrap; gap: 15px; text-align: left; }
+        .col-com { flex: 1; min-width: 250px; display: flex; flex-direction: column; gap: 8px; }
+        .col-divisor { border-left: 2px dashed #7f8c8d; padding-left: 15px; }
+        @media(max-width: 600px) { .col-divisor { border-left: none; padding-left: 0; border-top: 2px dashed #7f8c8d; padding-top: 15px; } }
+        
+        .col-com input[type="text"] { font-family: 'Montserrat', sans-serif; padding: 10px; border-radius: 6px; border: 1px solid #7f8c8d; background: #2c3e50; color: white; width: 92%; }
+        .btn-texto { background: #3498db; color: white; padding: 10px; font-size: 12px; }
+        .btn-arte { background: #8e44ad; color: white; padding: 10px; font-size: 12px; }
+        .btn-enviar-arte { background: #f39c12; color: white; padding: 10px; font-size: 12px; display: none; }
+        
+        #msgUploadCom { font-size: 11px; color: #f1c40f; text-align: center; font-weight: bold; margin-top: 5px; }
+
+        /* Lista de comunicados ativos */
+        .lista-comunicados { max-width: 600px; margin: 0 auto; text-align: left; }
+        .item-comunicado { background: #2c3e50; padding: 12px; border-radius: 6px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid #3498db; font-size: 13px; gap: 10px; }
+        .item-com-img { width: 40px; height: 40px; object-fit: cover; border-radius: 4px; cursor: pointer; }
         .btn-remover-com { width: auto; padding: 5px 10px; background: #e74c3c; margin: 0; }
 
         #modalVerFoto { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9); align-items: center; justify-content: center; }
@@ -54,16 +64,29 @@
 <body>
 
     <h1>Moderação FCV</h1>
-    <p>Aprove fotos e insira comunicados para a TV.</p>
+    <p>Aprove fotos e insira artes ou avisos para a TV.</p>
 
     <!-- COMUNICADOS -->
     <h2 class="comunicado-titulo">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-        Mural de Comunicados
+        Mural de Comunicados (Textos e Artes)
     </h2>
+    
     <div class="painel-comunicados">
-        <input type="text" id="inputComunicado" placeholder="Digite um aviso ou recado...">
-        <button id="btnAddComunicado">Publicar</button>
+        <!-- Lado Texto -->
+        <div class="col-com">
+            <span style="font-size: 12px; font-weight: bold; color: #3498db;">📝 Aviso em Texto</span>
+            <input type="text" id="inputComunicadoTxt" placeholder="Digite um recado curto...">
+            <button class="btn-texto" id="btnAddComTxt">Publicar Texto na TV</button>
+        </div>
+        <!-- Lado Imagem -->
+        <div class="col-com col-divisor">
+            <span style="font-size: 12px; font-weight: bold; color: #8e44ad;">🖼️ Arte em Imagem (Cartaz)</span>
+            <input type="file" id="inputComunicadoImg" accept="image/*" style="display:none;">
+            <button class="btn-arte" id="btnSelectComImg">Escolher Imagem</button>
+            <button class="btn-enviar-arte" id="btnUploadComImg">🚀 Enviar Arte para TV</button>
+            <div id="msgUploadCom"></div>
+        </div>
     </div>
     <div class="lista-comunicados" id="listaComunicados"></div>
 
@@ -101,6 +124,7 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        const IMGBB_API_KEY = "767bd935a2b389a4fbfad4f8d92bfae7"; 
         
         const listaPendentes = document.getElementById('listaPendentes');
         const listaAprovadas = document.getElementById('listaAprovadas');
@@ -112,15 +136,10 @@
             const numero = dados.numeroFila ? dados.numeroFila : "-";
             const setor = dados.setor ? dados.setor : "Sem setor";
             
-            let botoes = '';
-            if(ehPendente) {
-                botoes = `
-                    <button class="btn-aprovar" onclick="atualizarStatus('${id}', 'aprovado')">Aprovar</button>
-                    <button class="btn-recusar" onclick="excluirFoto('${id}')">Recusar</button>
-                `;
-            } else {
-                botoes = `<button class="btn-apagar" onclick="excluirFoto('${id}')">Remover</button>`;
-            }
+            let botoes = ehPendente ? 
+                `<button class="btn-aprovar" onclick="atualizarStatus('${id}', 'aprovado')">Aprovar</button>
+                 <button class="btn-recusar" onclick="excluirFoto('${id}')">Recusar</button>` : 
+                `<button class="btn-apagar" onclick="excluirFoto('${id}')">Remover</button>`;
 
             const card = document.createElement('div');
             card.className = 'card';
@@ -149,22 +168,84 @@
         window.atualizarStatus = async (id, status) => { await updateDoc(doc(db, "fotos_criancas", id), { status }); };
         window.excluirFoto = async (id) => { if(confirm("Apagar foto?")) await deleteDoc(doc(db, "fotos_criancas", id)); };
 
-        // --- SISTEMA DE COMUNICADOS ---
-        document.getElementById('btnAddComunicado').addEventListener('click', async () => {
-            const input = document.getElementById('inputComunicado');
+        // --- SISTEMA DE COMUNICADOS (Texto e Imagem) ---
+        let arteSelecionada = null;
+        
+        // 1. Enviar Texto
+        document.getElementById('btnAddComTxt').addEventListener('click', async () => {
+            const input = document.getElementById('inputComunicadoTxt');
             if(input.value.trim() === "") return;
-            await addDoc(collection(db, "comunicados_criancas"), { texto: input.value, timestamp: serverTimestamp() });
+            await addDoc(collection(db, "comunicados_criancas"), { tipo: 'texto', texto: input.value, timestamp: serverTimestamp() });
             input.value = "";
         });
 
+        // 2. Enviar Arte (Imagem)
+        document.getElementById('btnSelectComImg').addEventListener('click', () => { document.getElementById('inputComunicadoImg').click(); });
+        
+        document.getElementById('inputComunicadoImg').addEventListener('change', (e) => {
+            if(e.target.files[0]) {
+                arteSelecionada = e.target.files[0];
+                document.getElementById('btnSelectComImg').innerText = "Arte Selecionada ✔️";
+                document.getElementById('btnUploadComImg').style.display = "block";
+            }
+        });
+
+        document.getElementById('btnUploadComImg').addEventListener('click', async () => {
+            if(!arteSelecionada) return;
+            const msg = document.getElementById('msgUploadCom');
+            const btnUpload = document.getElementById('btnUploadComImg');
+            
+            msg.innerText = "⏳ Enviando arte...";
+            btnUpload.disabled = true;
+
+            const formData = new FormData();
+            formData.append("image", arteSelecionada);
+
+            try {
+                const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: 'POST', body: formData });
+                const dados = await res.json();
+                
+                await addDoc(collection(db, "comunicados_criancas"), {
+                    tipo: 'imagem',
+                    url_imagem: dados.data.url,
+                    url_thumb: dados.data.thumb.url,
+                    timestamp: serverTimestamp()
+                });
+
+                msg.innerText = "✅ Arte publicada!";
+                document.getElementById('btnSelectComImg').innerText = "Escolher Imagem";
+                btnUpload.style.display = "none";
+                arteSelecionada = null;
+                setTimeout(() => msg.innerText = "", 3000);
+            } catch(e) {
+                msg.innerText = "❌ Erro ao enviar.";
+            } finally {
+                btnUpload.disabled = false;
+            }
+        });
+
+        // Listar Comunicados
         onSnapshot(collection(db, "comunicados_criancas"), (snapshot) => {
             listaComunicados.innerHTML = "";
             if(snapshot.empty) return listaComunicados.innerHTML = "<p class='vazio' style='text-align:center;'>Nenhum comunicado ativo.</p>";
+            
             snapshot.forEach(docSnap => {
+                const dados = docSnap.data();
                 const div = document.createElement('div');
                 div.className = 'item-comunicado';
+                
+                let conteudo = "";
+                if(dados.tipo === 'imagem' || dados.url_imagem) {
+                    conteudo = `<div style="display:flex; align-items:center; gap:10px;">
+                                    <img src="${dados.url_thumb || dados.url_imagem}" class="item-com-img" onclick="abrirModal('${dados.url_imagem}')">
+                                    <span>[ARTE VISUAL]</span>
+                                </div>`;
+                } else {
+                    conteudo = `<span>📝 ${dados.texto}</span>`;
+                }
+
                 div.innerHTML = `
-                    <span>${docSnap.data().texto}</span>
+                    ${conteudo}
                     <button class="btn-remover-com" onclick="excluirComunicado('${docSnap.id}')">Excluir</button>
                 `;
                 listaComunicados.appendChild(div);
