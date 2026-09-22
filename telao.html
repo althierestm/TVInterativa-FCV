@@ -4,60 +4,82 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TV Interativa - Dia das Crianças</title>
+    <!-- Fonte Montserrat -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         body { 
             margin: 0; padding: 0; background-color: #000; color: white; 
-            font-family: Arial, sans-serif; overflow: hidden;
-            display: flex; justify-content: center; align-items: center; height: 100vh;
+            font-family: 'Montserrat', sans-serif; overflow: hidden;
+            display: flex; justify-content: center; align-items: center; height: 100vh; position: relative;
         }
         
-        .container-foto { 
-            position: relative; 
-            text-align: center; 
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            width: 100%;
-            height: 100vh;
-        }
+        .container-master { width: 100%; height: 100vh; display: flex; justify-content: center; align-items: center; position: relative; }
 
-        #fotoPainel { 
-            max-width: 100%; 
-            max-height: 100vh; 
-            object-fit: contain; 
-            transition: opacity 1s ease-in-out; 
-        }
-
+        /* Container de Fotos */
+        #fotoPainel { max-width: 100%; max-height: 100vh; object-fit: contain; transition: opacity 1s ease-in-out; }
         .escondido { opacity: 0; }
         .visivel { opacity: 1; }
 
+        /* Estilo iOS Moderno (Glassmorphism) */
         .nome-rodape { 
-            position: absolute;
-            bottom: 40px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 26px; 
-            color: rgba(255, 255, 255, 0.9);
-            background-color: rgba(255, 152, 0, 0.8); /* Fundo laranja combinando com o tema infantil */
-            padding: 10px 30px;
-            border-radius: 30px;
-            font-weight: bold;
-            letter-spacing: 1px;
+            position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.15); /* Fundo muito transparente */
+            backdrop-filter: blur(20px); /* Efeito de vidro borrado */
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.3); /* Borda suave brilhante */
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            border-radius: 20px; color: #ffffff;
+            padding: 12px 35px; text-align: center;
             transition: opacity 1s ease-in-out;
-            backdrop-filter: blur(5px);
+        }
+        .nome-rodape .titular { font-size: 26px; font-weight: 700; letter-spacing: 1px; text-shadow: 0 2px 4px rgba(0,0,0,0.4); }
+        .nome-rodape .setor { font-size: 16px; font-weight: 400; opacity: 0.9; margin-top: 4px; text-shadow: 0 1px 2px rgba(0,0,0,0.4); }
+
+        /* Número Discreto no Canto Inferior Esquerdo */
+        #numeroDiscreto {
+            position: absolute; bottom: 15px; left: 20px; font-size: 20px; font-weight: 700;
+            color: rgba(255, 255, 255, 0.5); z-index: 10; text-shadow: 0 1px 3px rgba(0,0,0,0.8);
         }
 
-        #aguardando { font-size: 32px; color: #ff9800; font-weight: bold; }
+        /* Container de Comunicados */
+        #containerComunicado {
+            display: none; width: 80%; text-align: center; background: rgba(34, 67, 135, 0.85);
+            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            padding: 50px; border-radius: 30px; border: 1px solid rgba(255,255,255,0.2);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5); transition: opacity 1s ease-in-out;
+        }
+        #textoComunicado { font-size: 50px; font-weight: 700; line-height: 1.3; margin: 0; color: #fff; }
+        .aviso-label { font-size: 20px; color: #ff9800; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 20px; display: block;}
+
+        #aguardando { font-size: 32px; color: #ff9800; font-weight: 700; }
+
+        /* Barra de Progresso Inferior */
+        #barraProgressoContainer { position: absolute; bottom: 0; left: 0; width: 100%; height: 6px; background: rgba(255,255,255,0.1); z-index: 20; }
+        #barraProgresso { height: 100%; width: 0%; background: linear-gradient(to right, #224387, #002061); }
     </style>
 </head>
 <body>
 
-    <div id="aguardando">Aguardando as fotos da nossa infância... 🧸</div>
+    <div id="aguardando">Aguardando conteúdos...</div>
 
-    <div class="container-foto" id="containerFoto" style="display: none;">
+    <div class="container-master" id="containerFoto" style="display: none;">
         <img id="fotoPainel" class="visivel" src="" alt="Foto Infância">
-        <div class="nome-rodape" id="nomePainel"></div>
+        <div class="nome-rodape" id="nomePainel">
+            <div class="titular" id="lblNome"></div>
+            <div class="setor" id="lblSetor"></div>
+        </div>
     </div>
+
+    <div class="container-master" id="divComunicadoMaster" style="display: none;">
+        <div id="containerComunicado" class="visivel">
+            <span class="aviso-label">📢 Comunicado Interno</span>
+            <h1 id="textoComunicado"></h1>
+        </div>
+    </div>
+
+    <div id="numeroDiscreto"></div>
+
+    <div id="barraProgressoContainer"><div id="barraProgresso"></div></div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
@@ -76,85 +98,149 @@
         const db = getFirestore(app);
 
         let fotosAprovadas = [];
-        let indexAtual = -1; 
-        let carrosselRodando = false;
+        let comunicadosAtivos = [];
+        let indexFotoAtual = -1;
+        let indexComAtual = 0;
+        let fotosExibidasNoCiclo = 0; // Conta até 3
+        let loopRodando = false;
         
+        // Elementos
         const imgEl = document.getElementById('fotoPainel');
-        const nomeEl = document.getElementById('nomePainel');
-        const container = document.getElementById('containerFoto');
+        const lblNome = document.getElementById('lblNome');
+        const lblSetor = document.getElementById('lblSetor');
+        const nomePainel = document.getElementById('nomePainel');
+        const containerFoto = document.getElementById('containerFoto');
+        const containerCom = document.getElementById('divComunicadoMaster');
+        const boxCom = document.getElementById('containerComunicado');
+        const txtCom = document.getElementById('textoComunicado');
+        const numDiscreto = document.getElementById('numeroDiscreto');
         const aguardando = document.getElementById('aguardando');
+        const barraProgresso = document.getElementById('barraProgresso');
 
-        // BUSCANDO DA NOVA COLEÇÃO
-        const q = query(collection(db, "fotos_criancas"), where("status", "==", "aprovado"));
-
-        onSnapshot(q, (snapshot) => {
+        // Escuta Fotos (ordenadas no front para evitar criação de index manual)
+        onSnapshot(query(collection(db, "fotos_criancas"), where("status", "==", "aprovado")), (snapshot) => {
             fotosAprovadas = [];
-            snapshot.forEach((doc) => {
-                fotosAprovadas.push(doc.data());
-            });
-
-            if (fotosAprovadas.length > 0 && !carrosselRodando) {
-                aguardando.style.display = "none";
-                container.style.display = "flex";
-                carrosselRodando = true;
-                mostrarProximaFoto();
-            }
+            snapshot.forEach(doc => fotosAprovadas.push(doc.data()));
+            fotosAprovadas.sort((a, b) => (a.numeroFila || 0) - (b.numeroFila || 0));
+            iniciarSePronto();
         });
 
-        function mostrarProximaFoto() {
-            if (fotosAprovadas.length === 0) {
+        // Escuta Comunicados
+        onSnapshot(collection(db, "comunicados_criancas"), (snapshot) => {
+            comunicadosAtivos = [];
+            snapshot.forEach(doc => comunicadosAtivos.push(doc.data()));
+            iniciarSePronto();
+        });
+
+        function iniciarSePronto() {
+            if ((fotosAprovadas.length > 0 || comunicadosAtivos.length > 0) && !loopRodando) {
+                aguardando.style.display = "none";
+                loopRodando = true;
+                avancarFila();
+            }
+        }
+
+        function animarBarra(tempoMs) {
+            barraProgresso.style.transition = 'none';
+            barraProgresso.style.width = '0%';
+            setTimeout(() => {
+                barraProgresso.style.transition = `width ${tempoMs}ms linear`;
+                barraProgresso.style.width = '100%';
+            }, 50);
+        }
+
+        function avancarFila() {
+            if (fotosAprovadas.length === 0 && comunicadosAtivos.length === 0) {
+                loopRodando = false;
                 aguardando.style.display = "block";
-                container.style.display = "none";
-                carrosselRodando = false;
-                indexAtual = -1;
+                containerFoto.style.display = "none";
+                containerCom.style.display = "none";
+                numDiscreto.innerText = "";
+                barraProgresso.style.width = "0%";
                 return;
             }
 
-            let proximoIndex = indexAtual + 1;
-            if (proximoIndex >= fotosAprovadas.length) {
-                proximoIndex = 0; 
+            // A CADA 3 FOTOS, EXIBE 1 COMUNICADO (SE EXISTIR)
+            if (fotosExibidasNoCiclo >= 3 && comunicadosAtivos.length > 0) {
+                fotosExibidasNoCiclo = 0; // reseta ciclo
+                exibirComunicado();
+                return;
             }
-
-            if (fotosAprovadas.length === 1 && indexAtual !== -1) {
-                setTimeout(mostrarProximaFoto, 6000);
+            
+            // SE NÃO TEM FOTO MAS TEM COMUNICADO, FICA RODANDO COMUNICADO
+            if (fotosAprovadas.length === 0 && comunicadosAtivos.length > 0) {
+                exibirComunicado();
                 return;
             }
 
-            const fotoDaVez = fotosAprovadas[proximoIndex];
+            // FLUXO NORMAL DE FOTOS
+            exibirFoto();
+        }
 
-            imgEl.classList.remove('visivel');
-            imgEl.classList.add('escondido');
-            nomeEl.style.opacity = 0;
+        function exibirComunicado() {
+            if (indexComAtual >= comunicadosAtivos.length) indexComAtual = 0;
+            const com = comunicadosAtivos[indexComAtual];
+            
+            // Esconde foto, mostra comunicado
+            containerFoto.style.display = "none";
+            containerCom.style.display = "flex";
+            numDiscreto.innerText = "";
+            boxCom.classList.remove('visivel'); boxCom.classList.add('escondido');
 
             setTimeout(() => {
+                txtCom.innerText = com.texto;
+                boxCom.classList.remove('escondido'); boxCom.classList.add('visivel');
+                animarBarra(15000); // 15 Segundos
                 
+                setTimeout(() => {
+                    indexComAtual++;
+                    avancarFila();
+                }, 15000);
+            }, 1000);
+        }
+
+        function exibirFoto() {
+            let proximoIndex = indexFotoAtual + 1;
+            if (proximoIndex >= fotosAprovadas.length) proximoIndex = 0;
+            const fotoDaVez = fotosAprovadas[proximoIndex];
+
+            containerCom.style.display = "none";
+            containerFoto.style.display = "flex";
+            
+            imgEl.classList.remove('visivel'); imgEl.classList.add('escondido');
+            nomePainel.style.opacity = 0;
+
+            setTimeout(() => {
                 const imgPreload = new Image();
                 imgPreload.src = fotoDaVez.url_imagem;
                 
                 imgPreload.onload = () => {
-                    indexAtual = proximoIndex;
+                    indexFotoAtual = proximoIndex;
+                    fotosExibidasNoCiclo++;
                     
                     imgEl.src = fotoDaVez.url_imagem;
-                    if(fotoDaVez.nome === "Anônimo") {
-                        nomeEl.style.display = 'none';
+                    numDiscreto.innerText = fotoDaVez.numeroFila ? `#${fotoDaVez.numeroFila}` : "";
+
+                    if(fotoDaVez.nome === "Anônimo" && !fotoDaVez.setor) {
+                        nomePainel.style.display = 'none';
                     } else {
-                        nomeEl.style.display = 'block';
-                        nomeEl.innerText = fotoDaVez.nome;
+                        nomePainel.style.display = 'block';
+                        lblNome.innerText = fotoDaVez.nome;
+                        lblSetor.innerText = fotoDaVez.setor ? fotoDaVez.setor : "";
                     }
 
-                    imgEl.classList.remove('escondido');
-                    imgEl.classList.add('visivel');
-                    nomeEl.style.opacity = 1;
+                    imgEl.classList.remove('escondido'); imgEl.classList.add('visivel');
+                    nomePainel.style.opacity = 1;
 
-                    setTimeout(mostrarProximaFoto, 6000);
+                    animarBarra(7000); // 7 Segundos
+                    setTimeout(avancarFila, 7000);
                 };
 
                 imgPreload.onerror = () => {
-                    indexAtual = proximoIndex;
-                    mostrarProximaFoto();
+                    indexFotoAtual = proximoIndex;
+                    avancarFila();
                 };
-
-            }, 1000); 
+            }, 1000);
         }
     </script>
 </body>
