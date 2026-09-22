@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TV Interativa - Dia das Crianças</title>
-    <!-- Fonte Montserrat -->
+
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         body { 
@@ -13,18 +13,18 @@
             display: flex; justify-content: center; align-items: center; height: 100vh; position: relative;
         }
         
-        .container-master { width: 100%; height: 100vh; display: flex; justify-content: center; align-items: center; position: absolute; top:0; left:0; }
+        .container-master { 
+            width: 100%; height: 100vh; display: flex; justify-content: center; align-items: center; 
+            position: absolute; top:0; left:0; 
+            transition: opacity 0.8s ease-in-out, transform 0.8s ease-in-out; 
+        }
 
-        /* Container de Fotos Padrão (Colaboradores) */
-        #imgPainel { width: 100%; height: 100vh; object-fit: contain; transition: opacity 1s ease-in-out; }
-        
-        /* A CLASSE MAGICA PARA O COMUNICADO FICAR FULLSCREEN */
+        .escondido { opacity: 0; pointer-events: none; transform: scale(1.02); }
+        .visivel { opacity: 1; pointer-events: auto; transform: scale(1); }
+
+        #imgPainel { width: 100%; height: 100vh; object-fit: contain; }
         .modo-arte { object-fit: cover !important; }
 
-        .escondido { opacity: 0; pointer-events: none; }
-        .visivel { opacity: 1; pointer-events: auto; }
-
-        /* Estilo iOS Moderno (Glassmorphism) para a etiqueta de nome */
         .nome-rodape { 
             position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
             background: rgba(255, 255, 255, 0.15);
@@ -38,25 +38,22 @@
         .nome-rodape .titular { font-size: 26px; font-weight: 700; letter-spacing: 1px; text-shadow: 0 2px 4px rgba(0,0,0,0.4); }
         .nome-rodape .setor { font-size: 16px; font-weight: 400; opacity: 0.9; margin-top: 4px; text-shadow: 0 1px 2px rgba(0,0,0,0.4); }
 
-        /* Número Discreto no Canto Inferior Esquerdo */
         #numeroDiscreto {
             position: absolute; bottom: 15px; left: 20px; font-size: 20px; font-weight: 700;
             color: rgba(255, 255, 255, 0.5); z-index: 10; text-shadow: 0 1px 3px rgba(0,0,0,0.8); transition: opacity 1s;
         }
 
-        /* Container de Comunicados de Texto */
         #containerTexto {
             width: 80%; text-align: center; background: rgba(34, 67, 135, 0.85);
             backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
             padding: 50px; border-radius: 30px; border: 1px solid rgba(255,255,255,0.2);
-            box-shadow: 0 10px 40px rgba(0,0,0,0.5); transition: opacity 1s ease-in-out;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5); 
         }
         #textoDoComunicado { font-size: 50px; font-weight: 700; line-height: 1.3; margin: 0; color: #fff; }
         .aviso-label { font-size: 20px; color: #ff9800; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 20px; display: block;}
 
         #aguardando { font-size: 32px; color: #ff9800; font-weight: 700; z-index: 50; }
 
-        /* Barra de Progresso Inferior */
         #barraProgressoContainer { position: absolute; bottom: 0; left: 0; width: 100%; height: 6px; background: rgba(255,255,255,0.1); z-index: 20; }
         #barraProgresso { height: 100%; width: 0%; background: linear-gradient(to right, #224387, #002061); }
     </style>
@@ -65,7 +62,6 @@
 
     <div id="aguardando">Aguardando conteúdos...</div>
 
-    <!-- Camada 1: Fotos dos Colaboradores ou Artes Visuais -->
     <div class="container-master escondido" id="camadaImagem">
         <img id="imgPainel" src="" alt="Painel">
         <div class="nome-rodape" id="nomePainel">
@@ -74,7 +70,6 @@
         </div>
     </div>
 
-    <!-- Camada 2: Textos de Comunicados -->
     <div class="container-master escondido" id="camadaTexto">
         <div id="containerTexto">
             <span class="aviso-label">📢 Mural da Fundação</span>
@@ -104,16 +99,16 @@
         let fotosAprovadas = [];
         let comunicadosAtivos = [];
         
-        let estadoAtual = 'FOTOS'; // 'FOTOS' ou 'COMS'
+        let estadoAtual = 'FOTOS'; 
         let indexFoto = -1;
         let indexCom = -1;
         
-        let fotosExibidasNoCiclo = 0; // Vai até 3
-        let comsExibidosNoCiclo = 0;  // Vai até 2
+        let fotosExibidasNoCiclo = 0; 
+        let comsExibidosNoCiclo = 0;  
         
         let loopRodando = false;
         let maiorNumeroExibido = 0;
-        let pularParaNova = false; // Gatilho de salto inteligente
+        let pularParaNova = false; 
         
         const camadaImagem = document.getElementById('camadaImagem');
         const imgPainel = document.getElementById('imgPainel');
@@ -131,13 +126,12 @@
             snapshot.forEach(doc => fotosAprovadas.push(doc.data()));
             fotosAprovadas.sort((a, b) => (a.numeroFila || 0) - (b.numeroFila || 0));
             
-            // INTELIGÊNCIA: Se chegou foto nova, prepara para pular direto pra ela
             if (fotosAprovadas.length > 0) {
                 const ultimaFila = fotosAprovadas[fotosAprovadas.length - 1].numeroFila || 0;
                 if (ultimaFila > maiorNumeroExibido && maiorNumeroExibido > 0) {
                     pularParaNova = true;
-                    estadoAtual = 'FOTOS'; // Força a TV a voltar para as fotos
-                    fotosExibidasNoCiclo = 0; // Zera a contagem do ciclo
+                    estadoAtual = 'FOTOS'; 
+                    fotosExibidasNoCiclo = 0; 
                     comsExibidosNoCiclo = 0;
                 }
             }
@@ -167,7 +161,6 @@
             }, 50);
         }
 
-        // MOTOR CENTRAL: 3 Fotos -> 2 Comunicados -> Repete
         function decidirProximo() {
             if (fotosAprovadas.length === 0 && comunicadosAtivos.length === 0) {
                 loopRodando = false;
@@ -188,8 +181,7 @@
                     return;
                 }
                 renderizarFoto();
-            } else { // ESTADO == COMS
-                // Se já mostrou 2 comunicados (ou se só tem 1 ativo e já mostrou ele 1 vez para não repetir igual bobo)
+            } else { 
                 if (comsExibidosNoCiclo >= 2 || (comsExibidosNoCiclo >= 1 && comunicadosAtivos.length === 1 && fotosAprovadas.length > 0)) {
                     estadoAtual = 'FOTOS';
                     fotosExibidasNoCiclo = 0;
@@ -202,37 +194,33 @@
         }
 
         function renderizarFoto() {
-            // LÓGICA DO SALTO INTELIGENTE
             if (pularParaNova) {
                 let indiceDaNova = fotosAprovadas.findIndex(f => (f.numeroFila || 0) > maiorNumeroExibido);
                 if (indiceDaNova !== -1) {
                     indexFoto = indiceDaNova;
                 } else {
-                    indexFoto = (indexFoto + 1) >= fotosAprovadas.length ? 0 : (indexFoto + 1); // Loop normal
+                    indexFoto = (indexFoto + 1) >= fotosAprovadas.length ? 0 : (indexFoto + 1); 
                 }
                 pularParaNova = false;
             } else {
-                indexFoto = (indexFoto + 1) >= fotosAprovadas.length ? 0 : (indexFoto + 1); // Loop normal
+                indexFoto = (indexFoto + 1) >= fotosAprovadas.length ? 0 : (indexFoto + 1); 
             }
 
             const fotoDaVez = fotosAprovadas[indexFoto];
             
-            // Registra até onde a TV já mostrou
             if ((fotoDaVez.numeroFila || 0) > maiorNumeroExibido) {
                 maiorNumeroExibido = fotoDaVez.numeroFila;
             }
 
-            transicaoApagarTudo();
+            const imgPreload = new Image();
+            imgPreload.src = fotoDaVez.url_imagem;
+            
+            imgPreload.onload = () => {
+                transicaoApagarTudo();
 
-            setTimeout(() => {
-                const imgPreload = new Image();
-                imgPreload.src = fotoDaVez.url_imagem;
-                
-                imgPreload.onload = () => {
+                setTimeout(() => {
                     fotosExibidasNoCiclo++; 
-                    
-                    imgPainel.classList.remove('modo-arte'); // Garante que foto de gente não corta
-                    
+                    imgPainel.classList.remove('modo-arte'); 
                     imgPainel.src = fotoDaVez.url_imagem;
                     numDiscreto.innerText = fotoDaVez.numeroFila ? `#${fotoDaVez.numeroFila}` : "";
                     numDiscreto.style.opacity = 1;
@@ -248,40 +236,45 @@
                     camadaImagem.classList.remove('escondido'); camadaImagem.classList.add('visivel');
                     animarBarra(7000); 
                     setTimeout(decidirProximo, 7000);
-                };
-                imgPreload.onerror = () => { decidirProximo(); };
-            }, 1000);
+                }, 800); 
+            };
+            imgPreload.onerror = () => { decidirProximo(); };
         }
 
         function renderizarComunicado() {
             indexCom = (indexCom + 1) >= comunicadosAtivos.length ? 0 : (indexCom + 1);
             const com = comunicadosAtivos[indexCom];
 
-            transicaoApagarTudo();
-
-            setTimeout(() => {
-                comsExibidosNoCiclo++;
-
-                if(com.tipo === 'imagem' || com.url_imagem) {
-                    const imgPreload = new Image();
-                    imgPreload.src = com.url_imagem;
-                    imgPreload.onload = () => {
-                        imgPainel.classList.add('modo-arte'); // Preenche 100% da tela sem bordas
+            if(com.tipo === 'imagem' || com.url_imagem) {
+                const imgPreload = new Image();
+                imgPreload.src = com.url_imagem;
+                imgPreload.onload = () => {
+                    transicaoApagarTudo();
+                    setTimeout(() => {
+                        comsExibidosNoCiclo++;
+                        imgPainel.classList.add('modo-arte'); 
                         imgPainel.src = com.url_imagem;
                         nomePainel.style.display = 'none'; 
+                        numDiscreto.style.opacity = 0;     
                         
                         camadaImagem.classList.remove('escondido'); camadaImagem.classList.add('visivel');
                         animarBarra(15000); 
                         setTimeout(decidirProximo, 15000); 
-                    };
-                    imgPreload.onerror = () => { decidirProximo(); };
-                } else {
+                    }, 800);
+                };
+                imgPreload.onerror = () => { decidirProximo(); };
+            } else {
+                transicaoApagarTudo();
+                setTimeout(() => {
+                    comsExibidosNoCiclo++;
                     textoDoComunicado.innerText = com.texto;
+                    numDiscreto.style.opacity = 0;
+                    
                     camadaTexto.classList.remove('escondido'); camadaTexto.classList.add('visivel');
                     animarBarra(15000); 
                     setTimeout(decidirProximo, 15000); 
-                }
-            }, 1000);
+                }, 800);
+            }
         }
 
         function transicaoApagarTudo() {
