@@ -7,7 +7,7 @@
     <!-- Tag que transforma em PWA -->
     <link rel="manifest" href="manifest.json">
     <!-- Fonte Montserrat -->
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
         body { 
             margin: 0; padding: 0; background-color: #000; color: white; 
@@ -39,12 +39,12 @@
             pointer-events: none;
         }
 
-        /* Relógio Glassmorphism (Apenas nos comunicados) */
+        /* Relógio Glassmorphism (MAIS TRANSPARENTE AGORA) */
         #relogioTV {
             position: absolute; bottom: 30px; right: 30px;
-            background: rgba(255, 255, 255, 0.85);
+            background: rgba(255, 255, 255, 0.5); /* Alterado de 0.85 para 0.5 */
             backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.4);
             box-shadow: 0 4px 15px rgba(0,0,0,0.3);
             border-radius: 12px; color: #224387; 
             padding: 10px 20px; text-align: center;
@@ -59,18 +59,24 @@
             transition: opacity 0.8s ease-in-out, transform 0.8s ease-in-out; 
         }
 
-        /* Background atualizado para Escaneie e Mande a Sua */
+        /* NOVO BACKGROUND - Fundo da Foto (Atrás de tudo) */
         #camadaImagem {
-            background-image: url('escaneie%20e%20mande%20a%20sua.png');
+            background-image: url('BG%20TV%20Interativa%20-%20Dia%20das%20Crian%C3%A7as.jpg');
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
         }
 
+        /* NOVA MOLDURA - Frente da Foto (Transparente no meio) */
+        .moldura-sobreposicao {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100vh;
+            object-fit: cover; z-index: 5; pointer-events: none;
+        }
+
         .escondido { opacity: 0; pointer-events: none; transform: scale(1.02); }
         .visivel { opacity: 1; pointer-events: auto; transform: scale(1); }
 
-        #imgPainel { width: 100%; height: 100vh; object-fit: contain; }
+        #imgPainel { width: 100%; height: 100vh; object-fit: contain; position: relative; z-index: 2; }
         .modo-arte { object-fit: cover !important; }
 
         .nome-rodape { 
@@ -82,13 +88,16 @@
             border-radius: 20px; color: #ffffff;
             padding: 12px 35px; text-align: center;
             transition: opacity 1s ease-in-out;
+            z-index: 10;
         }
         .nome-rodape .titular { font-size: 26px; font-weight: 700; letter-spacing: 1px; text-shadow: 0 2px 4px rgba(0,0,0,0.4); }
         .nome-rodape .setor { font-size: 16px; font-weight: 400; opacity: 0.9; margin-top: 4px; text-shadow: 0 1px 2px rgba(0,0,0,0.4); }
 
+        /* NÚMERO DISCRETO AGORA AZUL E MAIS DESTACADO */
         #numeroDiscreto {
-            position: absolute; bottom: 15px; left: 20px; font-size: 20px; font-weight: 700;
-            color: rgba(255, 255, 255, 0.5); z-index: 10; text-shadow: 0 1px 3px rgba(0,0,0,0.8); transition: opacity 1s;
+            position: absolute; bottom: 15px; left: 20px; font-size: 22px; font-weight: 800;
+            color: #224387; z-index: 15; text-shadow: 0 1px 2px rgba(255,255,255,0.8); 
+            transition: opacity 1s;
         }
 
         #containerTexto {
@@ -119,7 +128,11 @@
     <div id="aguardando">Aguardando conteúdos...</div>
 
     <div class="container-master escondido" id="camadaImagem">
+        <!-- 1. Imagem da pessoa -->
         <img id="imgPainel" src="" alt="Painel">
+        <!-- 2. A Nova Moldura Transparente por cima da foto -->
+        <img id="molduraFoto" src="escaneie%20e%20mande%20a%20sua.png" class="moldura-sobreposicao" alt="Moldura">
+        <!-- 3. Crachá e informações -->
         <div class="nome-rodape" id="nomePainel">
             <div class="titular" id="lblNome"></div>
             <div class="setor" id="lblSetor"></div>
@@ -185,6 +198,7 @@
         
         const camadaImagem = document.getElementById('camadaImagem');
         const imgPainel = document.getElementById('imgPainel');
+        const molduraFoto = document.getElementById('molduraFoto'); // Elemento da moldura nova
         const nomePainel = document.getElementById('nomePainel');
         const lblNome = document.getElementById('lblNome');
         const lblSetor = document.getElementById('lblSetor');
@@ -294,6 +308,9 @@
                     numDiscreto.innerText = fotoDaVez.numeroFila ? `#${fotoDaVez.numeroFila}` : "";
                     numDiscreto.style.opacity = 1;
 
+                    // Mostra a moldura de acrílico por cima da foto da pessoa
+                    molduraFoto.style.display = 'block';
+
                     if(fotoDaVez.nome === "Anônimo" && !fotoDaVez.setor) {
                         nomePainel.style.display = 'none';
                     } else {
@@ -329,8 +346,11 @@
                         comsExibidosNoCiclo++;
                         imgPainel.classList.add('modo-arte'); 
                         imgPainel.src = com.url_imagem;
+                        
+                        // Esconde elementos exclusivos de fotos
                         nomePainel.style.display = 'none'; 
                         numDiscreto.style.opacity = 0;     
+                        molduraFoto.style.display = 'none'; 
                         
                         camadaImagem.classList.remove('escondido'); camadaImagem.classList.add('visivel');
                         
@@ -348,6 +368,7 @@
                     comsExibidosNoCiclo++;
                     textoDoComunicado.innerText = com.texto;
                     numDiscreto.style.opacity = 0;
+                    molduraFoto.style.display = 'none';
                     
                     camadaTexto.classList.remove('escondido'); camadaTexto.classList.add('visivel');
                     
