@@ -12,12 +12,26 @@
         body { 
             margin: 0; padding: 0; background-color: #000; color: white; 
             font-family: 'Montserrat', sans-serif; overflow: hidden;
-            display: flex; justify-content: center; align-items: center; height: 100vh; position: relative;
+        }
+
+        /* --- MOTOR DE ESCALA AUTOMÁTICA (MÁGICA ACONTECE AQUI) --- */
+        #viewportWrapper {
+            width: 100vw; height: 100vh;
+            display: flex; justify-content: center; align-items: center;
+            overflow: hidden;
+        }
+
+        /* Esta caixa tem exatos 1920x1080 e todo o conteúdo mora dentro dela. 
+           O JS vai dar "zoom" nela para caber em qualquer TV sem quebrar nada. */
+        .tv-scale-box {
+            width: 1920px; height: 1080px; position: relative;
+            transform: scale(var(--scale-factor, 1));
+            transform-origin: center center;
         }
         
-        /* Botão de Tela Cheia */
+        /* Botão de Tela Cheia (Fica fora da escala para sempre poder ser clicado) */
         #btnFullscreen {
-            position: absolute; top: 20px; right: 20px; z-index: 9999;
+            position: fixed; top: 20px; right: 20px; z-index: 99999;
             background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.5);
             padding: 10px 15px; border-radius: 8px; cursor: pointer; font-family: 'Montserrat', sans-serif;
             font-weight: 600; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); transition: 0.3s;
@@ -26,76 +40,74 @@
 
         /* Marca D'água Fixa */
         .marca-dagua {
-            position: absolute; top: 30px; right: 30px; width: 140px;
+            position: absolute; top: 40px; right: 40px; width: 200px;
             opacity: 0.7; z-index: 9990; pointer-events: none;
         }
 
-        /* QR Code (Apenas nas fotos) */
+        /* QR Code */
         .qr-code-tv {
-            position: absolute; bottom: 30px; right: 30px; width: 90px;
-            background: rgba(255,255,255,0.9); padding: 5px; border-radius: 8px;
+            position: absolute; bottom: 40px; right: 40px; width: 140px;
+            background: rgba(255,255,255,0.9); padding: 10px; border-radius: 12px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.5); z-index: 9990;
             transition: opacity 0.8s ease-in-out, transform 0.8s ease-in-out; 
             pointer-events: none;
         }
 
-        /* Relógio Glassmorphism (MAIS TRANSPARENTE AGORA) */
+        /* Relógio Glassmorphism */
         #relogioTV {
-            position: absolute; bottom: 30px; right: 30px;
-            background: rgba(255, 255, 255, 0.5); /* Alterado de 0.85 para 0.5 */
+            position: absolute; bottom: 40px; right: 40px;
+            background: rgba(255, 255, 255, 0.5); 
             backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.4);
             box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            border-radius: 12px; color: #224387; 
-            padding: 10px 20px; text-align: center;
-            font-size: 28px; font-weight: 700; letter-spacing: 1px;
+            border-radius: 16px; color: #224387; 
+            padding: 15px 30px; text-align: center;
+            font-size: 45px; font-weight: 700; letter-spacing: 2px;
             transition: opacity 0.8s ease-in-out, transform 0.8s ease-in-out; 
             z-index: 9990; pointer-events: none;
         }
 
         .container-master { 
-            width: 100%; height: 100vh; display: flex; justify-content: center; align-items: center; 
+            width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; 
             position: absolute; top:0; left:0; 
             transition: opacity 0.8s ease-in-out, transform 0.8s ease-in-out; 
         }
 
-        /* NOVO BACKGROUND - Fundo da Foto (Atrás de tudo) */
+        /* Background da Foto */
         #camadaImagem {
             background-image: url('BG%20TV%20Interativa%20-%20Dia%20das%20Crian%C3%A7as.jpg');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
+            background-size: cover; background-position: center; background-repeat: no-repeat;
         }
 
-        /* NOVA MOLDURA - Frente da Foto (Transparente no meio) */
+        /* Moldura de sobreposição */
         .moldura-sobreposicao {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100vh;
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             object-fit: cover; z-index: 5; pointer-events: none;
         }
 
         .escondido { opacity: 0; pointer-events: none; transform: scale(1.02); }
         .visivel { opacity: 1; pointer-events: auto; transform: scale(1); }
 
-        #imgPainel { width: 100%; height: 100vh; object-fit: contain; position: relative; z-index: 2; }
+        #imgPainel { width: 100%; height: 100%; object-fit: contain; position: relative; z-index: 2; }
         .modo-arte { object-fit: cover !important; }
 
         .nome-rodape { 
-            position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
+            position: absolute; bottom: 70px; left: 50%; transform: translateX(-50%);
             background: rgba(255, 255, 255, 0.15);
             backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.3);
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-            border-radius: 20px; color: #ffffff;
-            padding: 12px 35px; text-align: center;
+            border-radius: 30px; color: #ffffff;
+            padding: 20px 55px; text-align: center;
             transition: opacity 1s ease-in-out;
             z-index: 10;
         }
-        .nome-rodape .titular { font-size: 26px; font-weight: 700; letter-spacing: 1px; text-shadow: 0 2px 4px rgba(0,0,0,0.4); }
-        .nome-rodape .setor { font-size: 16px; font-weight: 400; opacity: 0.9; margin-top: 4px; text-shadow: 0 1px 2px rgba(0,0,0,0.4); }
+        .nome-rodape .titular { font-size: 40px; font-weight: 700; letter-spacing: 1.5px; text-shadow: 0 2px 4px rgba(0,0,0,0.4); }
+        .nome-rodape .setor { font-size: 24px; font-weight: 400; opacity: 0.9; margin-top: 5px; text-shadow: 0 1px 2px rgba(0,0,0,0.4); }
 
-        /* NÚMERO DISCRETO AGORA AZUL E MAIS DESTACADO */
+        /* Número Discreto */
         #numeroDiscreto {
-            position: absolute; bottom: 15px; left: 20px; font-size: 22px; font-weight: 800;
+            position: absolute; bottom: 30px; left: 40px; font-size: 35px; font-weight: 800;
             color: #224387; z-index: 15; text-shadow: 0 1px 2px rgba(255,255,255,0.8); 
             transition: opacity 1s;
         }
@@ -103,55 +115,68 @@
         #containerTexto {
             width: 80%; text-align: center; background: rgba(34, 67, 135, 0.85);
             backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
-            padding: 50px; border-radius: 30px; border: 1px solid rgba(255,255,255,0.2);
+            padding: 80px; border-radius: 40px; border: 1px solid rgba(255,255,255,0.2);
             box-shadow: 0 10px 40px rgba(0,0,0,0.5); 
         }
-        #textoDoComunicado { font-size: 50px; font-weight: 700; line-height: 1.3; margin: 0; color: #fff; }
-        .aviso-label { font-size: 20px; color: #ff9800; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 20px; display: block;}
+        #textoDoComunicado { font-size: 70px; font-weight: 700; line-height: 1.3; margin: 0; color: #fff; }
+        .aviso-label { font-size: 30px; color: #ff9800; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 25px; display: block;}
 
-        #aguardando { font-size: 32px; color: #ff9800; font-weight: 700; z-index: 50; }
+        #aguardando { font-size: 45px; color: #ff9800; font-weight: 700; z-index: 50; }
 
-        #barraProgressoContainer { position: absolute; bottom: 0; left: 0; width: 100%; height: 6px; background: rgba(255,255,255,0.1); z-index: 20; }
+        #barraProgressoContainer { position: absolute; bottom: 0; left: 0; width: 100%; height: 10px; background: rgba(255,255,255,0.1); z-index: 20; }
         #barraProgresso { height: 100%; width: 0%; background: linear-gradient(to right, #224387, #002061); }
     </style>
 </head>
 <body>
 
     <button id="btnFullscreen">📺 Tela Cheia</button>
-    
-    <img src="MKTFCV.png" class="marca-dagua" alt="MKT FCV">
-    
-    <!-- Alternam de lugar dependendo do conteúdo -->
-    <img src="qcoude%20fotos.png" id="qrCodeTV" class="qr-code-tv escondido" alt="QR Code">
-    <div id="relogioTV" class="escondido">--:--</div>
 
-    <div id="aguardando">Aguardando conteúdos...</div>
+    <!-- WRAPPER QUE CONTROLA O ZOOM DA TELA -->
+    <div id="viewportWrapper">
+        <div class="tv-scale-box" id="tvScaleBox">
+            
+            <img src="MKTFCV.png" class="marca-dagua" alt="MKT FCV">
+            
+            <img src="qcoude%20fotos.png" id="qrCodeTV" class="qr-code-tv escondido" alt="QR Code">
+            <div id="relogioTV" class="escondido">--:--</div>
 
-    <div class="container-master escondido" id="camadaImagem">
-        <!-- 1. Imagem da pessoa -->
-        <img id="imgPainel" src="" alt="Painel">
-        <!-- 2. A Nova Moldura Transparente por cima da foto -->
-        <img id="molduraFoto" src="escaneie%20e%20mande%20a%20sua.png" class="moldura-sobreposicao" alt="Moldura">
-        <!-- 3. Crachá e informações -->
-        <div class="nome-rodape" id="nomePainel">
-            <div class="titular" id="lblNome"></div>
-            <div class="setor" id="lblSetor"></div>
+            <div id="aguardando">Aguardando conteúdos...</div>
+
+            <div class="container-master escondido" id="camadaImagem">
+                <img id="imgPainel" src="" alt="Painel">
+                <img id="molduraFoto" src="escaneie%20e%20mande%20a%20sua.png" class="moldura-sobreposicao" alt="Moldura">
+                <div class="nome-rodape" id="nomePainel">
+                    <div class="titular" id="lblNome"></div>
+                    <div class="setor" id="lblSetor"></div>
+                </div>
+            </div>
+
+            <div class="container-master escondido" id="camadaTexto">
+                <div id="containerTexto">
+                    <span class="aviso-label">📢 Mural da Fundação</span>
+                    <h1 id="textoDoComunicado"></h1>
+                </div>
+            </div>
+
+            <div id="numeroDiscreto"></div>
+            <div id="barraProgressoContainer"><div id="barraProgresso"></div></div>
+
         </div>
     </div>
-
-    <div class="container-master escondido" id="camadaTexto">
-        <div id="containerTexto">
-            <span class="aviso-label">📢 Mural da Fundação</span>
-            <h1 id="textoDoComunicado"></h1>
-        </div>
-    </div>
-
-    <div id="numeroDiscreto"></div>
-    <div id="barraProgressoContainer"><div id="barraProgresso"></div></div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
         import { getFirestore, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
+        // MÁGICA DA ESCALA AUTOMÁTICA
+        function ajustarEscala() {
+            const scaleBox = document.getElementById('tvScaleBox');
+            // Calcula o zoom necessário baseado na largura e altura da tela do dispositivo
+            const scale = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
+            scaleBox.style.setProperty('--scale-factor', scale);
+        }
+        window.addEventListener('resize', ajustarEscala);
+        ajustarEscala(); // Roda ao carregar a página
 
         document.getElementById('btnFullscreen').addEventListener('click', () => {
             if (!document.fullscreenElement) {
@@ -198,7 +223,7 @@
         
         const camadaImagem = document.getElementById('camadaImagem');
         const imgPainel = document.getElementById('imgPainel');
-        const molduraFoto = document.getElementById('molduraFoto'); // Elemento da moldura nova
+        const molduraFoto = document.getElementById('molduraFoto'); 
         const nomePainel = document.getElementById('nomePainel');
         const lblNome = document.getElementById('lblNome');
         const lblSetor = document.getElementById('lblSetor');
@@ -308,7 +333,6 @@
                     numDiscreto.innerText = fotoDaVez.numeroFila ? `#${fotoDaVez.numeroFila}` : "";
                     numDiscreto.style.opacity = 1;
 
-                    // Mostra a moldura de acrílico por cima da foto da pessoa
                     molduraFoto.style.display = 'block';
 
                     if(fotoDaVez.nome === "Anônimo" && !fotoDaVez.setor) {
@@ -320,7 +344,6 @@
                     }
 
                     camadaImagem.classList.remove('escondido'); camadaImagem.classList.add('visivel');
-                    
                     qrCodeTV.classList.remove('escondido'); qrCodeTV.classList.add('visivel');
 
                     animarBarra(7000); 
@@ -347,13 +370,11 @@
                         imgPainel.classList.add('modo-arte'); 
                         imgPainel.src = com.url_imagem;
                         
-                        // Esconde elementos exclusivos de fotos
                         nomePainel.style.display = 'none'; 
                         numDiscreto.style.opacity = 0;     
                         molduraFoto.style.display = 'none'; 
                         
                         camadaImagem.classList.remove('escondido'); camadaImagem.classList.add('visivel');
-                        
                         relogioTV.classList.remove('escondido'); relogioTV.classList.add('visivel');
                         
                         animarBarra(15000); 
@@ -371,7 +392,6 @@
                     molduraFoto.style.display = 'none';
                     
                     camadaTexto.classList.remove('escondido'); camadaTexto.classList.add('visivel');
-                    
                     relogioTV.classList.remove('escondido'); relogioTV.classList.add('visivel');
                     
                     animarBarra(15000); 
