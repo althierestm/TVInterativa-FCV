@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TV Interativa - Dia das Crianças</title>
-    <!-- Tag que transforma em PWA -->
     <link rel="manifest" href="manifest.json">
-    <!-- Fonte Montserrat -->
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
         body { 
@@ -14,22 +12,18 @@
             font-family: 'Montserrat', sans-serif; overflow: hidden;
         }
 
-        /* --- MOTOR DE ESCALA AUTOMÁTICA (MÁGICA ACONTECE AQUI) --- */
         #viewportWrapper {
             width: 100vw; height: 100vh;
             display: flex; justify-content: center; align-items: center;
             overflow: hidden;
         }
 
-        /* Esta caixa tem exatos 1920x1080 e todo o conteúdo mora dentro dela. 
-           O JS vai dar "zoom" nela para caber em qualquer TV sem quebrar nada. */
         .tv-scale-box {
             width: 1920px; height: 1080px; position: relative;
             transform: scale(var(--scale-factor, 1));
             transform-origin: center center;
         }
         
-        /* Botão de Tela Cheia (Fica fora da escala para sempre poder ser clicado) */
         #btnFullscreen {
             position: fixed; top: 20px; right: 20px; z-index: 99999;
             background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.5);
@@ -38,13 +32,11 @@
         }
         #btnFullscreen:hover { background: rgba(255,255,255,0.4); }
 
-        /* Marca D'água Fixa */
         .marca-dagua {
             position: absolute; top: 40px; right: 40px; width: 200px;
             opacity: 0.7; z-index: 9990; pointer-events: none;
         }
 
-        /* QR Code */
         .qr-code-tv {
             position: absolute; bottom: 40px; right: 40px; width: 140px;
             background: rgba(255,255,255,0.9); padding: 10px; border-radius: 12px;
@@ -53,16 +45,15 @@
             pointer-events: none;
         }
 
-        /* Relógio Glassmorphism */
         #relogioTV {
             position: absolute; bottom: 40px; right: 40px;
             background: rgba(255, 255, 255, 0.5); 
             backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.4);
             box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            border-radius: 16px; color: #224387; 
-            padding: 15px 30px; text-align: center;
-            font-size: 45px; font-weight: 700; letter-spacing: 2px;
+            border-radius: 12px; color: #224387; 
+            padding: 10px 25px; text-align: center;
+            font-size: 32px; font-weight: 700; letter-spacing: 2px;
             transition: opacity 0.8s ease-in-out, transform 0.8s ease-in-out; 
             z-index: 9990; pointer-events: none;
         }
@@ -73,13 +64,11 @@
             transition: opacity 0.8s ease-in-out, transform 0.8s ease-in-out; 
         }
 
-        /* Background da Foto */
         #camadaImagem {
             background-image: url('BG%20TV%20Interativa%20-%20Dia%20das%20Crian%C3%A7as.jpg');
             background-size: cover; background-position: center; background-repeat: no-repeat;
         }
 
-        /* Moldura de sobreposição */
         .moldura-sobreposicao {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             object-fit: cover; z-index: 5; pointer-events: none;
@@ -105,7 +94,6 @@
         .nome-rodape .titular { font-size: 40px; font-weight: 700; letter-spacing: 1.5px; text-shadow: 0 2px 4px rgba(0,0,0,0.4); }
         .nome-rodape .setor { font-size: 24px; font-weight: 400; opacity: 0.9; margin-top: 5px; text-shadow: 0 1px 2px rgba(0,0,0,0.4); }
 
-        /* Número Discreto */
         #numeroDiscreto {
             position: absolute; bottom: 30px; left: 40px; font-size: 35px; font-weight: 800;
             color: #224387; z-index: 15; text-shadow: 0 1px 2px rgba(255,255,255,0.8); 
@@ -131,7 +119,6 @@
 
     <button id="btnFullscreen">📺 Tela Cheia</button>
 
-    <!-- WRAPPER QUE CONTROLA O ZOOM DA TELA -->
     <div id="viewportWrapper">
         <div class="tv-scale-box" id="tvScaleBox">
             
@@ -168,15 +155,13 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
         import { getFirestore, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
-        // MÁGICA DA ESCALA AUTOMÁTICA
         function ajustarEscala() {
             const scaleBox = document.getElementById('tvScaleBox');
-            // Calcula o zoom necessário baseado na largura e altura da tela do dispositivo
             const scale = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
             scaleBox.style.setProperty('--scale-factor', scale);
         }
         window.addEventListener('resize', ajustarEscala);
-        ajustarEscala(); // Roda ao carregar a página
+        ajustarEscala(); 
 
         document.getElementById('btnFullscreen').addEventListener('click', () => {
             if (!document.fullscreenElement) {
@@ -185,7 +170,6 @@
             }
         });
 
-        // Motor do Relógio
         function atualizarRelogio() {
             const agora = new Date();
             const horaString = agora.toLocaleTimeString('pt-BR', { 
@@ -332,7 +316,6 @@
                     imgPainel.src = fotoDaVez.url_imagem;
                     numDiscreto.innerText = fotoDaVez.numeroFila ? `#${fotoDaVez.numeroFila}` : "";
                     numDiscreto.style.opacity = 1;
-
                     molduraFoto.style.display = 'block';
 
                     if(fotoDaVez.nome === "Anônimo" && !fotoDaVez.setor) {
@@ -369,7 +352,6 @@
                         comsExibidosNoCiclo++;
                         imgPainel.classList.add('modo-arte'); 
                         imgPainel.src = com.url_imagem;
-                        
                         nomePainel.style.display = 'none'; 
                         numDiscreto.style.opacity = 0;     
                         molduraFoto.style.display = 'none'; 
