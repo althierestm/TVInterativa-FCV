@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dia das Crianças - Fundação</title>
-    <!-- Fonte Montserrat -->
+
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Montserrat', sans-serif; text-align: center; background-color: #f0f8ff; padding: 20px; }
@@ -31,23 +31,24 @@
         #mensagem { margin-top: 20px; font-weight: 600; font-size: 15px; }
         .senha-destaque { font-size: 24px; color: #224387; font-weight: 700; margin-top: 10px; display: block; }
 
-        /* Estilos do Rodapé Discreto */
         .rodape-assinatura {
             margin-top: 30px;
-            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
             padding-bottom: 20px;
         }
         .rodape-assinatura img {
-            width: 90px;
+            width: 130px;
             opacity: 0.6;
-            display: block;
-            margin: 0 auto 5px auto;
+            margin-bottom: 2px;
         }
         .rodape-assinatura span {
-            font-size: 11px;
+            font-size: 10px;
             color: #999;
             font-weight: 600;
-            letter-spacing: 0.5px;
+            letter-spacing: 1px;
         }
     </style>
 </head>
@@ -76,7 +77,6 @@
         <div id="mensagem"></div>
     </div>
 
-    <!-- Rodapé Discreto -->
     <div class="rodape-assinatura">
         <img src="MKTFCV.png" alt="MKT FCV">
         <span>by Althieres Dias</span>
@@ -143,7 +143,6 @@
             formData.append("image", arquivoSelecionado);
 
             try {
-                // 1. Descobrir qual o próximo número da fila
                 const querySnapshot = await getDocs(collection(db, "fotos_criancas"));
                 let maxFila = 0;
                 querySnapshot.forEach((doc) => {
@@ -152,14 +151,12 @@
                 });
                 const meuNumeroFila = maxFila + 1;
 
-                // 2. Enviar imagem
                 const respostaImgBB = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
                     method: 'POST',
                     body: formData
                 });
                 const dadosImgBB = await respostaImgBB.json();
                 
-                // 3. Salvar no Firebase
                 await addDoc(collection(db, "fotos_criancas"), {
                     nome: nome,
                     setor: setor,
@@ -170,7 +167,6 @@
                     timestamp: serverTimestamp()
                 });
 
-                // Mensagem de sucesso com a senha
                 mensagem.innerHTML = `✅ Sucesso! Foto enviada para moderação. Aguarde sua vez na TV:<br><span class="senha-destaque">Sua Foto é a Nº ${meuNumeroFila}</span>`;
                 mensagem.style.color = "green";
                 
