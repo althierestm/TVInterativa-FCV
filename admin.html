@@ -4,14 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Moderação - Dia das Crianças</title>
-    <!-- Fonte Montserrat -->
+
+    <link rel="icon" href="logo%20icon%20TV%20do%20Ponto%20FCV.png" type="image/png">
+    <link rel="apple-touch-icon" href="logo%20icon%20TV%20do%20Ponto%20FCV.png">
+
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Montserrat', sans-serif; background-color: #2c3e50; color: white; padding: 15px; text-align: center; margin: 0; }
         h1 { margin-top: 10px; font-size: 24px; color: #f1c40f; font-weight: 700; }
         p { font-size: 14px; color: #ecf0f1; margin-bottom: 20px; }
         
-        /* OVERLAY DE LOGIN CAMUFLADO */
         #loginOverlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #2c3e50; z-index: 9999; display: flex; flex-direction: column;
@@ -32,8 +34,7 @@
         }
         .login-box button:hover { background: #2980b9; }
 
-        /* Restante do CSS do painel */
-        #painelPrincipal { display: none; } /* Oculto até logar */
+        #painelPrincipal { display: none; }
         
         h2 { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 40px; font-size: 18px; border-bottom: 1px solid #555; padding-bottom: 10px; color: #e67e22; }
         h2.telao-titulo { color: #2ecc71; }
@@ -114,14 +115,12 @@
         </div>
         <div class="lista-comunicados" id="listaComunicados"></div>
 
-        <!-- PENDENTES -->
         <h2>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
             Aguardando Aprovação
         </h2>
         <div class="grid-fotos" id="listaPendentes"></div>
 
-        <!-- NA TV -->
         <h2 class="telao-titulo">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg>
             Já estão na TV
@@ -138,7 +137,6 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
         import { getFirestore, collection, query, where, onSnapshot, doc, updateDoc, deleteDoc, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
-        // SISTEMA DE LOGIN CAMUFLADO
         document.getElementById('btnEntrar').addEventListener('click', verificarLogin);
         document.getElementById('loginPass').addEventListener('keypress', function (e) {
             if (e.key === 'Enter') verificarLogin();
@@ -147,7 +145,7 @@
         function verificarLogin() {
             const user = document.getElementById('loginUser').value;
             const pass = document.getElementById('loginPass').value;
-            // As senhas estão protegidas usando conversão Base64. (TWFya2V0aW5n = Marketing | QFRWQ29ycmVkb3Ij = @TVCorredor#)
+
             if (btoa(user) === "TWFya2V0aW5n" && btoa(pass) === "QFRWQ29ycmVkb3Ij") {
                 document.getElementById('loginOverlay').style.display = 'none';
                 document.getElementById('painelPrincipal').style.display = 'block';
@@ -173,7 +171,6 @@
         const listaAprovadas = document.getElementById('listaAprovadas');
         const listaComunicados = document.getElementById('listaComunicados');
 
-        // --- SISTEMA DE FOTOS ---
         const renderizarCard = (dados, id, ehPendente) => {
             const imagemLeve = dados.url_thumb ? dados.url_thumb : dados.url_imagem;
             const numero = dados.numeroFila ? dados.numeroFila : "-";
