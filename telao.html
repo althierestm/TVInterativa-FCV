@@ -37,7 +37,7 @@
         #btnFullscreen:hover { background: rgba(255,255,255,0.4); }
 
         .marca-dagua {
-            position: absolute; top: 40px; right: 40px; width: 200px;
+            position: absolute; top: 25px; right: 40px; width: 200px;
             opacity: 0.7; z-index: 9990; pointer-events: none;
         }
 
@@ -116,7 +116,7 @@
 </head>
 <body>
 
-    <button id="btnFullscreen">📺 Tela Cheia</button>
+    <button id="btnFullscreen">Tela Cheia</button>
 
     <div id="viewportWrapper">
         <div class="tv-scale-box" id="tvScaleBox">
@@ -195,7 +195,7 @@
 
         let fotosAprovadas = [];
         let comunicadosAtivos = [];
-        let estadoAtual = 'FOTOS'; 
+        let estadoAtual = 'COMS'; 
         let indexFoto = -1;
         let indexCom = -1;
         let fotosExibidasNoCiclo = 0; 
@@ -342,7 +342,6 @@
 
             if(com.tipo === 'imagem' || com.url_imagem) {
                 const imgPreload = new Image();
-                // AUMENTADO PARA 8 SEGUNDOS
                 let timeoutCarregamento = setTimeout(() => { imgPreload.onload = null; decidirProximo(); }, 8000); 
 
                 imgPreload.onload = () => {
