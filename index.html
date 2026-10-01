@@ -86,7 +86,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, serverTimestamp, getDocs } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyB8ZK0jSY-1E9y90TLfznxi9PI8mf_bJuc",
@@ -137,7 +137,7 @@
                 return;
             }
 
-            mensagem.innerText = "Gerando sua senha e enviando...";
+            mensagem.innerText = "Enviando arquivo pesado para o servidor...";
             mensagem.style.color = "orange";
             btnEnviar.disabled = true;
 
@@ -145,28 +145,36 @@
             formData.append("image", arquivoSelecionado);
 
             try {
-                
-                const ticketAleatorio = Math.floor(1000 + Math.random() * 9000); 
-                const tempoExato = Date.now(); 
-
+                // 1. PRIMEIRO envia a imagem para o servidor (que é a parte que demora)
                 const respostaImgBB = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
                     method: 'POST',
                     body: formData
                 });
                 const dadosImgBB = await respostaImgBB.json();
                 
+                mensagem.innerText = "A gerar a sua senha sequencial...";
+
+                // 2. AGORA (no milissegundo final) ele consulta a fila para não haver duplicados
+                const querySnapshot = await getDocs(collection(db, "fotos_criancas"));
+                let maxFila = 0;
+                querySnapshot.forEach((doc) => {
+                    const num = doc.data().numeroFila;
+                    if (num && num > maxFila) maxFila = num;
+                });
+                const meuNumeroFila = maxFila + 1;
+                
+                // 3. Guarda imediatamente no Firebase
                 await addDoc(collection(db, "fotos_criancas"), {
                     nome: nome,
                     setor: setor,
-                    numeroFila: tempoExato,    
-                    ticket: ticketAleatorio,   
+                    numeroFila: meuNumeroFila,
                     url_imagem: dadosImgBB.data.url,
                     url_thumb: dadosImgBB.data.thumb.url,
                     status: "pendente",
                     timestamp: serverTimestamp()
                 });
 
-                mensagem.innerHTML = `✅ Sucesso! Foto enviada para moderação. Aguarde sua vez na TV:<br><span class="senha-destaque">Sua Senha: #${ticketAleatorio}</span>`;
+                mensagem.innerHTML = `✅ Sucesso! Foto enviada para moderação. Aguarde sua vez na TV:<br><span class="senha-destaque">Sua Foto é a Nº ${meuNumeroFila}</span>`;
                 mensagem.style.color = "green";
                 
                 document.getElementById('nomeInput').value = "";
