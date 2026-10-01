@@ -3,185 +3,161 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TV Interativa - Dia das Crianças</title>
-    <link rel="manifest" href="manifest.json">
+    <title>Moderação - Dia das Crianças</title>
+    <!-- Ícone da Aba do Navegador -->
     <link rel="icon" href="logo%20icon%20TV%20do%20Ponto%20FCV.png" type="image/png">
     <link rel="apple-touch-icon" href="logo%20icon%20TV%20do%20Ponto%20FCV.png">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&display=swap" rel="stylesheet">
+    <!-- Fonte Montserrat -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        body { 
-            margin: 0; padding: 0; background-color: #000; color: white; 
-            font-family: 'Montserrat', sans-serif; overflow: hidden;
-        }
-
-        #viewportWrapper {
-            position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
-            overflow: hidden;
-        }
-
-        .tv-scale-box {
-            width: 1920px; height: 1080px; 
-            position: absolute; top: 50%; left: 50%;
-            transform-origin: center center;
-            background-image: url('BG%20TV%20Interativa%20-%20Dia%20das%20Crian%C3%A7as.jpg');
-            background-size: cover; background-position: center; background-repeat: no-repeat;
-        }
+        body { font-family: 'Montserrat', sans-serif; background-color: #2c3e50; color: white; padding: 15px; text-align: center; margin: 0; }
+        h1 { margin-top: 10px; font-size: 24px; color: #f1c40f; font-weight: 700; }
+        p { font-size: 14px; color: #ecf0f1; margin-bottom: 20px; }
         
-        #btnFullscreen {
-            position: fixed; top: 20px; right: 20px; z-index: 99999;
-            background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.5);
-            padding: 10px 15px; border-radius: 8px; cursor: pointer; font-family: 'Montserrat', sans-serif;
-            font-weight: 600; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); transition: 0.3s;
+        /* OVERLAY DE LOGIN CAMUFLADO */
+        #loginOverlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #2c3e50; z-index: 9999; display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
         }
-        #btnFullscreen:hover { background: rgba(255,255,255,0.4); }
-
-        .marca-dagua {
-            position: absolute; top: 25px; right: 40px; width: 200px;
-            opacity: 0.7; z-index: 9990; pointer-events: none;
+        .login-box {
+            background: #34495e; padding: 40px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            width: 300px; max-width: 90%;
         }
-
-        .qr-code-tv {
-            position: absolute; bottom: 40px; right: 40px; width: 140px;
-            background: rgba(255,255,255,0.9); padding: 10px; border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5); z-index: 9990;
-            transition: opacity 0.8s ease-in-out, transform 0.8s ease-in-out; 
-            pointer-events: none;
+        .login-box h2 { color: #f1c40f; margin-bottom: 25px; margin-top: 0; border: none; font-size: 22px; }
+        .login-box input {
+            width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 6px; border: 1px solid #7f8c8d;
+            background: #2c3e50; color: white; font-family: 'Montserrat', sans-serif; box-sizing: border-box; font-size: 14px;
         }
-
-        #relogioTV {
-            position: absolute; bottom: 40px; right: 40px;
-            background: rgba(255, 255, 255, 0.5); 
-            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.4);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            border-radius: 12px; color: #224387; 
-            padding: 10px 25px; text-align: center;
-            font-size: 32px; font-weight: 700; letter-spacing: 2px;
-            transition: opacity 0.8s ease-in-out, transform 0.8s ease-in-out; 
-            z-index: 9990; pointer-events: none;
+        .login-box button {
+            width: 100%; padding: 12px; background: #3498db; color: white; border: none; border-radius: 6px;
+            font-weight: bold; cursor: pointer; font-family: 'Montserrat', sans-serif; font-size: 15px; transition: 0.2s;
         }
+        .login-box button:hover { background: #2980b9; }
 
-        .container-master { 
-            width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; 
-            position: absolute; top:0; left:0; 
-            transition: opacity 0.8s ease-in-out, transform 0.8s ease-in-out; 
-        }
-
-        .moldura-sobreposicao {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            object-fit: cover; z-index: 5; pointer-events: none;
-        }
-
-        .escondido { opacity: 0; pointer-events: none; transform: scale(1.02); }
-        .visivel { opacity: 1; pointer-events: auto; transform: scale(1); }
-
-        #imgPainel { width: 100%; height: 100%; object-fit: contain; position: relative; z-index: 2; }
-        .modo-arte { object-fit: cover !important; }
-
-        .nome-rodape { 
-            position: absolute; bottom: 70px; left: 50%; transform: translateX(-50%);
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-            border-radius: 30px; color: #ffffff;
-            padding: 20px 55px; text-align: center;
-            transition: opacity 1s ease-in-out;
-            z-index: 10;
-        }
+        /* Restante do CSS do painel */
+        #painelPrincipal { display: none; } /* Oculto até logar */
         
-        /* NOVO SOMBREAMENTO AZUL PARA GARANTIR LEITURA EM FUNDO BRANCO */
-        .nome-rodape .titular { font-size: 40px; font-weight: 700; letter-spacing: 1.5px; text-shadow: 0 2px 8px #002061, 0 4px 15px rgba(0,32,97,0.8), 0 0 5px #002061; }
-        .nome-rodape .setor { font-size: 24px; font-weight: 400; opacity: 0.9; margin-top: 5px; text-shadow: 0 2px 6px #002061, 0 0 4px #002061; }
+        h2 { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 40px; font-size: 18px; border-bottom: 1px solid #555; padding-bottom: 10px; color: #e67e22; }
+        h2.telao-titulo { color: #2ecc71; }
+        h2.comunicado-titulo { color: #3498db; }
 
-        #numeroDiscreto {
-            position: absolute; bottom: 30px; left: 40px; font-size: 35px; font-weight: 800;
-            color: #224387; z-index: 15; text-shadow: 0 1px 2px rgba(255,255,255,0.8); 
-            transition: opacity 1s;
-        }
+        .grid-fotos { display: grid; grid-template-columns: repeat(auto-fill, minmax(85px, 1fr)); gap: 8px; margin-bottom: 30px; }
+        .card { background: #34495e; padding: 6px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); position: relative; }
+        
+        .badge-numero { position: absolute; top: -5px; right: -5px; background: #e74c3c; color: white; border-radius: 50%; width: 20px; height: 20px; font-size: 10px; font-weight: bold; display: flex; justify-content: center; align-items: center; z-index: 2; }
+        .card img { width: 100%; aspect-ratio: 1 / 1; border-radius: 4px; object-fit: cover; }
+        .nome { font-weight: 700; margin: 6px 0 2px 0; font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff; }
+        .setor { font-weight: 400; font-size: 9px; color: #bdc3c7; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        
+        .btn-group { display: flex; flex-direction: column; gap: 4px; }
+        .btn-group button { font-family: 'Montserrat', sans-serif; padding: 5px 2px; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 9px; width: 100%; transition: background-color 0.2s; }
+        .btn-ver { background-color: #3498db; color: white; }
+        .btn-ver:hover { background-color: #2980b9; }
+        .btn-aprovar { background-color: #2ecc71; color: white; }
+        .btn-aprovar:hover { background-color: #27ae60; }
+        .btn-apagar { background-color: #e74c3c; color: white; }
+        .btn-apagar:hover { background-color: #c0392b; }
+        
+        .vazio { margin-top: 10px; color: #bdc3c7; font-style: italic; grid-column: 1 / -1; font-size: 13px; }
 
-        #containerTexto {
-            width: 80%; text-align: center; background: rgba(34, 67, 135, 0.85);
-            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
-            padding: 80px; border-radius: 40px; border: 1px solid rgba(255,255,255,0.2);
-            box-shadow: 0 10px 40px rgba(0,0,0,0.5); 
-        }
-        #textoDoComunicado { font-size: 70px; font-weight: 700; line-height: 1.3; margin: 0; color: #fff; }
-        .aviso-label { font-size: 30px; color: #ff9800; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 25px; display: block;}
+        .painel-comunicados { background: #34495e; padding: 15px; border-radius: 8px; max-width: 600px; margin: 0 auto 30px auto; display: flex; flex-wrap: wrap; gap: 15px; text-align: left; }
+        .col-com { flex: 1; min-width: 250px; display: flex; flex-direction: column; gap: 8px; }
+        .col-divisor { border-left: 2px dashed #7f8c8d; padding-left: 15px; }
+        @media(max-width: 600px) { .col-divisor { border-left: none; padding-left: 0; border-top: 2px dashed #7f8c8d; padding-top: 15px; } }
+        
+        .col-com input[type="text"] { font-family: 'Montserrat', sans-serif; padding: 10px; border-radius: 6px; border: 1px solid #7f8c8d; background: #2c3e50; color: white; width: 92%; }
+        .btn-texto { background: #3498db; color: white; padding: 10px; border: none; border-radius: 4px; font-weight: 600; cursor: pointer; font-size: 12px; font-family: 'Montserrat', sans-serif; }
+        .btn-arte { background: #8e44ad; color: white; padding: 10px; border: none; border-radius: 4px; font-weight: 600; cursor: pointer; font-size: 12px; font-family: 'Montserrat', sans-serif; }
+        .btn-enviar-arte { background: #f39c12; color: white; padding: 10px; border: none; border-radius: 4px; font-weight: 600; cursor: pointer; font-size: 12px; display: none; font-family: 'Montserrat', sans-serif; }
+        #msgUploadCom { font-size: 11px; color: #f1c40f; text-align: center; font-weight: bold; margin-top: 5px; }
 
-        #aguardando { font-size: 20px; color: #ff9800; font-weight: 300; z-index: 20; }
+        .lista-comunicados { max-width: 600px; margin: 0 auto; text-align: left; }
+        .item-comunicado { background: #2c3e50; padding: 12px; border-radius: 6px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid #3498db; font-size: 13px; gap: 10px; }
+        .item-com-img { width: 40px; height: 40px; object-fit: cover; border-radius: 4px; cursor: pointer; }
+        .btn-remover-com { width: auto; padding: 5px 10px; background: #e74c3c; margin: 0; font-size: 11px; border: none; border-radius: 4px; font-weight: 600; cursor: pointer; font-family: 'Montserrat', sans-serif; color: white; }
 
-        #barraProgressoContainer { position: absolute; bottom: 0; left: 0; width: 100%; height: 10px; background: rgba(255,255,255,0.1); z-index: 20; }
-        #barraProgresso { height: 100%; width: 0%; background: linear-gradient(to right, #224387, #002061); }
+        #modalVerFoto { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.95); align-items: center; justify-content: center; }
+        #modalImg { max-width: 95%; max-height: 85vh; border-radius: 8px; object-fit: contain; }
+        .fechar-modal { position: absolute; top: 15px; right: 25px; color: white; font-size: 40px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <button id="btnFullscreen">Tela Cheia</button>
-
-    <div id="viewportWrapper">
-        <div class="tv-scale-box" id="tvScaleBox">
-            
-            <img src="MKTFCV.png" class="marca-dagua" alt="MKT FCV">
-            
-            <img src="qcoude%20fotos.png" id="qrCodeTV" class="qr-code-tv escondido" alt="QR Code">
-            <div id="relogioTV" class="escondido">--:--</div>
-
-            <div id="aguardando">Aguardando conteúdos...</div>
-
-            <div class="container-master escondido" id="camadaImagem">
-                <img id="imgPainel" src="" alt="Painel">
-                <img id="molduraFoto" src="escaneie%20e%20mande%20a%20sua.png" class="moldura-sobreposicao" alt="Moldura">
-                <div class="nome-rodape" id="nomePainel">
-                    <div class="titular" id="lblNome"></div>
-                    <div class="setor" id="lblSetor"></div>
-                </div>
-            </div>
-
-            <div class="container-master escondido" id="camadaTexto">
-                <div id="containerTexto">
-                    <span class="aviso-label">📢 Mural da Fundação</span>
-                    <h1 id="textoDoComunicado"></h1>
-                </div>
-            </div>
-
-            <div id="numeroDiscreto"></div>
-            <div id="barraProgressoContainer"><div id="barraProgresso"></div></div>
-
+    <div id="loginOverlay">
+        <div class="login-box">
+            <h2>Acesso Restrito</h2>
+            <input type="text" id="loginUser" placeholder="Usuário">
+            <input type="password" id="loginPass" placeholder="Senha">
+            <button id="btnEntrar">Acessar Moderação</button>
         </div>
+    </div>
+
+    <div id="painelPrincipal">
+        <h1>Moderação FCV</h1>
+        <p>Aprove fotos e insira artes ou avisos para a TV.</p>
+
+        <h2 class="comunicado-titulo">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+            Mural de Comunicados (Textos e Artes)
+        </h2>
+        <div class="painel-comunicados">
+            <div class="col-com">
+                <span style="font-size: 12px; font-weight: bold; color: #3498db;">📝 Aviso em Texto</span>
+                <input type="text" id="inputComunicadoTxt" placeholder="Digite um recado curto...">
+                <button class="btn-texto" id="btnAddComTxt">Publicar Texto na TV</button>
+            </div>
+            <div class="col-com col-divisor">
+                <span style="font-size: 12px; font-weight: bold; color: #8e44ad;">🖼️ Arte (Sempre tela cheia)</span>
+                <input type="file" id="inputComunicadoImg" accept="image/*" style="display:none;">
+                <button class="btn-arte" id="btnSelectComImg">Escolher Imagem</button>
+                <button class="btn-enviar-arte" id="btnUploadComImg">🚀 Enviar Arte para TV</button>
+                <div id="msgUploadCom"></div>
+            </div>
+        </div>
+        <div class="lista-comunicados" id="listaComunicados"></div>
+
+        <!-- PENDENTES -->
+        <h2>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            Aguardando Aprovação
+        </h2>
+        <div class="grid-fotos" id="listaPendentes"></div>
+
+        <!-- NA TV -->
+        <h2 class="telao-titulo">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg>
+            Já estão na TV
+        </h2>
+        <div class="grid-fotos" id="listaAprovadas"></div>
+    </div>
+
+    <div id="modalVerFoto">
+        <span class="fechar-modal" onclick="fecharModal()">&times;</span>
+        <img id="modalImg" src="" alt="Foto Ampliada">
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
-        import { getFirestore, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+        import { getFirestore, collection, query, where, onSnapshot, doc, updateDoc, deleteDoc, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
-        function ajustarEscala() {
-            const scaleBox = document.getElementById('tvScaleBox');
-            const scaleX = window.innerWidth / 1920;
-            const scaleY = window.innerHeight / 1080;
-            scaleBox.style.transform = `translate(-50%, -50%) scale(${scaleX}, ${scaleY})`;
-        }
-        window.addEventListener('resize', ajustarEscala);
-        ajustarEscala(); 
-
-        document.getElementById('btnFullscreen').addEventListener('click', () => {
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().catch(err => console.log(err));
-                document.getElementById('btnFullscreen').style.display = 'none'; 
-            }
+        // SISTEMA DE LOGIN CAMUFLADO
+        document.getElementById('btnEntrar').addEventListener('click', verificarLogin);
+        document.getElementById('loginPass').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') verificarLogin();
         });
 
-        function atualizarRelogio() {
-            const agora = new Date();
-            const horaString = agora.toLocaleTimeString('pt-BR', { 
-                timeZone: 'America/Sao_Paulo', 
-                hour: '2-digit', 
-                minute: '2-digit' 
-            });
-            document.getElementById('relogioTV').innerText = horaString;
+        function verificarLogin() {
+            const user = document.getElementById('loginUser').value;
+            const pass = document.getElementById('loginPass').value;
+            // As senhas estão protegidas usando conversão Base64. (TWFya2V0aW5n = Marketing | QFRWQ29ycmVkb3Ij = @TVCorredor#)
+            if (btoa(user) === "TWFya2V0aW5n" && btoa(pass) === "QFRWQ29ycmVkb3Ij") {
+                document.getElementById('loginOverlay').style.display = 'none';
+                document.getElementById('painelPrincipal').style.display = 'block';
+            } else {
+                alert("Usuário ou senha incorretos.");
+            }
         }
-        setInterval(atualizarRelogio, 1000);
-        atualizarRelogio();
 
         const firebaseConfig = {
             apiKey: "AIzaSyB8ZK0jSY-1E9y90TLfznxi9PI8mf_bJuc",
@@ -194,231 +170,182 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-
-        // VARIÁVEIS DE CONTROLE
-        let fotosAprovadas = [];
-        let comunicadosAtivos = [];
-        let estadoAtual = 'COMS'; 
-        let indexFoto = -1;
-        let indexCom = -1;
-        let fotosExibidasNoCiclo = 0; 
+        const IMGBB_API_KEY = "767bd935a2b389a4fbfad4f8d92bfae7"; 
         
-        let loopRodando = false;
-        let maiorNumeroExibido = 0;
-        let pularParaNova = false; 
-        let indiceSalvo = -1; 
-        let carregamentoInicial = { fotos: false, coms: false };
+        const listaPendentes = document.getElementById('listaPendentes');
+        const listaAprovadas = document.getElementById('listaAprovadas');
+        const listaComunicados = document.getElementById('listaComunicados');
 
-        let timerCarregamento = null;
-        let timerTransicao = null;
-        let timerExibicao = null;
+        // VARIÁVEL GLOBAL PARA O BLOQUEIO DE 10 SEGUNDOS
+        let bloqueioAprovacao = false;
 
-        const camadaImagem = document.getElementById('camadaImagem');
-        const imgPainel = document.getElementById('imgPainel');
-        const molduraFoto = document.getElementById('molduraFoto'); 
-        const nomePainel = document.getElementById('nomePainel');
-        const lblNome = document.getElementById('lblNome');
-        const lblSetor = document.getElementById('lblSetor');
-        const camadaTexto = document.getElementById('camadaTexto');
-        const textoDoComunicado = document.getElementById('textoDoComunicado');
-        const numDiscreto = document.getElementById('numeroDiscreto');
-        const aguardando = document.getElementById('aguardando');
-        const barraProgresso = document.getElementById('barraProgresso');
-        const qrCodeTV = document.getElementById('qrCodeTV');
-        const relogioTV = document.getElementById('relogioTV');
+        // FUNÇÃO PARA ATUALIZAR O VISUAL DOS BOTÕES DE APROVAR
+        function atualizarVisualBotoesAprovar() {
+            const botoes = document.querySelectorAll('.btn-aprovar');
+            botoes.forEach(btn => {
+                if (bloqueioAprovacao) {
+                    btn.disabled = true;
+                    btn.style.backgroundColor = '#7f8c8d'; // Cinza escuro (bloqueado)
+                    btn.style.cursor = 'not-allowed';
+                    btn.innerText = "⏳ 10s...";
+                } else {
+                    btn.disabled = false;
+                    btn.style.backgroundColor = ''; // Remove o style inline para voltar o CSS verde padrão
+                    btn.style.cursor = 'pointer';
+                    btn.innerText = "✅ Aprovar";
+                }
+            });
+        }
+
+        // --- SISTEMA DE FOTOS ---
+        const renderizarCard = (dados, id, ehPendente) => {
+            const imagemLeve = dados.url_thumb ? dados.url_thumb : dados.url_imagem;
+            const numero = dados.numeroFila ? dados.numeroFila : "-";
+            const setor = dados.setor ? dados.setor : "Sem setor";
+            
+            let botoes = ehPendente ? 
+                `<button class="btn-ver" onclick="abrirModal('${dados.url_imagem}')">👁️ Ver</button>
+                 <button class="btn-aprovar" onclick="atualizarStatus('${id}', 'aprovado')">✅ Aprovar</button>
+                 <button class="btn-apagar" onclick="excluirFoto('${id}')">🗑️ Apagar</button>` : 
+                `<button class="btn-ver" onclick="abrirModal('${dados.url_imagem}')">👁️ Ver</button>
+                 <button class="btn-apagar" onclick="excluirFoto('${id}')">🗑️ Remover</button>`;
+
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.innerHTML = `
+                <div class="badge-numero">${numero}</div>
+                <img src="${imagemLeve}" loading="lazy">
+                <div class="nome" title="${dados.nome}">${dados.nome}</div>
+                <div class="setor" title="${setor}">${setor}</div>
+                <div class="btn-group">${botoes}</div>
+            `;
+            return card;
+        };
+
+        onSnapshot(query(collection(db, "fotos_criancas"), where("status", "==", "pendente")), (snapshot) => {
+            listaPendentes.innerHTML = ""; 
+            if (snapshot.empty) {
+                listaPendentes.innerHTML = "<p class='vazio'>Nenhuma foto pendente.</p>";
+            } else {
+                snapshot.forEach(doc => listaPendentes.appendChild(renderizarCard(doc.data(), doc.id, true)));
+            }
+            // Garante que se a lista for atualizada (uma foto apagar ou chegar), os botões continuam bloqueados se necessário
+            atualizarVisualBotoesAprovar(); 
+        });
 
         onSnapshot(query(collection(db, "fotos_criancas"), where("status", "==", "aprovado")), (snapshot) => {
-            fotosAprovadas = [];
-            snapshot.forEach(doc => fotosAprovadas.push(doc.data()));
-            fotosAprovadas.sort((a, b) => (a.numeroFila || 0) - (b.numeroFila || 0));
-            
-            if (fotosAprovadas.length > 0) {
-                const ultimaFila = fotosAprovadas[fotosAprovadas.length - 1].numeroFila || 0;
+            listaAprovadas.innerHTML = ""; 
+            if (snapshot.empty) return listaAprovadas.innerHTML = "<p class='vazio'>A TV está vazia.</p>";
+            snapshot.forEach(doc => listaAprovadas.appendChild(renderizarCard(doc.data(), doc.id, false)));
+        });
+
+        window.atualizarStatus = async (id, status) => { 
+            // TRAVA DE SEGURANÇA NO CLIQUE
+            if (status === 'aprovado') {
+                if (bloqueioAprovacao) return; // Se já estiver bloqueado, ignora o clique
                 
-                if (ultimaFila > maiorNumeroExibido && maiorNumeroExibido > 0) {
-                    pularParaNova = true;
-                    estadoAtual = 'FOTOS'; 
-                    fotosExibidasNoCiclo = 0; 
-                    
-                    clearTimeout(timerCarregamento);
-                    clearTimeout(timerTransicao);
-                    clearTimeout(timerExibicao);
-                    
-                    if (loopRodando) {
-                        decidirProximo();
-                    }
-                }
+                // 1. Bloqueia imediatamente
+                bloqueioAprovacao = true;
+                atualizarVisualBotoesAprovar(); 
+                
+                // 2. Agenda a liberação para daqui a 10 segundos
+                setTimeout(() => {
+                    bloqueioAprovacao = false;
+                    atualizarVisualBotoesAprovar(); 
+                }, 10000); // 10.000 milissegundos = 10 segundos
             }
-            carregamentoInicial.fotos = true;
-            iniciarSePronto();
+            
+            // Realiza a atualização no banco de dados
+            await updateDoc(doc(db, "fotos_criancas", id), { status }); 
+        };
+        
+        window.excluirFoto = async (id) => { if(confirm("Tem certeza que deseja apagar?")) await deleteDoc(doc(db, "fotos_criancas", id)); };
+
+        // --- SISTEMA DE COMUNICADOS ---
+        let arteSelecionada = null;
+        
+        document.getElementById('btnAddComTxt').addEventListener('click', async () => {
+            const input = document.getElementById('inputComunicadoTxt');
+            if(input.value.trim() === "") return;
+            await addDoc(collection(db, "comunicados_criancas"), { tipo: 'texto', texto: input.value, timestamp: serverTimestamp() });
+            input.value = "";
+        });
+
+        document.getElementById('btnSelectComImg').addEventListener('click', () => { document.getElementById('inputComunicadoImg').click(); });
+        
+        document.getElementById('inputComunicadoImg').addEventListener('change', (e) => {
+            if(e.target.files[0]) {
+                arteSelecionada = e.target.files[0];
+                document.getElementById('btnSelectComImg').innerText = "Arte Selecionada ✔️";
+                document.getElementById('btnUploadComImg').style.display = "block";
+            }
+        });
+
+        document.getElementById('btnUploadComImg').addEventListener('click', async () => {
+            if(!arteSelecionada) return;
+            const msg = document.getElementById('msgUploadCom');
+            const btnUpload = document.getElementById('btnUploadComImg');
+            
+            msg.innerText = "⏳ Enviando arte...";
+            btnUpload.disabled = true;
+
+            const formData = new FormData();
+            formData.append("image", arteSelecionada);
+
+            try {
+                const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: 'POST', body: formData });
+                const dados = await res.json();
+                
+                await addDoc(collection(db, "comunicados_criancas"), {
+                    tipo: 'imagem',
+                    url_imagem: dados.data.url,
+                    url_thumb: dados.data.thumb.url,
+                    timestamp: serverTimestamp()
+                });
+
+                msg.innerText = "✅ Arte publicada!";
+                document.getElementById('btnSelectComImg').innerText = "Escolher Imagem";
+                btnUpload.style.display = "none";
+                arteSelecionada = null;
+                setTimeout(() => msg.innerText = "", 3000);
+            } catch(e) {
+                msg.innerText = "❌ Erro ao enviar.";
+            } finally {
+                btnUpload.disabled = false;
+            }
         });
 
         onSnapshot(collection(db, "comunicados_criancas"), (snapshot) => {
-            comunicadosAtivos = [];
-            snapshot.forEach(doc => comunicadosAtivos.push(doc.data()));
-            carregamentoInicial.coms = true;
-            iniciarSePronto();
+            listaComunicados.innerHTML = "";
+            if(snapshot.empty) return listaComunicados.innerHTML = "<p class='vazio' style='text-align:center;'>Nenhum comunicado ativo.</p>";
+            
+            snapshot.forEach(docSnap => {
+                const dados = docSnap.data();
+                const div = document.createElement('div');
+                div.className = 'item-comunicado';
+                
+                let conteudo = "";
+                if(dados.tipo === 'imagem' || dados.url_imagem) {
+                    conteudo = `<div style="display:flex; align-items:center; gap:10px;">
+                                    <img src="${dados.url_thumb || dados.url_imagem}" class="item-com-img" onclick="abrirModal('${dados.url_imagem}')">
+                                    <span>[ARTE VISUAL]</span>
+                                </div>`;
+                } else {
+                    conteudo = `<span>📝 ${dados.texto}</span>`;
+                }
+
+                div.innerHTML = `
+                    ${conteudo}
+                    <button class="btn-remover-com" onclick="excluirComunicado('${docSnap.id}')">Excluir</button>
+                `;
+                listaComunicados.appendChild(div);
+            });
         });
 
-        function iniciarSePronto() {
-            if (carregamentoInicial.fotos && carregamentoInicial.coms && !loopRodando) {
-                if (fotosAprovadas.length > 0 || comunicadosAtivos.length > 0) {
-                    aguardando.style.display = "none";
-                    loopRodando = true;
-                    estadoAtual = comunicadosAtivos.length > 0 ? 'COMS' : 'FOTOS';
-                    decidirProximo();
-                } else {
-                    aguardando.style.display = "block";
-                }
-            }
-        }
+        window.excluirComunicado = async (id) => { await deleteDoc(doc(db, "comunicados_criancas", id)); };
 
-        function animarBarra(tempoMs) {
-            barraProgresso.style.transition = 'none';
-            barraProgresso.style.width = '0%';
-            setTimeout(() => {
-                barraProgresso.style.transition = `width ${tempoMs}ms linear`;
-                barraProgresso.style.width = '100%';
-            }, 50);
-        }
-
-        function decidirProximo() {
-            if (fotosAprovadas.length === 0 && comunicadosAtivos.length === 0) {
-                loopRodando = false;
-                aguardando.style.display = "block";
-                transicaoApagarTudo();
-                return;
-            }
-
-            if (fotosAprovadas.length === 0) estadoAtual = 'COMS';
-            else if (comunicadosAtivos.length === 0) estadoAtual = 'FOTOS';
-
-            if (estadoAtual === 'FOTOS') {
-                if (fotosExibidasNoCiclo >= 4 && comunicadosAtivos.length > 0) {
-                    estadoAtual = 'COMS';
-                    fotosExibidasNoCiclo = 0;
-                    decidirProximo();
-                    return;
-                }
-                renderizarFoto();
-            } else { 
-                estadoAtual = 'FOTOS';
-                fotosExibidasNoCiclo = 0;
-                
-                if (comunicadosAtivos.length === 0) {
-                    decidirProximo();
-                    return;
-                }
-                renderizarComunicado();
-            }
-        }
-
-        function renderizarFoto() {
-            if (pularParaNova) {
-                if (indiceSalvo === -1) {
-                    indiceSalvo = indexFoto; 
-                }
-                indexFoto = fotosAprovadas.length - 1; 
-                pularParaNova = false; 
-            } else if (indiceSalvo !== -1) {
-                indexFoto = indiceSalvo;
-                indiceSalvo = -1; 
-            } else {
-                indexFoto = (indexFoto + 1) >= fotosAprovadas.length ? 0 : (indexFoto + 1); 
-            }
-
-            const fotoDaVez = fotosAprovadas[indexFoto];
-            
-            if ((fotoDaVez.numeroFila || 0) > maiorNumeroExibido) { 
-                maiorNumeroExibido = fotoDaVez.numeroFila; 
-            }
-
-            const imgPreload = new Image();
-            timerCarregamento = setTimeout(() => { imgPreload.onload = null; decidirProximo(); }, 8000); 
-            
-            imgPreload.onload = () => {
-                clearTimeout(timerCarregamento); 
-                transicaoApagarTudo();
-
-                timerTransicao = setTimeout(() => {
-                    fotosExibidasNoCiclo++; 
-                    imgPainel.classList.remove('modo-arte'); 
-                    imgPainel.src = fotoDaVez.url_imagem || fotoDaVez.url_thumb;
-                    numDiscreto.innerText = fotoDaVez.numeroFila ? `#${fotoDaVez.numeroFila}` : "";
-                    numDiscreto.style.opacity = 1;
-                    molduraFoto.style.display = 'block';
-
-                    if(fotoDaVez.nome === "Anônimo" && !fotoDaVez.setor) {
-                        nomePainel.style.display = 'none';
-                    } else {
-                        nomePainel.style.display = 'block';
-                        lblNome.innerText = fotoDaVez.nome;
-                        lblSetor.innerText = fotoDaVez.setor ? fotoDaVez.setor : "";
-                    }
-
-                    camadaImagem.classList.remove('escondido'); camadaImagem.classList.add('visivel');
-                    qrCodeTV.classList.remove('escondido'); qrCodeTV.classList.add('visivel');
-
-                    animarBarra(7000); 
-                    timerExibicao = setTimeout(decidirProximo, 7000);
-                }, 800); 
-            };
-            imgPreload.onerror = () => { clearTimeout(timerCarregamento); decidirProximo(); };
-            imgPreload.src = fotoDaVez.url_imagem || fotoDaVez.url_thumb;
-        }
-
-        function renderizarComunicado() {
-            indexCom = (indexCom + 1) >= comunicadosAtivos.length ? 0 : (indexCom + 1);
-            const com = comunicadosAtivos[indexCom];
-
-            if(com.tipo === 'imagem' || com.url_imagem) {
-                const imgPreload = new Image();
-                timerCarregamento = setTimeout(() => { imgPreload.onload = null; decidirProximo(); }, 8000); 
-
-                imgPreload.onload = () => {
-                    clearTimeout(timerCarregamento);
-                    transicaoApagarTudo();
-                    
-                    timerTransicao = setTimeout(() => {
-                        imgPainel.classList.add('modo-arte'); 
-                        imgPainel.src = com.url_imagem || com.url_thumb;
-                        nomePainel.style.display = 'none'; 
-                        numDiscreto.style.opacity = 0;     
-                        molduraFoto.style.display = 'none'; 
-                        
-                        camadaImagem.classList.remove('escondido'); camadaImagem.classList.add('visivel');
-                        relogioTV.classList.remove('escondido'); relogioTV.classList.add('visivel');
-                        
-                        animarBarra(15000); 
-                        timerExibicao = setTimeout(decidirProximo, 15000); 
-                    }, 800);
-                };
-                imgPreload.onerror = () => { clearTimeout(timerCarregamento); decidirProximo(); };
-                imgPreload.src = com.url_imagem || com.url_thumb;
-            } else {
-                transicaoApagarTudo();
-                
-                timerTransicao = setTimeout(() => {
-                    textoDoComunicado.innerText = com.texto;
-                    numDiscreto.style.opacity = 0;
-                    molduraFoto.style.display = 'none';
-                    
-                    camadaTexto.classList.remove('escondido'); camadaTexto.classList.add('visivel');
-                    relogioTV.classList.remove('escondido'); relogioTV.classList.add('visivel');
-                    
-                    animarBarra(15000); 
-                    timerExibicao = setTimeout(decidirProximo, 15000); 
-                }, 800);
-            }
-        }
-
-        function transicaoApagarTudo() {
-            camadaImagem.classList.remove('visivel'); camadaImagem.classList.add('escondido');
-            camadaTexto.classList.remove('visivel'); camadaTexto.classList.add('escondido');
-            qrCodeTV.classList.remove('visivel'); qrCodeTV.classList.add('escondido');
-            relogioTV.classList.remove('visivel'); relogioTV.classList.add('escondido');
-            numDiscreto.style.opacity = 0;
-        }
+        window.abrirModal = (url) => { document.getElementById('modalImg').src = url; document.getElementById('modalVerFoto').style.display = 'flex'; };
+        window.fecharModal = () => { document.getElementById('modalVerFoto').style.display = 'none'; };
     </script>
 </body>
 </html>
