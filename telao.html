@@ -343,9 +343,7 @@
                     imgPainel.classList.remove('modo-arte'); 
                     imgPainel.src = fotoDaVez.url_imagem || fotoDaVez.url_thumb;
                     
-                    // Exibe o Ticket Novo ou o Número Antigo
-                    const numeroVisual = fotoDaVez.ticket ? fotoDaVez.ticket : fotoDaVez.numeroFila;
-                    numDiscreto.innerText = numeroVisual ? `#${numeroVisual}` : "";
+                    numDiscreto.innerText = fotoDaVez.numeroFila ? `#${fotoDaVez.numeroFila}` : "";
                     
                     numDiscreto.style.opacity = 1;
                     molduraFoto.style.display = 'block';
