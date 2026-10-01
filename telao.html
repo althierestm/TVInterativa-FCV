@@ -2,7 +2,8 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Viewport atualizado para forçar modo TV/Desktop e impedir o modo celular -->
+    <meta name="viewport" content="width=1920, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>TV Interativa - Dia das Crianças</title>
     <link rel="manifest" href="manifest.json">
     <link rel="icon" href="logo%20icon%20TV%20do%20Ponto%20FCV.png" type="image/png">
@@ -22,7 +23,6 @@
 
         .tv-scale-box {
             width: 1920px; height: 1080px; position: relative;
-            transform: scale(var(--scale-factor, 1));
             transform-origin: center center;
             background-image: url('BG%20TV%20Interativa%20-%20Dia%20das%20Crian%C3%A7as.jpg');
             background-size: cover; background-position: center; background-repeat: no-repeat;
@@ -154,10 +154,12 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
         import { getFirestore, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
+        // NOVO MOTOR DE ESCALA: Preenche a tela toda sem importar a resolução da TV
         function ajustarEscala() {
             const scaleBox = document.getElementById('tvScaleBox');
-            const scale = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
-            scaleBox.style.setProperty('--scale-factor', scale);
+            const scaleX = window.innerWidth / 1920;
+            const scaleY = window.innerHeight / 1080;
+            scaleBox.style.transform = `scale(${scaleX}, ${scaleY})`;
         }
         window.addEventListener('resize', ajustarEscala);
         ajustarEscala(); 
@@ -204,7 +206,6 @@
         let maiorNumeroExibido = 0;
         let pularParaNova = false; 
         
-        // NOVO: Controle para garantir que as duas bases do Firebase carregaram antes de dar "play" na TV
         let carregamentoInicial = { fotos: false, coms: false };
 
         const camadaImagem = document.getElementById('camadaImagem');
@@ -248,12 +249,10 @@
         });
 
         function iniciarSePronto() {
-            // Só dá a partida quando o Firebase baixar FOTOS e COMUNICADOS. 
             if (carregamentoInicial.fotos && carregamentoInicial.coms && !loopRodando) {
                 if (fotosAprovadas.length > 0 || comunicadosAtivos.length > 0) {
                     aguardando.style.display = "none";
                     loopRodando = true;
-                    // Força sempre começar por Comunicados (se existirem)
                     estadoAtual = comunicadosAtivos.length > 0 ? 'COMS' : 'FOTOS';
                     decidirProximo();
                 } else {
