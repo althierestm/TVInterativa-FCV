@@ -8,7 +8,7 @@
     <link rel="icon" href="logo%20icon%20TV%20do%20Ponto%20FCV.png" type="image/png">
     <link rel="apple-touch-icon" href="logo%20icon%20TV%20do%20Ponto%20FCV.png">
 
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Montserrat', sans-serif; text-align: center; background-color: #f0f8ff; padding: 20px; }
         .container { max-width: 400px; margin: 0 auto; background: white; padding: 30px 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border-top: 5px solid #ff9800; }
@@ -72,7 +72,7 @@
         <button id="btnEnviar">Enviar para a TV</button>
         
         <div class="aviso-privacidade">
-            ⚠️ Envie somente a sua foto, respeitando o direito de não querer participar dos demais colaboradores.
+            ⚠️️ Envie somente a sua foto, respeitando o direito de não querer participar dos demais colaboradores.
         </div>
         
         <div class="ramal-duvidas">Ramal para dúvidas: <strong>7849</strong></div>
@@ -128,8 +128,8 @@
         inputGaleria.addEventListener('change', processarArquivo);
 
         btnEnviar.addEventListener('click', async () => {
-            const nome = document.getElementById('nomeInput').value || "Anônimo";
-            const setor = document.getElementById('setorInput').value || "";
+            const nome = document.getElementById('nomeInput'].value || "Anônimo";
+            const setor = document.getElementById('setorInput'].value || "";
 
             if (!arquivoSelecionado) {
                 mensagem.innerText = "Por favor, escolha uma foto primeiro.";
@@ -137,7 +137,7 @@
                 return;
             }
 
-            mensagem.innerText = "Enviando arquivo pesado para o servidor...";
+            mensagem.innerText = "A enviar arquivo e gerar senha sequencial...";
             mensagem.style.color = "orange";
             btnEnviar.disabled = true;
 
@@ -145,25 +145,26 @@
             formData.append("image", arquivoSelecionado);
 
             try {
-                // 1. PRIMEIRO envia a imagem para o servidor (que é a parte que demora)
+                // 1. Faz o upload da imagem para o ImgBB primeiro
                 const respostaImgBB = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
                     method: 'POST',
                     body: formData
                 });
                 const dadosImgBB = await respostaImgBB.json();
                 
-                mensagem.innerText = "A gerar a sua senha sequencial...";
-
-                // 2. AGORA (no milissegundo final) ele consulta a fila para não haver duplicados
+                // 2. Lê a base de dados no momento exato do registro para pegar o maior número sequencial real
                 const querySnapshot = await getDocs(collection(db, "fotos_criancas"));
                 let maxFila = 0;
                 querySnapshot.forEach((doc) => {
                     const num = doc.data().numeroFila;
-                    if (num && num > maxFila) maxFila = num;
+                    // Ignora números gigantes caso tenha ficado algum registro antigo de teste
+                    if (num && num < 100000 && num > maxFila) {
+                        maxFila = num;
+                    }
                 });
                 const meuNumeroFila = maxFila + 1;
                 
-                // 3. Guarda imediatamente no Firebase
+                // 3. Salva no Firebase com a numeração sequencial correta
                 await addDoc(collection(db, "fotos_criancas"), {
                     nome: nome,
                     setor: setor,
