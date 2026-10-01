@@ -152,20 +152,26 @@
                 });
                 const dadosImgBB = await respostaImgBB.json();
                 
+                if (!dadosImgBB || !dadosImgBB.success) {
+                    throw new Error("Erro no upload da imagem");
+                }
+
                 mensagem.innerText = "A gerar a sua senha sequencial...";
 
-                // 2. Lê a base de dados no momento exato do registo para pegar o maior número sequencial real
+                // 2. Busca segura da última posição numérica da fila (ignora qualquer dado corrompido)
                 const querySnapshot = await getDocs(collection(db, "fotos_criancas"));
                 let maxFila = 0;
                 querySnapshot.forEach((doc) => {
-                    const num = doc.data().numeroFila;
-                    if (num && num < 100000 && num > maxFila) {
+                    const dados = doc.data();
+                    const num = Number(dados.numeroFila);
+                    // Garante que só olha para números sequenciais normais (menores que 100.000)
+                    if (!isNaN(num) && num < 100000 && num > maxFila) {
                         maxFila = num;
                     }
                 });
                 const meuNumeroFila = maxFila + 1;
                 
-                // 3. Salva no Firebase com a numeração sequencial correta
+                // 3. Salva no Firebase com segurança
                 await addDoc(collection(db, "fotos_criancas"), {
                     nome: nome,
                     setor: setor,
