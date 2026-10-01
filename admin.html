@@ -192,8 +192,7 @@
 
         const renderizarCard = (dados, id, ehPendente) => {
             const imagemLeve = dados.url_thumb ? dados.url_thumb : dados.url_imagem;
-            // Lê o Ticket Novo (4 dígitos) ou mantém o número antigo (1 a 50) para retrocompatibilidade
-            const numeroExibicao = dados.ticket ? dados.ticket : (dados.numeroFila ? dados.numeroFila : "-");
+            const numeroExibicao = dados.numeroFila ? dados.numeroFila : "-";
             const setor = dados.setor ? dados.setor : "Sem setor";
             
             let botoes = ehPendente ? 
