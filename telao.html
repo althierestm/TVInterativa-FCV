@@ -90,7 +90,6 @@
             z-index: 10;
         }
         
-        /* NOVO SOMBREAMENTO AZUL PARA GARANTIR LEITURA EM FUNDO BRANCO */
         .nome-rodape .titular { font-size: 40px; font-weight: 700; letter-spacing: 1.5px; text-shadow: 0 2px 8px #002061, 0 4px 15px rgba(0,32,97,0.8), 0 0 5px #002061; }
         .nome-rodape .setor { font-size: 24px; font-weight: 400; opacity: 0.9; margin-top: 5px; text-shadow: 0 2px 6px #002061, 0 0 4px #002061; }
 
@@ -195,7 +194,6 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // VARIÁVEIS DE CONTROLE
         let fotosAprovadas = [];
         let comunicadosAtivos = [];
         let estadoAtual = 'COMS'; 
@@ -344,7 +342,11 @@
                     fotosExibidasNoCiclo++; 
                     imgPainel.classList.remove('modo-arte'); 
                     imgPainel.src = fotoDaVez.url_imagem || fotoDaVez.url_thumb;
-                    numDiscreto.innerText = fotoDaVez.numeroFila ? `#${fotoDaVez.numeroFila}` : "";
+                    
+                    // Exibe o Ticket Novo ou o Número Antigo
+                    const numeroVisual = fotoDaVez.ticket ? fotoDaVez.ticket : fotoDaVez.numeroFila;
+                    numDiscreto.innerText = numeroVisual ? `#${numeroVisual}` : "";
+                    
                     numDiscreto.style.opacity = 1;
                     molduraFoto.style.display = 'block';
 
