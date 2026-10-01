@@ -27,9 +27,12 @@
         #previewContainer p { margin-bottom: 5px; font-size: 12px; color: #555; font-weight: 600; }
         #fotoPreview { max-width: 90%; max-height: 250px; border-radius: 8px; object-fit: cover; border: 1px solid #ccc; }
 
-        #btnEnviar { font-family: 'Montserrat', sans-serif; background-color: #ff9800; color: white; border: none; padding: 15px 20px; width: 90%; font-size: 16px; border-radius: 8px; cursor: pointer; font-weight: 700; margin-top: 20px; }
-        #btnEnviar:hover { background-color: #e68a00; }
-        #btnEnviar:disabled { background-color: #ccc; cursor: not-allowed; }
+        #btnEnviar { font-family: 'Montserrat', sans-serif; background: linear-gradient(to right, #002061, #061e50); color: white; border: none; padding: 15px 20px; width: 90%; font-size: 16px; border-radius: 8px; cursor: pointer; font-weight: 700; margin-top: 20px; }
+        #btnEnviar:hover { opacity: 0.9; }
+        #btnEnviar:disabled { background: #ccc; cursor: not-allowed; }
+        
+        .ramal-duvidas { font-size: 12px; color: #666; margin-top: 10px; font-weight: 400; }
+        .ramal-duvidas strong { font-weight: 700; color: #002061; }
         
         #mensagem { margin-top: 20px; font-weight: 600; font-size: 15px; }
         .senha-destaque { font-size: 24px; color: #224387; font-weight: 700; margin-top: 10px; display: block; }
@@ -77,6 +80,7 @@
         </div>
         
         <button id="btnEnviar">Enviar para a TV</button>
+        <div class="ramal-duvidas">Ramal para dúvidas: <strong>7849</strong></div>
         <div id="mensagem"></div>
     </div>
 
