@@ -110,7 +110,8 @@
         #aguardando { font-size: 20px; color: #ff9800; font-weight: 300; z-index: 20; }
 
         #barraProgressoContainer { position: absolute; bottom: 0; left: 0; width: 100%; height: 10px; background: rgba(255,255,255,0.1); z-index: 20; }
-        #barraProgresso { height: 100%; width: 0%; background: linear-gradient(to right, #224387, #002061); }
+        /* A transição aqui é muito rápida (0.1s) para a barra acompanhar os milissegundos fluidamente */
+        #barraProgresso { height: 100%; width: 0%; background: linear-gradient(to right, #224387, #002061); transition: width 0.1s linear; }
     </style>
 </head>
 <body>
@@ -157,7 +158,6 @@
             const scaleBox = document.getElementById('tvScaleBox');
             const scaleX = window.innerWidth / 1920;
             const scaleY = window.innerHeight / 1080;
-            // Centraliza forçado pelo eixo e estica de forma independente para cobrir qualquer tela sem barras pretas
             scaleBox.style.transform = `translate(-50%, -50%) scale(${scaleX}, ${scaleY})`;
         }
         window.addEventListener('resize', ajustarEscala);
@@ -194,18 +194,10 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
+        let playlist = [];
         let fotosAprovadas = [];
         let comunicadosAtivos = [];
-        let estadoAtual = 'COMS'; 
-        let indexFoto = -1;
-        let indexCom = -1;
-        let fotosExibidasNoCiclo = 0; 
-        let comsExibidosNoCiclo = 0;  
-        let loopRodando = false;
-        let maiorNumeroExibido = 0;
-        let pularParaNova = false; 
-        
-        let carregamentoInicial = { fotos: false, coms: false };
+        let lastRenderedSlotIndex = -1;
 
         const camadaImagem = document.getElementById('camadaImagem');
         const imgPainel = document.getElementById('imgPainel');
@@ -221,174 +213,128 @@
         const qrCodeTV = document.getElementById('qrCodeTV');
         const relogioTV = document.getElementById('relogioTV');
 
+        function construirPlaylist() {
+            playlist = [];
+            comunicadosAtivos.forEach((c, i) => playlist.push({ type: 'com', data: c, id: 'c'+i, duration: 15000 }));
+            fotosAprovadas.forEach((f, i) => playlist.push({ type: 'foto', data: f, id: 'f'+i, duration: 8000 }));
+        }
+
         onSnapshot(query(collection(db, "fotos_criancas"), where("status", "==", "aprovado")), (snapshot) => {
             fotosAprovadas = [];
             snapshot.forEach(doc => fotosAprovadas.push(doc.data()));
             fotosAprovadas.sort((a, b) => (a.numeroFila || 0) - (b.numeroFila || 0));
-            
-            if (fotosAprovadas.length > 0) {
-                const ultimaFila = fotosAprovadas[fotosAprovadas.length - 1].numeroFila || 0;
-                if (ultimaFila > maiorNumeroExibido && maiorNumeroExibido > 0) {
-                    pularParaNova = true;
-                    estadoAtual = 'FOTOS'; 
-                    fotosExibidasNoCiclo = 0; 
-                    comsExibidosNoCiclo = 0;
-                }
-            }
-            carregamentoInicial.fotos = true;
-            iniciarSePronto();
+            construirPlaylist();
         });
 
         onSnapshot(collection(db, "comunicados_criancas"), (snapshot) => {
             comunicadosAtivos = [];
             snapshot.forEach(doc => comunicadosAtivos.push(doc.data()));
-            
-            carregamentoInicial.coms = true;
-            iniciarSePronto();
+            construirPlaylist();
         });
 
-        function iniciarSePronto() {
-            if (carregamentoInicial.fotos && carregamentoInicial.coms && !loopRodando) {
-                if (fotosAprovadas.length > 0 || comunicadosAtivos.length > 0) {
-                    aguardando.style.display = "none";
-                    loopRodando = true;
-                    estadoAtual = comunicadosAtivos.length > 0 ? 'COMS' : 'FOTOS';
-                    decidirProximo();
-                } else {
-                    aguardando.style.display = "block";
-                }
-            }
-        }
-
-        function animarBarra(tempoMs) {
-            barraProgresso.style.transition = 'none';
-            barraProgresso.style.width = '0%';
-            setTimeout(() => {
-                barraProgresso.style.transition = `width ${tempoMs}ms linear`;
-                barraProgresso.style.width = '100%';
-            }, 50);
-        }
-
-        function decidirProximo() {
-            if (fotosAprovadas.length === 0 && comunicadosAtivos.length === 0) {
-                loopRodando = false;
+        function runSync() {
+            if (playlist.length === 0) {
                 aguardando.style.display = "block";
                 transicaoApagarTudo();
+                lastRenderedSlotIndex = -1;
                 return;
-            }
-
-            if (fotosAprovadas.length === 0) estadoAtual = 'COMS';
-            else if (comunicadosAtivos.length === 0) estadoAtual = 'FOTOS';
-
-            if (estadoAtual === 'FOTOS') {
-                if (fotosExibidasNoCiclo >= 3 && comunicadosAtivos.length > 0) {
-                    estadoAtual = 'COMS';
-                    fotosExibidasNoCiclo = 0;
-                    comsExibidosNoCiclo = 0;
-                    decidirProximo();
-                    return;
-                }
-                renderizarFoto();
-            } else { 
-                if (comsExibidosNoCiclo >= 2 || (comsExibidosNoCiclo >= 1 && comunicadosAtivos.length === 1 && fotosAprovadas.length > 0)) {
-                    estadoAtual = 'FOTOS';
-                    fotosExibidasNoCiclo = 0;
-                    comsExibidosNoCiclo = 0;
-                    decidirProximo();
-                    return;
-                }
-                renderizarComunicado();
-            }
-        }
-
-        function renderizarFoto() {
-            if (pularParaNova) {
-                let indiceDaNova = fotosAprovadas.findIndex(f => (f.numeroFila || 0) > maiorNumeroExibido);
-                if (indiceDaNova !== -1) { indexFoto = indiceDaNova; } else { indexFoto = (indexFoto + 1) >= fotosAprovadas.length ? 0 : (indexFoto + 1); }
-                pularParaNova = false;
             } else {
-                indexFoto = (indexFoto + 1) >= fotosAprovadas.length ? 0 : (indexFoto + 1); 
+                aguardando.style.display = "none";
             }
 
-            const fotoDaVez = fotosAprovadas[indexFoto];
-            if ((fotoDaVez.numeroFila || 0) > maiorNumeroExibido) { maiorNumeroExibido = fotoDaVez.numeroFila; }
-
-            const imgPreload = new Image();
-            let timeoutCarregamento = setTimeout(() => { imgPreload.onload = null; decidirProximo(); }, 8000); 
+            const now = Date.now();
+            const totalCycle = playlist.reduce((acc, el) => acc + el.duration, 0);
             
-            imgPreload.onload = () => {
-                clearTimeout(timeoutCarregamento); 
-                transicaoApagarTudo();
+            const cycleTime = now % totalCycle; 
 
-                setTimeout(() => {
-                    fotosExibidasNoCiclo++; 
-                    imgPainel.classList.remove('modo-arte'); 
-                    imgPainel.src = fotoDaVez.url_imagem;
-                    numDiscreto.innerText = fotoDaVez.numeroFila ? `#${fotoDaVez.numeroFila}` : "";
-                    numDiscreto.style.opacity = 1;
-                    molduraFoto.style.display = 'block';
+            let offset = 0;
+            let currentSlot = 0;
+            let currentSlotStart = 0;
 
-                    if(fotoDaVez.nome === "Anônimo" && !fotoDaVez.setor) {
-                        nomePainel.style.display = 'none';
-                    } else {
-                        nomePainel.style.display = 'block';
-                        lblNome.innerText = fotoDaVez.nome;
-                        lblSetor.innerText = fotoDaVez.setor ? fotoDaVez.setor : "";
+            for (let i = 0; i < playlist.length; i++) {
+                if (cycleTime >= offset && cycleTime < offset + playlist[i].duration) {
+                    currentSlot = i;
+                    currentSlotStart = offset;
+                    break;
+                }
+                offset += playlist[i].duration;
+            }
+
+            let timeInSlot = cycleTime - currentSlotStart;
+            let percent = (timeInSlot / playlist[currentSlot].duration) * 100;
+            barraProgresso.style.width = percent + '%';
+
+            if (currentSlot !== lastRenderedSlotIndex) {
+                lastRenderedSlotIndex = currentSlot;
+                renderizarItemAoVivo(playlist[currentSlot]);
+            }
+        }
+        
+        setInterval(runSync, 100);
+
+        function renderizarItemAoVivo(item) {
+            transicaoApagarTudo();
+            const currentId = item.id;
+            const data = item.data;
+
+            if (item.type === 'foto' || (item.type === 'com' && (data.tipo === 'imagem' || data.url_imagem))) {
+                const url = data.url_imagem || data.url_thumb;
+                const imgPreload = new Image();
+                
+                imgPreload.onload = () => {
+                    if (playlist[lastRenderedSlotIndex] && playlist[lastRenderedSlotIndex].id === currentId) {
+                        exibirConteudo(item);
                     }
-
-                    camadaImagem.classList.remove('escondido'); camadaImagem.classList.add('visivel');
-                    qrCodeTV.classList.remove('escondido'); qrCodeTV.classList.add('visivel');
-
-                    animarBarra(7000); 
-                    setTimeout(decidirProximo, 7000);
-                }, 800); 
-            };
-            imgPreload.onerror = () => { clearTimeout(timeoutCarregamento); decidirProximo(); };
-            imgPreload.src = fotoDaVez.url_imagem;
+                };
+                imgPreload.src = url;
+            } else {
+                setTimeout(() => {
+                    if (playlist[lastRenderedSlotIndex] && playlist[lastRenderedSlotIndex].id === currentId) {
+                        exibirConteudo(item);
+                    }
+                }, 800);
+            }
         }
 
-        function renderizarComunicado() {
-            indexCom = (indexCom + 1) >= comunicadosAtivos.length ? 0 : (indexCom + 1);
-            const com = comunicadosAtivos[indexCom];
+        function exibirConteudo(item) {
+            const data = item.data;
+            
+            if (item.type === 'foto') {
+                imgPainel.classList.remove('modo-arte'); 
+                imgPainel.src = data.url_imagem;
+                numDiscreto.innerText = data.numeroFila ? `#${data.numeroFila}` : "";
+                numDiscreto.style.opacity = 1;
+                molduraFoto.style.display = 'block';
 
-            if(com.tipo === 'imagem' || com.url_imagem) {
-                const imgPreload = new Image();
-                let timeoutCarregamento = setTimeout(() => { imgPreload.onload = null; decidirProximo(); }, 8000); 
+                if(data.nome === "Anônimo" && !data.setor) {
+                    nomePainel.style.display = 'none';
+                } else {
+                    nomePainel.style.display = 'block';
+                    lblNome.innerText = data.nome;
+                    lblSetor.innerText = data.setor ? data.setor : "";
+                }
 
-                imgPreload.onload = () => {
-                    clearTimeout(timeoutCarregamento);
-                    transicaoApagarTudo();
-                    setTimeout(() => {
-                        comsExibidosNoCiclo++;
-                        imgPainel.classList.add('modo-arte'); 
-                        imgPainel.src = com.url_imagem;
-                        nomePainel.style.display = 'none'; 
-                        numDiscreto.style.opacity = 0;     
-                        molduraFoto.style.display = 'none'; 
-                        
-                        camadaImagem.classList.remove('escondido'); camadaImagem.classList.add('visivel');
-                        relogioTV.classList.remove('escondido'); relogioTV.classList.add('visivel');
-                        
-                        animarBarra(15000); 
-                        setTimeout(decidirProximo, 15000); 
-                    }, 800);
-                };
-                imgPreload.onerror = () => { clearTimeout(timeoutCarregamento); decidirProximo(); };
-                imgPreload.src = com.url_imagem;
+                camadaImagem.classList.remove('escondido'); camadaImagem.classList.add('visivel');
+                qrCodeTV.classList.remove('escondido'); qrCodeTV.classList.add('visivel');
+                
             } else {
-                transicaoApagarTudo();
-                setTimeout(() => {
-                    comsExibidosNoCiclo++;
-                    textoDoComunicado.innerText = com.texto;
+                if(data.tipo === 'imagem' || data.url_imagem) {
+                    imgPainel.classList.add('modo-arte'); 
+                    imgPainel.src = data.url_imagem;
+                    nomePainel.style.display = 'none'; 
+                    numDiscreto.style.opacity = 0;     
+                    molduraFoto.style.display = 'none'; 
+                    
+                    camadaImagem.classList.remove('escondido'); camadaImagem.classList.add('visivel');
+                    relogioTV.classList.remove('escondido'); relogioTV.classList.add('visivel');
+                } else {
+                    textoDoComunicado.innerText = data.texto;
                     numDiscreto.style.opacity = 0;
                     molduraFoto.style.display = 'none';
                     
                     camadaTexto.classList.remove('escondido'); camadaTexto.classList.add('visivel');
                     relogioTV.classList.remove('escondido'); relogioTV.classList.add('visivel');
-                    
-                    animarBarra(15000); 
-                    setTimeout(decidirProximo, 15000); 
-                }, 800);
+                }
             }
         }
 
