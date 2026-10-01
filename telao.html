@@ -110,7 +110,6 @@
         #aguardando { font-size: 20px; color: #ff9800; font-weight: 300; z-index: 20; }
 
         #barraProgressoContainer { position: absolute; bottom: 0; left: 0; width: 100%; height: 10px; background: rgba(255,255,255,0.1); z-index: 20; }
-        /* A transição aqui é muito rápida (0.1s) para a barra acompanhar os milissegundos fluidamente */
         #barraProgresso { height: 100%; width: 0%; background: linear-gradient(to right, #224387, #002061); transition: width 0.1s linear; }
     </style>
 </head>
@@ -213,10 +212,48 @@
         const qrCodeTV = document.getElementById('qrCodeTV');
         const relogioTV = document.getElementById('relogioTV');
 
+        // LÓGICA DE ENTRELAÇAMENTO: 4 Fotos para 1 Comunicado
         function construirPlaylist() {
             playlist = [];
-            comunicadosAtivos.forEach((c, i) => playlist.push({ type: 'com', data: c, id: 'c'+i, duration: 15000 }));
-            fotosAprovadas.forEach((f, i) => playlist.push({ type: 'foto', data: f, id: 'f'+i, duration: 8000 }));
+            
+            // Se as duas listas estão vazias, não faz nada
+            if (fotosAprovadas.length === 0 && comunicadosAtivos.length === 0) return;
+
+            // Se só tem fotos, roda só fotos (agora com 7 segundos)
+            if (comunicadosAtivos.length === 0) {
+                fotosAprovadas.forEach((f, i) => playlist.push({ type: 'foto', data: f, id: 'f'+i, duration: 7000 }));
+                return;
+            }
+            
+            // Se só tem comunicados, roda só comunicados (15 segundos)
+            if (fotosAprovadas.length === 0) {
+                comunicadosAtivos.forEach((c, i) => playlist.push({ type: 'com', data: c, id: 'c'+i, duration: 15000 }));
+                return;
+            }
+
+            let totalFotos = fotosAprovadas.length;
+            let totalComs = comunicadosAtivos.length;
+            
+            // Calcula o número de blocos para garantir que TODAS as fotos e TODOS os comunicados rodem
+            let blocosDeFotos = Math.ceil(totalFotos / 4);
+            let iteracoes = Math.max(blocosDeFotos, totalComs);
+
+            let fIdx = 0;
+            let cIdx = 0;
+
+            for (let i = 0; i < iteracoes; i++) {
+                // Adiciona sempre 4 fotos (repetindo fotos se necessário para fechar o bloco de 4)
+                for (let j = 0; j < 4; j++) {
+                    let fotoAtual = fotosAprovadas[fIdx % totalFotos];
+                    playlist.push({ type: 'foto', data: fotoAtual, id: 'f'+(fIdx % totalFotos)+'_'+i+'_'+j, duration: 7000 });
+                    fIdx++;
+                }
+                
+                // Adiciona sempre 1 comunicado
+                let comAtual = comunicadosAtivos[cIdx % totalComs];
+                playlist.push({ type: 'com', data: comAtual, id: 'c'+(cIdx % totalComs)+'_'+i, duration: 15000 });
+                cIdx++;
+            }
         }
 
         onSnapshot(query(collection(db, "fotos_criancas"), where("status", "==", "aprovado")), (snapshot) => {
@@ -232,6 +269,7 @@
             construirPlaylist();
         });
 
+        // Motor Sincronizado Universal
         function runSync() {
             if (playlist.length === 0) {
                 aguardando.style.display = "block";
@@ -244,7 +282,6 @@
 
             const now = Date.now();
             const totalCycle = playlist.reduce((acc, el) => acc + el.duration, 0);
-            
             const cycleTime = now % totalCycle; 
 
             let offset = 0;
@@ -273,7 +310,6 @@
         setInterval(runSync, 100);
 
         function renderizarItemAoVivo(item) {
-            transicaoApagarTudo();
             const currentId = item.id;
             const data = item.data;
 
@@ -283,11 +319,18 @@
                 
                 imgPreload.onload = () => {
                     if (playlist[lastRenderedSlotIndex] && playlist[lastRenderedSlotIndex].id === currentId) {
-                        exibirConteudo(item);
+                        // Transição resgatada: Apaga suave, espera 800ms, e revela a foto nova!
+                        transicaoApagarTudo();
+                        setTimeout(() => {
+                            if (playlist[lastRenderedSlotIndex] && playlist[lastRenderedSlotIndex].id === currentId) {
+                                exibirConteudo(item);
+                            }
+                        }, 800);
                     }
                 };
                 imgPreload.src = url;
             } else {
+                transicaoApagarTudo();
                 setTimeout(() => {
                     if (playlist[lastRenderedSlotIndex] && playlist[lastRenderedSlotIndex].id === currentId) {
                         exibirConteudo(item);
