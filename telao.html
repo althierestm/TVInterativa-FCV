@@ -153,7 +153,6 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
         import { getFirestore, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
-        // Adaptação Perfeita 4K (Sem cortes e sem bordas)
         function ajustarEscala() {
             const scaleBox = document.getElementById('tvScaleBox');
             const scaleX = window.innerWidth / 1920;
@@ -194,7 +193,7 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // VARIÁVEIS DO MOTOR FURA-FILA (Com contagem 4 para 1)
+        // VARIÁVEIS DE CONTROLE
         let fotosAprovadas = [];
         let comunicadosAtivos = [];
         let estadoAtual = 'COMS'; 
@@ -204,8 +203,13 @@
         
         let loopRodando = false;
         let maiorNumeroExibido = 0;
-        let pularParaNova = false; // O Gatilho do Fura-Fila
+        let pularParaNova = false; 
         let carregamentoInicial = { fotos: false, coms: false };
+
+        // VARIÁVEIS DE TEMPO (Para permitir o "Corte Imediato")
+        let timerCarregamento = null;
+        let timerTransicao = null;
+        let timerExibicao = null;
 
         const camadaImagem = document.getElementById('camadaImagem');
         const imgPainel = document.getElementById('imgPainel');
@@ -221,7 +225,7 @@
         const qrCodeTV = document.getElementById('qrCodeTV');
         const relogioTV = document.getElementById('relogioTV');
 
-        // Escuta o banco de dados. Se entrar foto nova com número alto, aciona o Fura-Fila!
+        // Escuta o banco de dados e aciona o Fura-Fila Instantâneo
         onSnapshot(query(collection(db, "fotos_criancas"), where("status", "==", "aprovado")), (snapshot) => {
             fotosAprovadas = [];
             snapshot.forEach(doc => fotosAprovadas.push(doc.data()));
@@ -230,11 +234,19 @@
             if (fotosAprovadas.length > 0) {
                 const ultimaFila = fotosAprovadas[fotosAprovadas.length - 1].numeroFila || 0;
                 
-                // Se a fila mais recente for maior do que as que a TV já mostrou, puxe para a frente!
                 if (ultimaFila > maiorNumeroExibido && maiorNumeroExibido > 0) {
                     pularParaNova = true;
-                    estadoAtual = 'FOTOS'; // Obriga a ir para as fotos
-                    fotosExibidasNoCiclo = 0; // Faz reset às 4 fotos para exibir
+                    estadoAtual = 'FOTOS'; 
+                    fotosExibidasNoCiclo = 0; 
+                    
+                    // CORTE IMEDIATO: Limpa todos os tempos e força a troca agora!
+                    clearTimeout(timerCarregamento);
+                    clearTimeout(timerTransicao);
+                    clearTimeout(timerExibicao);
+                    
+                    if (loopRodando) {
+                        decidirProximo();
+                    }
                 }
             }
             carregamentoInicial.fotos = true;
@@ -270,7 +282,6 @@
             }, 50);
         }
 
-        // Mestre de Cerimónias: Gere a cadência de 4 fotos e 1 comunicado
         function decidirProximo() {
             if (fotosAprovadas.length === 0 && comunicadosAtivos.length === 0) {
                 loopRodando = false;
@@ -279,12 +290,10 @@
                 return;
             }
 
-            // Proteção se um dos lados estiver completamente vazio
             if (fotosAprovadas.length === 0) estadoAtual = 'COMS';
             else if (comunicadosAtivos.length === 0) estadoAtual = 'FOTOS';
 
             if (estadoAtual === 'FOTOS') {
-                // Chegou a 4 fotos exibidas? Troca para o comunicado.
                 if (fotosExibidasNoCiclo >= 4 && comunicadosAtivos.length > 0) {
                     estadoAtual = 'COMS';
                     fotosExibidasNoCiclo = 0;
@@ -293,11 +302,9 @@
                 }
                 renderizarFoto();
             } else { 
-                // Estado Comunicado: Mostra 1 e já volta para as fotos.
                 estadoAtual = 'FOTOS';
                 fotosExibidasNoCiclo = 0;
                 
-                // Se não tem comunicado cadastrado, mas o ciclo caiu aqui, salta.
                 if (comunicadosAtivos.length === 0) {
                     decidirProximo();
                     return;
@@ -307,40 +314,32 @@
         }
 
         function renderizarFoto() {
-            // AÇÃO DO FURA-FILA:
+            // AÇÃO DO FURA-FILA APRIMORADA:
             if (pularParaNova) {
-                let indiceDaNova = fotosAprovadas.findIndex(f => (f.numeroFila || 0) > maiorNumeroExibido);
-                if (indiceDaNova !== -1) { 
-                    indexFoto = indiceDaNova; 
-                } else { 
-                    indexFoto = (indexFoto + 1) >= fotosAprovadas.length ? 0 : (indexFoto + 1); 
-                }
-                pularParaNova = false; // Desarma o gatilho após saltar
+                // Vai sempre direto para a foto mais nova (a última da lista ordenada)
+                indexFoto = fotosAprovadas.length - 1; 
+                pularParaNova = false; 
             } else {
                 indexFoto = (indexFoto + 1) >= fotosAprovadas.length ? 0 : (indexFoto + 1); 
             }
 
             const fotoDaVez = fotosAprovadas[indexFoto];
             
-            // Grava qual foi o maior número que a TV já viu, para não furar a fila 2 vezes com a mesma foto
             if ((fotoDaVez.numeroFila || 0) > maiorNumeroExibido) { 
                 maiorNumeroExibido = fotoDaVez.numeroFila; 
             }
 
             const imgPreload = new Image();
-            let timeoutCarregamento = setTimeout(() => { imgPreload.onload = null; decidirProximo(); }, 8000); 
+            timerCarregamento = setTimeout(() => { imgPreload.onload = null; decidirProximo(); }, 8000); 
             
             imgPreload.onload = () => {
-                clearTimeout(timeoutCarregamento); 
-                
-                // 1. Apaga a tela suavemente primeiro
+                clearTimeout(timerCarregamento); 
                 transicaoApagarTudo();
 
-                // 2. Aguarda 800ms para a tela ficar escura e, aí sim, revela a foto nova!
-                setTimeout(() => {
+                timerTransicao = setTimeout(() => {
                     fotosExibidasNoCiclo++; 
                     imgPainel.classList.remove('modo-arte'); 
-                    imgPainel.src = fotoDaVez.url_imagem;
+                    imgPainel.src = fotoDaVez.url_imagem || fotoDaVez.url_thumb;
                     numDiscreto.innerText = fotoDaVez.numeroFila ? `#${fotoDaVez.numeroFila}` : "";
                     numDiscreto.style.opacity = 1;
                     molduraFoto.style.display = 'block';
@@ -356,11 +355,11 @@
                     camadaImagem.classList.remove('escondido'); camadaImagem.classList.add('visivel');
                     qrCodeTV.classList.remove('escondido'); qrCodeTV.classList.add('visivel');
 
-                    animarBarra(7000); // 7 segundos de tempo de ecrã para a foto
-                    setTimeout(decidirProximo, 7000);
+                    animarBarra(7000); 
+                    timerExibicao = setTimeout(decidirProximo, 7000);
                 }, 800); 
             };
-            imgPreload.onerror = () => { clearTimeout(timeoutCarregamento); decidirProximo(); };
+            imgPreload.onerror = () => { clearTimeout(timerCarregamento); decidirProximo(); };
             imgPreload.src = fotoDaVez.url_imagem || fotoDaVez.url_thumb;
         }
 
@@ -370,18 +369,15 @@
 
             if(com.tipo === 'imagem' || com.url_imagem) {
                 const imgPreload = new Image();
-                let timeoutCarregamento = setTimeout(() => { imgPreload.onload = null; decidirProximo(); }, 8000); 
+                timerCarregamento = setTimeout(() => { imgPreload.onload = null; decidirProximo(); }, 8000); 
 
                 imgPreload.onload = () => {
-                    clearTimeout(timeoutCarregamento);
-                    
-                    // Apaga suavemente
+                    clearTimeout(timerCarregamento);
                     transicaoApagarTudo();
                     
-                    // 800ms de transição cruzada
-                    setTimeout(() => {
+                    timerTransicao = setTimeout(() => {
                         imgPainel.classList.add('modo-arte'); 
-                        imgPainel.src = com.url_imagem;
+                        imgPainel.src = com.url_imagem || com.url_thumb;
                         nomePainel.style.display = 'none'; 
                         numDiscreto.style.opacity = 0;     
                         molduraFoto.style.display = 'none'; 
@@ -389,16 +385,16 @@
                         camadaImagem.classList.remove('escondido'); camadaImagem.classList.add('visivel');
                         relogioTV.classList.remove('escondido'); relogioTV.classList.add('visivel');
                         
-                        animarBarra(15000); // 15 segundos para comunicados
-                        setTimeout(decidirProximo, 15000); 
+                        animarBarra(15000); 
+                        timerExibicao = setTimeout(decidirProximo, 15000); 
                     }, 800);
                 };
-                imgPreload.onerror = () => { clearTimeout(timeoutCarregamento); decidirProximo(); };
+                imgPreload.onerror = () => { clearTimeout(timerCarregamento); decidirProximo(); };
                 imgPreload.src = com.url_imagem || com.url_thumb;
             } else {
                 transicaoApagarTudo();
                 
-                setTimeout(() => {
+                timerTransicao = setTimeout(() => {
                     textoDoComunicado.innerText = com.texto;
                     numDiscreto.style.opacity = 0;
                     molduraFoto.style.display = 'none';
@@ -407,7 +403,7 @@
                     relogioTV.classList.remove('escondido'); relogioTV.classList.add('visivel');
                     
                     animarBarra(15000); 
-                    setTimeout(decidirProximo, 15000); 
+                    timerExibicao = setTimeout(decidirProximo, 15000); 
                 }, 800);
             }
         }
