@@ -2,8 +2,8 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <!-- Viewport atualizado para forçar modo TV/Desktop e impedir o modo celular -->
-    <meta name="viewport" content="width=1920, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- Viewport revertido para o padrão seguro e universal -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TV Interativa - Dia das Crianças</title>
     <link rel="manifest" href="manifest.json">
     <link rel="icon" href="logo%20icon%20TV%20do%20Ponto%20FCV.png" type="image/png">
@@ -15,14 +15,15 @@
             font-family: 'Montserrat', sans-serif; overflow: hidden;
         }
 
+        /* --- MUDANÇA ESTRUTURAL AQUI: Posicionamento Absoluto à prova de falhas --- */
         #viewportWrapper {
-            width: 100vw; height: 100vh;
-            display: flex; justify-content: center; align-items: center;
+            position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
             overflow: hidden;
         }
 
         .tv-scale-box {
-            width: 1920px; height: 1080px; position: relative;
+            width: 1920px; height: 1080px; 
+            position: absolute; top: 50%; left: 50%;
             transform-origin: center center;
             background-image: url('BG%20TV%20Interativa%20-%20Dia%20das%20Crian%C3%A7as.jpg');
             background-size: cover; background-position: center; background-repeat: no-repeat;
@@ -154,12 +155,12 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
         import { getFirestore, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
-        // NOVO MOTOR DE ESCALA: Preenche a tela toda sem importar a resolução da TV
         function ajustarEscala() {
             const scaleBox = document.getElementById('tvScaleBox');
             const scaleX = window.innerWidth / 1920;
             const scaleY = window.innerHeight / 1080;
-            scaleBox.style.transform = `scale(${scaleX}, ${scaleY})`;
+            // Centraliza forçado pelo eixo e estica de forma independente para cobrir qualquer tela sem barras pretas
+            scaleBox.style.transform = `translate(-50%, -50%) scale(${scaleX}, ${scaleY})`;
         }
         window.addEventListener('resize', ajustarEscala);
         ajustarEscala(); 
