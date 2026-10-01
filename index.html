@@ -72,7 +72,7 @@
         <button id="btnEnviar">Enviar para a TV</button>
         
         <div class="aviso-privacidade">
-            ⚠️️ Envie somente a sua foto, respeitando o direito de não querer participar dos demais colaboradores.
+            ⚠️ Envie somente a sua foto, respeitando o direito de não querer participar dos demais colaboradores.
         </div>
         
         <div class="ramal-duvidas">Ramal para dúvidas: <strong>7849</strong></div>
@@ -128,8 +128,8 @@
         inputGaleria.addEventListener('change', processarArquivo);
 
         btnEnviar.addEventListener('click', async () => {
-            const nome = document.getElementById('nomeInput'].value || "Anônimo";
-            const setor = document.getElementById('setorInput'].value || "";
+            const nome = document.getElementById('nomeInput').value || "Anônimo";
+            const setor = document.getElementById('setorInput').value || "";
 
             if (!arquivoSelecionado) {
                 mensagem.innerText = "Por favor, escolha uma foto primeiro.";
@@ -152,12 +152,13 @@
                 });
                 const dadosImgBB = await respostaImgBB.json();
                 
-                // 2. Lê a base de dados no momento exato do registro para pegar o maior número sequencial real
+                mensagem.innerText = "A gerar a sua senha sequencial...";
+
+                // 2. Lê a base de dados no momento exato do registo para pegar o maior número sequencial real
                 const querySnapshot = await getDocs(collection(db, "fotos_criancas"));
                 let maxFila = 0;
                 querySnapshot.forEach((doc) => {
                     const num = doc.data().numeroFila;
-                    // Ignora números gigantes caso tenha ficado algum registro antigo de teste
                     if (num && num < 100000 && num > maxFila) {
                         maxFila = num;
                     }
