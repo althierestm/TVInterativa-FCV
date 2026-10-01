@@ -4,16 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Moderação - Dia das Crianças</title>
-
+    <!-- Ícone da Aba do Navegador -->
     <link rel="icon" href="logo%20icon%20TV%20do%20Ponto%20FCV.png" type="image/png">
     <link rel="apple-touch-icon" href="logo%20icon%20TV%20do%20Ponto%20FCV.png">
-
+    <!-- Fonte Montserrat -->
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Montserrat', sans-serif; background-color: #2c3e50; color: white; padding: 15px; text-align: center; margin: 0; }
         h1 { margin-top: 10px; font-size: 24px; color: #f1c40f; font-weight: 700; }
         p { font-size: 14px; color: #ecf0f1; margin-bottom: 20px; }
         
+        /* OVERLAY DE LOGIN CAMUFLADO */
         #loginOverlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #2c3e50; z-index: 9999; display: flex; flex-direction: column;
@@ -34,7 +35,8 @@
         }
         .login-box button:hover { background: #2980b9; }
 
-        #painelPrincipal { display: none; }
+        /* Restante do CSS do painel */
+        #painelPrincipal { display: none; } /* Oculto até logar */
         
         h2 { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 40px; font-size: 18px; border-bottom: 1px solid #555; padding-bottom: 10px; color: #e67e22; }
         h2.telao-titulo { color: #2ecc71; }
@@ -49,7 +51,7 @@
         .setor { font-weight: 400; font-size: 9px; color: #bdc3c7; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         
         .btn-group { display: flex; flex-direction: column; gap: 4px; }
-        .btn-group button { font-family: 'Montserrat', sans-serif; padding: 5px 2px; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 9px; width: 100%; }
+        .btn-group button { font-family: 'Montserrat', sans-serif; padding: 5px 2px; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 9px; width: 100%; transition: background-color 0.2s; }
         .btn-ver { background-color: #3498db; color: white; }
         .btn-ver:hover { background-color: #2980b9; }
         .btn-aprovar { background-color: #2ecc71; color: white; }
@@ -115,12 +117,14 @@
         </div>
         <div class="lista-comunicados" id="listaComunicados"></div>
 
+        <!-- PENDENTES -->
         <h2>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
             Aguardando Aprovação
         </h2>
         <div class="grid-fotos" id="listaPendentes"></div>
 
+        <!-- NA TV -->
         <h2 class="telao-titulo">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg>
             Já estão na TV
@@ -137,6 +141,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
         import { getFirestore, collection, query, where, onSnapshot, doc, updateDoc, deleteDoc, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
+        // SISTEMA DE LOGIN CAMUFLADO
         document.getElementById('btnEntrar').addEventListener('click', verificarLogin);
         document.getElementById('loginPass').addEventListener('keypress', function (e) {
             if (e.key === 'Enter') verificarLogin();
@@ -145,7 +150,7 @@
         function verificarLogin() {
             const user = document.getElementById('loginUser').value;
             const pass = document.getElementById('loginPass').value;
-
+            // As senhas estão protegidas usando conversão Base64. (TWFya2V0aW5n = Marketing | QFRWQ29ycmVkb3Ij = @TVCorredor#)
             if (btoa(user) === "TWFya2V0aW5n" && btoa(pass) === "QFRWQ29ycmVkb3Ij") {
                 document.getElementById('loginOverlay').style.display = 'none';
                 document.getElementById('painelPrincipal').style.display = 'block';
@@ -171,6 +176,28 @@
         const listaAprovadas = document.getElementById('listaAprovadas');
         const listaComunicados = document.getElementById('listaComunicados');
 
+        // VARIÁVEL GLOBAL PARA O BLOQUEIO DE 10 SEGUNDOS
+        let bloqueioAprovacao = false;
+
+        // FUNÇÃO PARA ATUALIZAR O VISUAL DOS BOTÕES DE APROVAR
+        function atualizarVisualBotoesAprovar() {
+            const botoes = document.querySelectorAll('.btn-aprovar');
+            botoes.forEach(btn => {
+                if (bloqueioAprovacao) {
+                    btn.disabled = true;
+                    btn.style.backgroundColor = '#7f8c8d'; // Cinza escuro (bloqueado)
+                    btn.style.cursor = 'not-allowed';
+                    btn.innerText = "⏳ 10s...";
+                } else {
+                    btn.disabled = false;
+                    btn.style.backgroundColor = ''; // Remove o style inline para voltar o CSS verde padrão
+                    btn.style.cursor = 'pointer';
+                    btn.innerText = "✅ Aprovar";
+                }
+            });
+        }
+
+        // --- SISTEMA DE FOTOS ---
         const renderizarCard = (dados, id, ehPendente) => {
             const imagemLeve = dados.url_thumb ? dados.url_thumb : dados.url_imagem;
             const numero = dados.numeroFila ? dados.numeroFila : "-";
@@ -197,8 +224,13 @@
 
         onSnapshot(query(collection(db, "fotos_criancas"), where("status", "==", "pendente")), (snapshot) => {
             listaPendentes.innerHTML = ""; 
-            if (snapshot.empty) return listaPendentes.innerHTML = "<p class='vazio'>Nenhuma foto pendente.</p>";
-            snapshot.forEach(doc => listaPendentes.appendChild(renderizarCard(doc.data(), doc.id, true)));
+            if (snapshot.empty) {
+                listaPendentes.innerHTML = "<p class='vazio'>Nenhuma foto pendente.</p>";
+            } else {
+                snapshot.forEach(doc => listaPendentes.appendChild(renderizarCard(doc.data(), doc.id, true)));
+            }
+            // Garante que se a lista for atualizada (uma foto apagar ou chegar), os botões continuam bloqueados se necessário
+            atualizarVisualBotoesAprovar(); 
         });
 
         onSnapshot(query(collection(db, "fotos_criancas"), where("status", "==", "aprovado")), (snapshot) => {
@@ -207,7 +239,26 @@
             snapshot.forEach(doc => listaAprovadas.appendChild(renderizarCard(doc.data(), doc.id, false)));
         });
 
-        window.atualizarStatus = async (id, status) => { await updateDoc(doc(db, "fotos_criancas", id), { status }); };
+        window.atualizarStatus = async (id, status) => { 
+            // TRAVA DE SEGURANÇA NO CLIQUE
+            if (status === 'aprovado') {
+                if (bloqueioAprovacao) return; // Se já estiver bloqueado, ignora o clique
+                
+                // 1. Bloqueia imediatamente
+                bloqueioAprovacao = true;
+                atualizarVisualBotoesAprovar(); 
+                
+                // 2. Agenda a liberação para daqui a 10 segundos
+                setTimeout(() => {
+                    bloqueioAprovacao = false;
+                    atualizarVisualBotoesAprovar(); 
+                }, 10000); // 10.000 milissegundos = 10 segundos
+            }
+            
+            // Realiza a atualização no banco de dados
+            await updateDoc(doc(db, "fotos_criancas", id), { status }); 
+        };
+        
         window.excluirFoto = async (id) => { if(confirm("Tem certeza que deseja apagar?")) await deleteDoc(doc(db, "fotos_criancas", id)); };
 
         // --- SISTEMA DE COMUNICADOS ---
