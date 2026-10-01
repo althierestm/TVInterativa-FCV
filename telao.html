@@ -89,8 +89,10 @@
             transition: opacity 1s ease-in-out;
             z-index: 10;
         }
-        .nome-rodape .titular { font-size: 40px; font-weight: 700; letter-spacing: 1.5px; text-shadow: 0 2px 4px rgba(0,0,0,0.4); }
-        .nome-rodape .setor { font-size: 24px; font-weight: 400; opacity: 0.9; margin-top: 5px; text-shadow: 0 1px 2px rgba(0,0,0,0.4); }
+        
+        /* NOVO SOMBREAMENTO AZUL PARA GARANTIR LEITURA EM FUNDO BRANCO */
+        .nome-rodape .titular { font-size: 40px; font-weight: 700; letter-spacing: 1.5px; text-shadow: 0 2px 8px #002061, 0 4px 15px rgba(0,32,97,0.8), 0 0 5px #002061; }
+        .nome-rodape .setor { font-size: 24px; font-weight: 400; opacity: 0.9; margin-top: 5px; text-shadow: 0 2px 6px #002061, 0 0 4px #002061; }
 
         #numeroDiscreto {
             position: absolute; bottom: 30px; left: 40px; font-size: 35px; font-weight: 800;
@@ -204,7 +206,7 @@
         let loopRodando = false;
         let maiorNumeroExibido = 0;
         let pularParaNova = false; 
-        let indiceSalvo = -1; // NOVA VARIÁVEL: Guarda a posição para não recomeçar do 1
+        let indiceSalvo = -1; 
         let carregamentoInicial = { fotos: false, coms: false };
 
         let timerCarregamento = null;
@@ -313,18 +315,15 @@
 
         function renderizarFoto() {
             if (pularParaNova) {
-                // Guarda a posição de onde parou antes de pular (se já não tiver uma guardada)
                 if (indiceSalvo === -1) {
                     indiceSalvo = indexFoto; 
                 }
-                indexFoto = fotosAprovadas.length - 1; // Pula para a última
+                indexFoto = fotosAprovadas.length - 1; 
                 pularParaNova = false; 
             } else if (indiceSalvo !== -1) {
-                // Terminou de mostrar a novidade, resgata a posição anterior!
                 indexFoto = indiceSalvo;
-                indiceSalvo = -1; // Limpa a memória
+                indiceSalvo = -1; 
             } else {
-                // Fluxo normal
                 indexFoto = (indexFoto + 1) >= fotosAprovadas.length ? 0 : (indexFoto + 1); 
             }
 
