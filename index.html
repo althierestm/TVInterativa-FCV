@@ -31,18 +31,10 @@
         #btnEnviar:hover { opacity: 0.9; }
         #btnEnviar:disabled { background: #ccc; cursor: not-allowed; }
         
-        /* NOVO ESTILO DO AVISO DE PRIVACIDADE */
         .aviso-privacidade {
-            font-size: 11px;
-            color: #d84315;
-            background-color: #fbe9e7;
-            padding: 10px 12px;
-            border-radius: 8px;
-            margin-top: 15px;
-            margin-bottom: 5px;
-            font-weight: 600;
-            line-height: 1.4;
-            text-align: center;
+            font-size: 11px; color: #d84315; background-color: #fbe9e7;
+            padding: 10px 12px; border-radius: 8px; margin-top: 15px;
+            margin-bottom: 5px; font-weight: 600; line-height: 1.4; text-align: center;
         }
 
         .ramal-duvidas { font-size: 12px; color: #666; margin-top: 10px; font-weight: 400; }
@@ -51,25 +43,9 @@
         #mensagem { margin-top: 20px; font-weight: 600; font-size: 15px; }
         .senha-destaque { font-size: 24px; color: #224387; font-weight: 700; margin-top: 10px; display: block; }
 
-        .rodape-assinatura {
-            margin-top: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding-bottom: 10px;
-        }
-        .rodape-assinatura img {
-    width: 130px;
-    opacity: 0.6;
-  margin-bottom: -20px;
-        }
-        .rodape-assinatura span {
-            font-size: 7px;
-            color: #999;
-            font-weight: 700;
-            letter-spacing: 1px;
-        }
+        .rodape-assinatura { margin-top: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding-bottom: 10px; }
+        .rodape-assinatura img { width: 130px; opacity: 0.6; margin-bottom: -20px; }
+        .rodape-assinatura span { font-size: 7px; color: #999; font-weight: 700; letter-spacing: 1px; }
     </style>
 </head>
 <body>
@@ -96,7 +72,7 @@
         <button id="btnEnviar">Enviar para a TV</button>
         
         <div class="aviso-privacidade">
-            ⚠️ Envie somente a sua foto e respeite o direito dos demais colaboradores de não participarem.
+            ⚠️ Envie somente a sua foto, respeitando o direito de não querer participar dos demais colaboradores.
         </div>
         
         <div class="ramal-duvidas">Ramal para dúvidas: <strong>7849</strong></div>
@@ -110,7 +86,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, serverTimestamp, getDocs } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyB8ZK0jSY-1E9y90TLfznxi9PI8mf_bJuc",
@@ -169,13 +145,9 @@
             formData.append("image", arquivoSelecionado);
 
             try {
-                const querySnapshot = await getDocs(collection(db, "fotos_criancas"));
-                let maxFila = 0;
-                querySnapshot.forEach((doc) => {
-                    const num = doc.data().numeroFila;
-                    if (num && num > maxFila) maxFila = num;
-                });
-                const meuNumeroFila = maxFila + 1;
+                
+                const ticketAleatorio = Math.floor(1000 + Math.random() * 9000); 
+                const tempoExato = Date.now(); 
 
                 const respostaImgBB = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
                     method: 'POST',
@@ -186,14 +158,15 @@
                 await addDoc(collection(db, "fotos_criancas"), {
                     nome: nome,
                     setor: setor,
-                    numeroFila: meuNumeroFila,
+                    numeroFila: tempoExato,    
+                    ticket: ticketAleatorio,   
                     url_imagem: dadosImgBB.data.url,
                     url_thumb: dadosImgBB.data.thumb.url,
                     status: "pendente",
                     timestamp: serverTimestamp()
                 });
 
-                mensagem.innerHTML = `✅ Sucesso! Foto enviada para moderação. Aguarde sua vez na TV:<br><span class="senha-destaque">Sua Foto é a Nº ${meuNumeroFila}</span>`;
+                mensagem.innerHTML = `✅ Sucesso! Foto enviada para moderação. Aguarde sua vez na TV:<br><span class="senha-destaque">Sua Senha: #${ticketAleatorio}</span>`;
                 mensagem.style.color = "green";
                 
                 document.getElementById('nomeInput').value = "";
