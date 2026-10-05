@@ -36,16 +36,34 @@
 
         #painelPrincipal { display: none; }
         
-        /* NOVO ESTILO DOS CONTADORES */
+        
         .painel-estatisticas {
-            background: #34495e; padding: 12px 20px; border-radius: 8px; display: inline-flex; 
-            justify-content: center; flex-wrap: wrap; gap: 20px; margin-bottom: 25px; 
-            font-size: 14px; box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            background: #34495e; padding: 15px 20px; border-radius: 8px; display: flex; 
+            flex-direction: column; align-items: center; margin: 0 auto 25px auto; 
+            max-width: 600px; font-size: 14px; box-shadow: 0 4px 6px rgba(0,0,0,0.2);
         }
-        .painel-estatisticas span { font-weight: bold; }
+        .estatisticas-linha {
+            display: flex; justify-content: center; flex-wrap: wrap; gap: 20px; width: 100%;
+        }
+        .estatisticas-linha span { font-weight: bold; }
         .contador-total { color: #ecf0f1; }
         .contador-pendentes { color: #f1c40f; }
         .contador-aprovadas { color: #2ecc71; }
+
+        .ranking-container {
+            width: 100%; border-top: 1px dashed #7f8c8d; margin-top: 15px; padding-top: 12px;
+        }
+        .ranking-titulo {
+            font-size: 11px; color: #bdc3c7; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; font-weight: 600;
+        }
+        .ranking-lista {
+            display: flex; justify-content: center; flex-wrap: wrap; gap: 8px;
+        }
+        .badge-setor {
+            background: rgba(52, 152, 219, 0.15); border: 1px solid #3498db; color: #ecf0f1;
+            padding: 5px 12px; border-radius: 20px; font-size: 11px; white-space: nowrap;
+        }
+        .badge-setor b { color: #f1c40f; margin-left: 4px; font-size: 12px; }
 
         h2 { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 40px; font-size: 18px; border-bottom: 1px solid #555; padding-bottom: 10px; color: #e67e22; }
         h2.telao-titulo { color: #2ecc71; }
@@ -106,11 +124,19 @@
         <h1>Moderação FCV</h1>
         <p>Aprove fotos e insira artes ou avisos para a TV.</p>
 
-        <!-- NOVO: PAINEL DE ESTATÍSTICAS E CONTADORES -->
+        
         <div class="painel-estatisticas">
-            <span class="contador-total">📸 Total Enviadas: <span id="lblTotal">0</span></span>
-            <span class="contador-pendentes">⏳ Aguardando: <span id="lblPendentes">0</span></span>
-            <span class="contador-aprovadas">✅ Aprovadas: <span id="lblAprovadas">0</span></span>
+            <div class="estatisticas-linha">
+                <span class="contador-total">📸 Total Enviadas: <span id="lblTotal">0</span></span>
+                <span class="contador-pendentes">⏳ Aguardando: <span id="lblPendentes">0</span></span>
+                <span class="contador-aprovadas">✅ Aprovadas: <span id="lblAprovadas">0</span></span>
+            </div>
+            <div class="ranking-container">
+                <div class="ranking-titulo">🏆 Top Setores Engajados</div>
+                <div id="rankingSetores" class="ranking-lista">
+                    <span style='color:#7f8c8d; font-size:12px;'>Calculando...</span>
+                </div>
+            </div>
         </div>
 
         <h2 class="comunicado-titulo">
@@ -191,14 +217,55 @@
 
         let bloqueioAprovacao = false;
 
-        // VARIÁVEIS DE CONTAGEM
+        
         let qtdPendentes = 0;
         let qtdAprovadas = 0;
+        let fotosGeralPendentes = [];
+        let fotosGeralAprovadas = [];
 
         function atualizarContadores() {
             document.getElementById('lblTotal').innerText = qtdPendentes + qtdAprovadas;
             document.getElementById('lblPendentes').innerText = qtdPendentes;
             document.getElementById('lblAprovadas').innerText = qtdAprovadas;
+        }
+
+        function calcularRanking() {
+            let contagem = {};
+            const todasAsFotos = [...fotosGeralPendentes, ...fotosGeralAprovadas];
+
+            todasAsFotos.forEach(foto => {
+                let setorCru = foto.setor || "";
+                if (setorCru.trim() === "") setorCru = "Não Informado";
+
+                
+                let setorNorm = setorCru.trim().toLowerCase()
+                                        .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+                                        .replace(/[^a-z0-9\s]/g, "");
+
+                if (!contagem[setorNorm]) {
+                    
+                    contagem[setorNorm] = { 
+                        label: setorCru === "Não Informado" ? setorCru : setorCru.trim(), 
+                        count: 0 
+                    };
+                }
+                contagem[setorNorm].count++;
+            });
+
+            
+            let ranking = Object.values(contagem).sort((a, b) => b.count - a.count);
+
+            const divRanking = document.getElementById('rankingSetores');
+            if (ranking.length === 0) {
+                divRanking.innerHTML = "<span style='color:#7f8c8d; font-size:12px;'>Nenhum dado captado...</span>";
+                return;
+            }
+
+            let html = "";
+            ranking.forEach(item => {
+                html += `<span class="badge-setor">${item.label} <b>${item.count}</b></span>`;
+            });
+            divRanking.innerHTML = html;
         }
 
         function atualizarVisualBotoesAprovar() {
@@ -228,7 +295,7 @@
                  <button class="btn-aprovar" onclick="atualizarStatus('${id}', 'aprovado')">✅ Aprovar</button>
                  <button class="btn-apagar" onclick="excluirFoto('${id}')">🗑️ Apagar</button>` : 
                 `<button class="btn-ver" onclick="abrirModal('${dados.url_imagem}')">👁️ Ver</button>
-                 <button class="btn-apagar" onclick="excluirFoto('${id}')">🗑️️ Remover</button>`;
+                 <button class="btn-apagar" onclick="excluirFoto('${id}')">🗑 Remover</button>`;
 
             const card = document.createElement('div');
             card.className = 'card';
@@ -244,39 +311,51 @@
 
         onSnapshot(query(collection(db, "fotos_criancas"), where("status", "==", "pendente")), (snapshot) => {
             listaPendentes.innerHTML = ""; 
-            qtdPendentes = snapshot.size; // Atualiza a contagem
+            qtdPendentes = snapshot.size; 
             atualizarContadores();
+            fotosGeralPendentes = [];
 
             if (snapshot.empty) {
                 listaPendentes.innerHTML = "<p class='vazio'>Nenhuma foto pendente.</p>";
             } else {
                 let arrayPendentes = [];
-                snapshot.forEach(doc => arrayPendentes.push({ id: doc.id, ...doc.data() }));
+                snapshot.forEach(doc => {
+                    let d = doc.data();
+                    arrayPendentes.push({ id: doc.id, ...d });
+                    fotosGeralPendentes.push(d);
+                });
                 
-                // Ordena por ordem de chegada (mais antigas primeiro, para respeitar a fila)
+                
                 arrayPendentes.sort((a, b) => (a.numeroFila || 0) - (b.numeroFila || 0));
                 
                 arrayPendentes.forEach(dados => listaPendentes.appendChild(renderizarCard(dados, dados.id, true)));
             }
             atualizarVisualBotoesAprovar(); 
+            calcularRanking(); 
         });
 
         onSnapshot(query(collection(db, "fotos_criancas"), where("status", "==", "aprovado")), (snapshot) => {
             listaAprovadas.innerHTML = ""; 
-            qtdAprovadas = snapshot.size; // Atualiza a contagem
+            qtdAprovadas = snapshot.size; 
             atualizarContadores();
+            fotosGeralAprovadas = [];
 
             if (snapshot.empty) {
                 listaAprovadas.innerHTML = "<p class='vazio'>A TV está vazia.</p>";
             } else {
                 let arrayAprovadas = [];
-                snapshot.forEach(doc => arrayAprovadas.push({ id: doc.id, ...doc.data() }));
+                snapshot.forEach(doc => {
+                    let d = doc.data();
+                    arrayAprovadas.push({ id: doc.id, ...d });
+                    fotosGeralAprovadas.push(d);
+                });
                 
-                // Ordena pelas mais recentes no topo (maior número primeiro)
+                
                 arrayAprovadas.sort((a, b) => (b.numeroFila || 0) - (a.numeroFila || 0));
                 
                 arrayAprovadas.forEach(dados => listaAprovadas.appendChild(renderizarCard(dados, dados.id, false)));
             }
+            calcularRanking(); /
         });
 
         window.atualizarStatus = async (id, status) => { 
@@ -293,14 +372,13 @@
             await updateDoc(doc(db, "fotos_criancas", id), { status }); 
         };
         
-        // CAIXA DE DIÁLOGO REFORÇADA PARA EVITAR TOQUES ACIDENTAIS
         window.excluirFoto = async (id) => { 
             if(confirm("⚠️ ATENÇÃO: Tem certeza absoluta que deseja EXCLUIR esta foto? Esta ação não pode ser desfeita.")) {
                 await deleteDoc(doc(db, "fotos_criancas", id)); 
             }
         };
 
-        // --- SISTEMA DE COMUNICADOS ---
+
         let arteSelecionada = null;
         
         document.getElementById('btnAddComTxt').addEventListener('click', async () => {
