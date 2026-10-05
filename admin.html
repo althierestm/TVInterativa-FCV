@@ -36,7 +36,7 @@
 
         #painelPrincipal { display: none; }
         
-        
+        /* NOVO ESTILO: ESTATÍSTICAS E RANKING DE SETORES */
         .painel-estatisticas {
             background: #34495e; padding: 15px 20px; border-radius: 8px; display: flex; 
             flex-direction: column; align-items: center; margin: 0 auto 25px auto; 
@@ -124,7 +124,7 @@
         <h1>Moderação FCV</h1>
         <p>Aprove fotos e insira artes ou avisos para a TV.</p>
 
-        
+        <!-- PAINEL DE ESTATÍSTICAS E RANKING COMPACTO -->
         <div class="painel-estatisticas">
             <div class="estatisticas-linha">
                 <span class="contador-total">📸 Total Enviadas: <span id="lblTotal">0</span></span>
@@ -186,11 +186,12 @@
             if (e.key === 'Enter') verificarLogin();
         });
 
+        // SISTEMA DE LOGIN ATUALIZADO E À PROVA DE FALHAS (IGNORA ESPAÇOS E MAIÚSCULAS)
         function verificarLogin() {
-            const user = document.getElementById('loginUser').value;
-            const pass = document.getElementById('loginPass').value;
+            const user = document.getElementById('loginUser').value.trim().toLowerCase();
+            const pass = document.getElementById('loginPass').value.trim();
 
-            if (btoa(user) === "TWFya2V0aW5n" && btoa(pass) === "QFRWQ29ycmVkb3Ij") {
+            if (user === "marketing" && pass === "@TVCorredor#") {
                 document.getElementById('loginOverlay').style.display = 'none';
                 document.getElementById('painelPrincipal').style.display = 'block';
             } else {
@@ -217,7 +218,7 @@
 
         let bloqueioAprovacao = false;
 
-        
+        // VARIÁVEIS DE CONTAGEM E RANKING
         let qtdPendentes = 0;
         let qtdAprovadas = 0;
         let fotosGeralPendentes = [];
@@ -237,13 +238,13 @@
                 let setorCru = foto.setor || "";
                 if (setorCru.trim() === "") setorCru = "Não Informado";
 
-                
+                // Normalização estrita para agrupar (remove acentos, espaços, passa a minúsculas)
                 let setorNorm = setorCru.trim().toLowerCase()
                                         .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
                                         .replace(/[^a-z0-9\s]/g, "");
 
                 if (!contagem[setorNorm]) {
-                    
+                    // Guarda a primeira versão limpa para exibir na etiqueta
                     contagem[setorNorm] = { 
                         label: setorCru === "Não Informado" ? setorCru : setorCru.trim(), 
                         count: 0 
@@ -252,7 +253,7 @@
                 contagem[setorNorm].count++;
             });
 
-            
+            // Transforma num array e ordena do que tem mais engajamento para o menor
             let ranking = Object.values(contagem).sort((a, b) => b.count - a.count);
 
             const divRanking = document.getElementById('rankingSetores');
@@ -325,13 +326,13 @@
                     fotosGeralPendentes.push(d);
                 });
                 
-                
+                // Ordena por ordem de chegada (mais antigas primeiro, para respeitar a fila)
                 arrayPendentes.sort((a, b) => (a.numeroFila || 0) - (b.numeroFila || 0));
                 
                 arrayPendentes.forEach(dados => listaPendentes.appendChild(renderizarCard(dados, dados.id, true)));
             }
             atualizarVisualBotoesAprovar(); 
-            calcularRanking(); 
+            calcularRanking(); // Aciona recálculo das métricas de setor
         });
 
         onSnapshot(query(collection(db, "fotos_criancas"), where("status", "==", "aprovado")), (snapshot) => {
@@ -350,12 +351,12 @@
                     fotosGeralAprovadas.push(d);
                 });
                 
-                
+                // Ordena pelas mais recentes no topo (maior número primeiro)
                 arrayAprovadas.sort((a, b) => (b.numeroFila || 0) - (a.numeroFila || 0));
                 
                 arrayAprovadas.forEach(dados => listaAprovadas.appendChild(renderizarCard(dados, dados.id, false)));
             }
-            calcularRanking(); /
+            calcularRanking(); // Aciona recálculo das métricas de setor
         });
 
         window.atualizarStatus = async (id, status) => { 
@@ -378,7 +379,7 @@
             }
         };
 
-
+        // --- SISTEMA DE COMUNICADOS ---
         let arteSelecionada = null;
         
         document.getElementById('btnAddComTxt').addEventListener('click', async () => {
