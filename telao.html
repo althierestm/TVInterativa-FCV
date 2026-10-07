@@ -154,9 +154,6 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
         import { getFirestore, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
-        let precisaRecarregar = false;
-        setTimeout(() => { precisaRecarregar = true; }, 7200000); 
-
         function ajustarEscala() {
             const scaleBox = document.getElementById('tvScaleBox');
             const scaleX = window.innerWidth / 1920;
@@ -273,7 +270,7 @@
                     if (ultimoFilaExibido > 0 && fotosAprovadas.length > 0) {
                         let idx = fotosAprovadas.findIndex(f => f.numeroFila === ultimoFilaExibido);
                         if (idx !== -1) {
-                            indexFoto = idx; 
+                            indexFoto = idx;
                         }
                     }
 
@@ -359,12 +356,6 @@
             imgPreload.onload = () => {
                 clearTimeout(timerCarregamento); 
 
-                if (precisaRecarregar) {
-                    transicaoApagarTudo();
-                    setTimeout(() => { window.location.reload(); }, 800);
-                    return; 
-                }
-
                 transicaoApagarTudo();
 
                 timerTransicao = setTimeout(() => {
@@ -392,7 +383,6 @@
 
                     animarBarra(7000); 
                     timerExibicao = setTimeout(() => {
-                        // Limpa o lixo da memória RAM
                         imgPreload.onload = null; imgPreload.onerror = null; imgPreload.src = "";
                         decidirProximo();
                     }, 7000);
@@ -423,12 +413,6 @@
                 imgPreload.onload = () => {
                     clearTimeout(timerCarregamento);
 
-                    if (precisaRecarregar) {
-                        transicaoApagarTudo();
-                        setTimeout(() => { window.location.reload(); }, 800);
-                        return; 
-                    }
-
                     transicaoApagarTudo();
                     
                     timerTransicao = setTimeout(() => {
@@ -456,12 +440,6 @@
                 imgPreload.src = com.url_imagem || com.url_thumb;
             } else {
                 
-                if (precisaRecarregar) {
-                    transicaoApagarTudo();
-                    setTimeout(() => { window.location.reload(); }, 800);
-                    return; 
-                }
-
                 transicaoApagarTudo();
                 
                 timerTransicao = setTimeout(() => {
