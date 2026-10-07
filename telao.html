@@ -154,6 +154,9 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
         import { getFirestore, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
+        let precisaRecarregar = false;
+        setTimeout(() => { precisaRecarregar = true; }, 7200000); 
+
         function ajustarEscala() {
             const scaleBox = document.getElementById('tvScaleBox');
             const scaleX = window.innerWidth / 1920;
@@ -194,15 +197,17 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
+        let fotosExibidasNoCiclo = parseInt(localStorage.getItem('fcv_ciclo')) || 0;
+        let maiorNumeroExibido = parseInt(localStorage.getItem('fcv_maior')) || 0;
+        let ultimoFilaExibido = parseInt(localStorage.getItem('fcv_ultimo')) || 0;
+
         let fotosAprovadas = [];
         let comunicadosAtivos = [];
         let estadoAtual = 'COMS'; 
         let indexFoto = -1;
         let indexCom = -1;
-        let fotosExibidasNoCiclo = 0; 
         
         let loopRodando = false;
-        let maiorNumeroExibido = 0;
         let pularParaNova = false; 
         let indiceSalvo = -1; 
         let carregamentoInicial = { fotos: false, coms: false };
@@ -237,6 +242,7 @@
                     pularParaNova = true;
                     estadoAtual = 'FOTOS'; 
                     fotosExibidasNoCiclo = 0; 
+                    localStorage.setItem('fcv_ciclo', 0);
                     
                     clearTimeout(timerCarregamento);
                     clearTimeout(timerTransicao);
@@ -263,6 +269,14 @@
                 if (fotosAprovadas.length > 0 || comunicadosAtivos.length > 0) {
                     aguardando.style.display = "none";
                     loopRodando = true;
+                    
+                    if (ultimoFilaExibido > 0 && fotosAprovadas.length > 0) {
+                        let idx = fotosAprovadas.findIndex(f => f.numeroFila === ultimoFilaExibido);
+                        if (idx !== -1) {
+                            indexFoto = idx; 
+                        }
+                    }
+
                     estadoAtual = comunicadosAtivos.length > 0 ? 'COMS' : 'FOTOS';
                     decidirProximo();
                 } else {
@@ -295,6 +309,7 @@
                 if (fotosExibidasNoCiclo >= 4 && comunicadosAtivos.length > 0) {
                     estadoAtual = 'COMS';
                     fotosExibidasNoCiclo = 0;
+                    localStorage.setItem('fcv_ciclo', 0);
                     decidirProximo();
                     return;
                 }
@@ -302,6 +317,7 @@
             } else { 
                 estadoAtual = 'FOTOS';
                 fotosExibidasNoCiclo = 0;
+                localStorage.setItem('fcv_ciclo', 0);
                 
                 if (comunicadosAtivos.length === 0) {
                     decidirProximo();
@@ -327,19 +343,34 @@
 
             const fotoDaVez = fotosAprovadas[indexFoto];
             
+            localStorage.setItem('fcv_ultimo', fotoDaVez.numeroFila);
             if ((fotoDaVez.numeroFila || 0) > maiorNumeroExibido) { 
                 maiorNumeroExibido = fotoDaVez.numeroFila; 
+                localStorage.setItem('fcv_maior', maiorNumeroExibido);
             }
 
             const imgPreload = new Image();
-            timerCarregamento = setTimeout(() => { imgPreload.onload = null; decidirProximo(); }, 8000); 
+            
+            timerCarregamento = setTimeout(() => { 
+                imgPreload.onload = null; imgPreload.onerror = null; imgPreload.src = "";
+                decidirProximo(); 
+            }, 8000); 
             
             imgPreload.onload = () => {
                 clearTimeout(timerCarregamento); 
+
+                if (precisaRecarregar) {
+                    transicaoApagarTudo();
+                    setTimeout(() => { window.location.reload(); }, 800);
+                    return; 
+                }
+
                 transicaoApagarTudo();
 
                 timerTransicao = setTimeout(() => {
                     fotosExibidasNoCiclo++; 
+                    localStorage.setItem('fcv_ciclo', fotosExibidasNoCiclo);
+
                     imgPainel.classList.remove('modo-arte'); 
                     imgPainel.src = fotoDaVez.url_imagem || fotoDaVez.url_thumb;
                     
@@ -360,10 +391,20 @@
                     qrCodeTV.classList.remove('escondido'); qrCodeTV.classList.add('visivel');
 
                     animarBarra(7000); 
-                    timerExibicao = setTimeout(decidirProximo, 7000);
+                    timerExibicao = setTimeout(() => {
+                        // Limpa o lixo da memória RAM
+                        imgPreload.onload = null; imgPreload.onerror = null; imgPreload.src = "";
+                        decidirProximo();
+                    }, 7000);
                 }, 800); 
             };
-            imgPreload.onerror = () => { clearTimeout(timerCarregamento); decidirProximo(); };
+            
+            imgPreload.onerror = () => { 
+                clearTimeout(timerCarregamento); 
+                imgPreload.onload = null; imgPreload.onerror = null; imgPreload.src = "";
+                decidirProximo(); 
+            };
+            
             imgPreload.src = fotoDaVez.url_imagem || fotoDaVez.url_thumb;
         }
 
@@ -373,10 +414,21 @@
 
             if(com.tipo === 'imagem' || com.url_imagem) {
                 const imgPreload = new Image();
-                timerCarregamento = setTimeout(() => { imgPreload.onload = null; decidirProximo(); }, 8000); 
+                
+                timerCarregamento = setTimeout(() => { 
+                    imgPreload.onload = null; imgPreload.onerror = null; imgPreload.src = "";
+                    decidirProximo(); 
+                }, 8000); 
 
                 imgPreload.onload = () => {
                     clearTimeout(timerCarregamento);
+
+                    if (precisaRecarregar) {
+                        transicaoApagarTudo();
+                        setTimeout(() => { window.location.reload(); }, 800);
+                        return; 
+                    }
+
                     transicaoApagarTudo();
                     
                     timerTransicao = setTimeout(() => {
@@ -390,12 +442,26 @@
                         relogioTV.classList.remove('escondido'); relogioTV.classList.add('visivel');
                         
                         animarBarra(15000); 
-                        timerExibicao = setTimeout(decidirProximo, 15000); 
+                        timerExibicao = setTimeout(() => {
+                            imgPreload.onload = null; imgPreload.onerror = null; imgPreload.src = "";
+                            decidirProximo();
+                        }, 15000); 
                     }, 800);
                 };
-                imgPreload.onerror = () => { clearTimeout(timerCarregamento); decidirProximo(); };
+                imgPreload.onerror = () => { 
+                    clearTimeout(timerCarregamento); 
+                    imgPreload.onload = null; imgPreload.onerror = null; imgPreload.src = "";
+                    decidirProximo(); 
+                };
                 imgPreload.src = com.url_imagem || com.url_thumb;
             } else {
+                
+                if (precisaRecarregar) {
+                    transicaoApagarTudo();
+                    setTimeout(() => { window.location.reload(); }, 800);
+                    return; 
+                }
+
                 transicaoApagarTudo();
                 
                 timerTransicao = setTimeout(() => {
