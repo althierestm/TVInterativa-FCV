@@ -3,11 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TV Corporativa - Comunicados</title>
-    <link rel="manifest" href="manifest.json">
+    <title>TV Corporativa - FCV</title>
     <link rel="icon" href="logo%20icon%20TV%20do%20Ponto%20FCV.png" type="image/png">
-    <link rel="apple-touch-icon" href="logo%20icon%20TV%20do%20Ponto%20FCV.png">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <style>
         body { 
             margin: 0; padding: 0; background-color: #000; color: white; 
@@ -23,7 +21,7 @@
             width: 1920px; height: 1080px; 
             position: absolute; top: 50%; left: 50%;
             transform-origin: center center;
-            background-color: #000; 
+            background-color: #000;
         }
         
         #btnFullscreen {
@@ -35,21 +33,17 @@
         #btnFullscreen:hover { background: rgba(255,255,255,0.4); }
 
         .marca-dagua {
-            position: absolute; top: 25px; right: 40px; width: 200px;
-            opacity: 0.7; z-index: 9990; pointer-events: none;
+            position: absolute; top: 35px; left: 40px; width: 220px;
+            opacity: 0.8; z-index: 9990; pointer-events: none;
         }
 
         #relogioTV {
-            position: absolute; bottom: 40px; right: 40px;
-            background: rgba(255, 255, 255, 0.5); 
+            position: absolute; top: 35px; right: 40px;
+            background: rgba(255, 255, 255, 0.1); 
             backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.4);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            border-radius: 12px; color: #224387; 
-            padding: 10px 25px; text-align: center;
-            font-size: 32px; font-weight: 700; letter-spacing: 2px;
-            transition: opacity 0.8s ease-in-out, transform 0.8s ease-in-out; 
-            z-index: 9990; pointer-events: none;
+            border: 1px solid rgba(255, 255, 255, 0.2); box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            border-radius: 12px; color: #fff; padding: 10px 25px; text-align: center;
+            font-size: 32px; font-weight: 700; letter-spacing: 2px; z-index: 9990; pointer-events: none;
         }
 
         .container-master { 
@@ -73,23 +67,68 @@
         #textoDoComunicado { font-size: 70px; font-weight: 700; line-height: 1.3; margin: 0; color: #fff; }
         .aviso-label { font-size: 30px; color: #ff9800; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 25px; display: block;}
 
-        #aguardando { font-size: 20px; color: #ff9800; font-weight: 600; z-index: 20; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: none; }
+        #aguardando { font-size: 20px; color: #7f8c8d; font-weight: 600; z-index: 20; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: none; }
 
         #barraProgressoContainer { position: absolute; bottom: 0; left: 0; width: 100%; height: 10px; background: rgba(255,255,255,0.1); z-index: 20; }
-        #barraProgresso { height: 100%; width: 0%; background: linear-gradient(to right, #224387, #002061); }
+        #barraProgresso { height: 100%; width: 0%; background: linear-gradient(to right, #3498db, #2ecc71); }
+
+        #bgClima {
+            position: absolute; width: 100%; height: 100%; top: 0; left: 0; z-index: 1;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        }
+        .header-clima { position: absolute; top: 40px; left: 0; width: 100%; text-align: center; z-index: 2;}
+        .cidade-clima { font-size: 40px; font-weight: 600; margin: 0; color: #fff; letter-spacing: 1px;}
+        .sub-clima { font-size: 20px; font-weight: 300; color: #bdc3c7; margin-top: 5px; }
+        
+        .grid-clima {
+            display: grid; grid-template-columns: repeat(7, 1fr); gap: 20px;
+            width: 90%; max-width: 1750px; z-index: 2; margin-top: 50px;
+        }
+        .card-dia {
+            background: rgba(255, 255, 255, 0.07); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
+            border-radius: 24px; padding: 30px 15px; border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2); text-align: center; display: flex; flex-direction: column; align-items: center;
+        }
+        .dia-titulo { font-size: 32px; font-weight: 600; color: #fff; margin-bottom: 25px; }
+        .dia-hoje { color: #3498db; }
+        
+        .icone-principal svg { width: 100px; height: 100px; margin-bottom: 20px;}
+        .temp-principal { font-size: 70px; font-weight: 300; line-height: 1; margin-bottom: 10px; }
+        .desc-principal { font-size: 16px; font-weight: 600; color: #bdc3c7; height: 40px; margin-bottom: 20px; }
+        
+        .maxmin { font-size: 22px; font-weight: 600; display: flex; gap: 15px; margin-bottom: 30px; }
+        .t-max { color: #e74c3c; } .t-min { color: #3498db; }
+        
+        .turnos-container { display: flex; justify-content: space-around; width: 100%; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px; }
+        .turno { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+        .turno-nome { font-size: 14px; font-weight: 600; color: #bdc3c7; text-transform: lowercase; }
+        .turno-icone svg { width: 35px; height: 35px; }
+        .turno-temp { font-size: 18px; font-weight: 600; }
     </style>
 </head>
 <body>
 
-    <button id="btnFullscreen">Tela Cheia</button>
+    <audio id="radioFCV" src="https://stm17.srvstm.com:6944/stream" preload="none" crossorigin="anonymous"></audio>
+
+    <button id="btnFullscreen">Tela Cheia (Iniciar Som)</button>
 
     <div id="viewportWrapper">
         <div class="tv-scale-box" id="tvScaleBox">
             
             <img src="MKTFCV.png" class="marca-dagua" alt="MKT FCV">
-            <div id="relogioTV" class="escondido">--:--</div>
+            <div id="relogioTV">--:--</div>
 
-            <div id="aguardando">Aguardando comunicados...</div>
+            <div id="aguardando">Aguardando informacoes...</div>
+
+            <div class="container-master escondido" id="camadaClima">
+                <div id="bgClima"></div>
+                <div class="header-clima">
+                    <h1 class="cidade-clima">Previsao do Tempo - Muriae, MG</h1>
+                    <div class="sub-clima">Fonte: Open-Meteo Satelite</div>
+                </div>
+                <div class="grid-clima" id="gridClima">
+                </div>
+            </div>
 
             <div class="container-master escondido" id="camadaImagem">
                 <img id="imgPainel" src="" alt="Painel">
@@ -97,7 +136,7 @@
 
             <div class="container-master escondido" id="camadaTexto">
                 <div id="containerTexto">
-                    <span class="aviso-label">Mural da Fundação</span>
+                    <span class="aviso-label">Mural da Fundacao</span>
                     <h1 id="textoDoComunicado"></h1>
                 </div>
             </div>
@@ -109,7 +148,17 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
-        import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, doc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
+        document.getElementById('btnFullscreen').addEventListener('click', () => {
+            const radio = document.getElementById('radioFCV');
+            radio.play().catch(e => console.log("Som bloqueado pelo navegador", e));
+            
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => console.log(err));
+                document.getElementById('btnFullscreen').style.display = 'none'; 
+            }
+        });
 
         function ajustarEscala() {
             const scaleBox = document.getElementById('tvScaleBox');
@@ -120,24 +169,112 @@
         window.addEventListener('resize', ajustarEscala);
         ajustarEscala(); 
 
-        document.getElementById('btnFullscreen').addEventListener('click', () => {
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().catch(err => console.log(err));
-                document.getElementById('btnFullscreen').style.display = 'none'; 
-            }
-        });
-
         function atualizarRelogio() {
             const agora = new Date();
-            const horaString = agora.toLocaleTimeString('pt-BR', { 
-                timeZone: 'America/Sao_Paulo', 
-                hour: '2-digit', 
-                minute: '2-digit' 
-            });
-            document.getElementById('relogioTV').innerText = horaString;
+            document.getElementById('relogioTV').innerText = agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
         }
         setInterval(atualizarRelogio, 1000);
         atualizarRelogio();
+
+        let dadosClimaProntos = false;
+        let htmlClimaCache = "";
+
+        const svgs = {
+            sol: '<svg stroke="#f1c40f" viewBox="0 0 24 24" fill="none" stroke-width="1.5"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>',
+            nuvem: '<svg stroke="#bdc3c7" viewBox="0 0 24 24" fill="none" stroke-width="1.5"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>',
+            solNuvem: '<svg stroke="#f1c40f" viewBox="0 0 24 24" fill="none" stroke-width="1.5"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z" stroke="#bdc3c7"/><circle cx="8" cy="8" r="3"/><path d="M8 2v1M8 13v1M2.34 4.34l.71.71M13.66 11.66l.71.71M1 8h1M13 8h1"/></svg>',
+            chuva: '<svg stroke="#3498db" viewBox="0 0 24 24" fill="none" stroke-width="1.5"><path d="M16 13v8M8 13v8M12 15v8M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"/></svg>',
+            tempestade: '<svg stroke="#9b59b6" viewBox="0 0 24 24" fill="none" stroke-width="1.5"><path d="M19 16.9A5 5 0 0 0 18 7h-1.26a8 8 0 1 0-11.62 9"/><polyline points="13 11 9 17 15 17 11 23"/></svg>',
+            lua: '<svg stroke="#ecf0f1" viewBox="0 0 24 24" fill="none" stroke-width="1.5"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>'
+        };
+
+        function getClimaIcon(code, isNight = false) {
+            if(code === 0) return { t: 'Limpo', i: isNight ? svgs.lua : svgs.sol };
+            if(code >= 1 && code <= 3) return { t: 'Parc. Nublado', i: isNight ? svgs.nuvem : svgs.solNuvem };
+            if(code >= 45 && code <= 48) return { t: 'Neblina', i: svgs.nuvem };
+            if(code >= 51 && code <= 67) return { t: 'Chuva Leve', i: svgs.chuva };
+            if(code >= 80 && code <= 82) return { t: 'Pancadas', i: svgs.chuva };
+            if(code >= 95) return { t: 'Tempestade', i: svgs.tempestade };
+            return { t: 'Nublado', i: svgs.nuvem };
+        }
+
+        async function processarClima() {
+            try {
+                const url = 'https://api.open-meteo.com/v1/forecast?latitude=-21.1306&longitude=-42.3664&daily=weathercode,temperature_2m_max,temperature_2m_min&hourly=temperature_2m,weathercode&timezone=America%2FSao_Paulo&forecast_days=7';
+                const resp = await fetch(url);
+                const data = await resp.json();
+
+                const diasNomes = ['Domingo', 'Segunda', 'Terca', 'Quarta', 'Quinta', 'Sexta', 'Sabado'];
+                let gridHtml = '';
+
+                for(let i = 0; i < 7; i++) {
+                    let dObj = new Date(data.daily.time[i] + 'T00:00:00');
+                    let tituloDia = (i === 0) ? '<span class="dia-hoje">Hoje</span>' : diasNomes[dObj.getDay()];
+
+                    let mainCode = data.daily.weathercode[i];
+                    let max = Math.round(data.daily.temperature_2m_max[i]);
+                    let min = Math.round(data.daily.temperature_2m_min[i]);
+                    let iconeMain = getClimaIcon(mainCode, false);
+                    let tempMedia = Math.round((max + min) / 2);
+
+                    
+                    let baseIdx = i * 24;
+                    let idxManha = baseIdx + 9;  
+                    let idxTarde = baseIdx + 15; 
+                    let idxNoite = baseIdx + 20; 
+
+                    let tManha = Math.round(data.hourly.temperature_2m[idxManha]);
+                    let cManha = getClimaIcon(data.hourly.weathercode[idxManha], false);
+
+                    let tTarde = Math.round(data.hourly.temperature_2m[idxTarde]);
+                    let cTarde = getClimaIcon(data.hourly.weathercode[idxTarde], false);
+
+                    let tNoite = Math.round(data.hourly.temperature_2m[idxNoite]);
+                    let cNoite = getClimaIcon(data.hourly.weathercode[idxNoite], true);
+
+                    gridHtml += `
+                        <div class="card-dia">
+                            <div class="dia-titulo">${tituloDia}</div>
+                            <div class="icone-principal">${iconeMain.i}</div>
+                            <div class="temp-principal">${tempMedia}°</div>
+                            <div class="desc-principal">${iconeMain.t}</div>
+                            
+                            <div class="maxmin">
+                                <div class="t-max">↑ ${max}°</div>
+                                <div class="t-min">↓ ${min}°</div>
+                            </div>
+
+                            <div class="turnos-container">
+                                <div class="turno">
+                                    <div class="turno-nome">manha</div>
+                                    <div class="turno-icone">${cManha.i}</div>
+                                    <div class="turno-temp">${tManha}°</div>
+                                </div>
+                                <div class="turno">
+                                    <div class="turno-nome">tarde</div>
+                                    <div class="turno-icone">${cTarde.i}</div>
+                                    <div class="turno-temp">${tTarde}°</div>
+                                </div>
+                                <div class="turno">
+                                    <div class="turno-nome">noite</div>
+                                    <div class="turno-icone">${cNoite.i}</div>
+                                    <div class="turno-temp">${tNoite}°</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                document.getElementById('gridClima').innerHTML = gridHtml;
+                dadosClimaProntos = true;
+            } catch (e) {
+                console.log("Erro Clima:", e);
+                dadosClimaProntos = false;
+            }
+        }
+
+        processarClima();
+        setInterval(processarClima, 1800000); 
 
         const firebaseConfig = {
             apiKey: "AIzaSyB8ZK0jSY-1E9y90TLfznxi9PI8mf_bJuc",
@@ -154,31 +291,33 @@
         let comunicadosAtivos = [];
         let indexCom = -1;
         let loopRodando = false;
+        
+        let mostrarClimaNaTV = true; 
+        let proximaAcao = 'CLIMA'; 
+        
+        onSnapshot(doc(db, "controle_tv", "status_clima"), (docSnap) => {
+            if(docSnap.exists()) {
+                mostrarClimaNaTV = docSnap.data().mostrar_clima;
+            }
+        });
 
-        let timerCarregamento = null;
-        let timerTransicao = null;
-        let timerExibicao = null;
-
+        const camadaClima = document.getElementById('camadaClima');
         const camadaImagem = document.getElementById('camadaImagem');
         const imgPainel = document.getElementById('imgPainel');
         const camadaTexto = document.getElementById('camadaTexto');
         const textoDoComunicado = document.getElementById('textoDoComunicado');
         const aguardando = document.getElementById('aguardando');
         const barraProgresso = document.getElementById('barraProgresso');
-        const relogioTV = document.getElementById('relogioTV');
 
         onSnapshot(collection(db, "comunicados_criancas"), (snapshot) => {
             comunicadosAtivos = [];
             snapshot.forEach(doc => comunicadosAtivos.push(doc.data()));
             
-            if (comunicadosAtivos.length > 0 && !loopRodando) {
+            if (!loopRodando && (comunicadosAtivos.length > 0 || mostrarClimaNaTV)) {
                 aguardando.style.display = "none";
                 loopRodando = true;
+                proximaAcao = mostrarClimaNaTV ? 'CLIMA' : 'COMS';
                 decidirProximo();
-            } else if (comunicadosAtivos.length === 0) {
-                loopRodando = false;
-                transicaoApagarTudo();
-                aguardando.style.display = "block";
             }
         });
 
@@ -192,13 +331,42 @@
         }
 
         function decidirProximo() {
-            if (comunicadosAtivos.length === 0) {
+            let temComs = comunicadosAtivos.length > 0;
+            let podeExibirClima = mostrarClimaNaTV && dadosClimaProntos;
+
+            if (!podeExibirClima && !temComs) {
                 loopRodando = false;
-                aguardando.style.display = "block";
                 transicaoApagarTudo();
+                aguardando.style.display = "block";
                 return;
             }
-            renderizarComunicado();
+
+            aguardando.style.display = "none";
+
+            if (proximaAcao === 'CLIMA' && podeExibirClima) {
+                renderizarClima();
+                proximaAcao = temComs ? 'COMS' : 'CLIMA';
+            } else if (temComs) {
+                renderizarComunicado();
+                if (indexCom === comunicadosAtivos.length - 1 && podeExibirClima) {
+                    proximaAcao = 'CLIMA';
+                } else {
+                    proximaAcao = 'COMS';
+                }
+            } else {
+                proximaAcao = podeExibirClima ? 'CLIMA' : 'COMS';
+                setTimeout(decidirProximo, 1000);
+            }
+        }
+
+        function renderizarClima() {
+            transicaoApagarTudo();
+            timerTransicao = setTimeout(() => {
+                camadaClima.classList.remove('escondido'); camadaClima.classList.add('visivel');
+                
+                animarBarra(15000); 
+                timerExibicao = setTimeout(decidirProximo, 15000); 
+            }, 800);
         }
 
         function renderizarComunicado() {
@@ -215,7 +383,6 @@
 
                 imgPreload.onload = () => {
                     clearTimeout(timerCarregamento);
-
                     transicaoApagarTudo();
                     
                     timerTransicao = setTimeout(() => {
@@ -223,7 +390,6 @@
                         imgPainel.src = com.url_imagem || com.url_thumb;
                         
                         camadaImagem.classList.remove('escondido'); camadaImagem.classList.add('visivel');
-                        relogioTV.classList.remove('escondido'); relogioTV.classList.add('visivel');
                         
                         animarBarra(15000); 
                         timerExibicao = setTimeout(() => {
@@ -245,7 +411,6 @@
                     textoDoComunicado.innerText = com.texto;
                     
                     camadaTexto.classList.remove('escondido'); camadaTexto.classList.add('visivel');
-                    relogioTV.classList.remove('escondido'); relogioTV.classList.add('visivel');
                     
                     animarBarra(15000); 
                     timerExibicao = setTimeout(decidirProximo, 15000); 
@@ -256,7 +421,7 @@
         function transicaoApagarTudo() {
             camadaImagem.classList.remove('visivel'); camadaImagem.classList.add('escondido');
             camadaTexto.classList.remove('visivel'); camadaTexto.classList.add('escondido');
-            relogioTV.classList.remove('visivel'); relogioTV.classList.add('escondido');
+            camadaClima.classList.remove('visivel'); camadaClima.classList.add('escondido');
         }
     </script>
 </body>
