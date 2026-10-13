@@ -125,13 +125,13 @@
 
     <audio id="radioFCV" src="https://stm17.srvstm.com:6944/stream" preload="none" crossorigin="anonymous"></audio>
 
-    <button id="btnFullscreen">Tela Cheia (Iniciar TV e Rádio)</button>
+    <button id="btnFullscreen">Tela Cheia</button>
 
     <div id="viewportWrapper">
         <div class="tv-scale-box" id="tvScaleBox">
             
             <img src="MKTFCV.png" class="marca-dagua" alt="MKT FCV">
-            <div id="relogioTV">--:--</div>
+            <div id="relogioTV" class="escondido">--:--</div>
 
             <div id="aguardando">Aguardando informações da rede...</div>
 
@@ -154,6 +154,10 @@
                 </div>
             </div>
 
+            <div class="container-master escondido" id="camadaVideo">
+                <video id="videoPainel" class="modo-arte" src="" playsinline></video>
+            </div>
+
             <div class="container-master escondido" id="camadaTexto">
                 <div id="containerTexto">
                     <span class="aviso-label">Mural da Fundação</span>
@@ -171,6 +175,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
         import { getFirestore, collection, query, where, onSnapshot, doc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
+        // INICIAR TELA CHEIA E SOM
         document.getElementById('btnFullscreen').addEventListener('click', () => {
             const radio = document.getElementById('radioFCV');
             radio.play().catch(e => console.log("Erro no autoplay do áudio:", e));
@@ -319,7 +324,6 @@
 
         let fotosExibidasNoCiclo = parseInt(localStorage.getItem('fcv_ciclo')) || 0;
         let maiorNumeroExibido = parseInt(localStorage.getItem('fcv_maior')) || 0;
-        let ultimoFilaExibido = parseInt(localStorage.getItem('fcv_ultimo')) || 0;
 
         let timerCarregamento = null;
         let timerTransicao = null;
@@ -334,6 +338,8 @@
 
         const camadaClima = document.getElementById('camadaClima');
         const camadaImagem = document.getElementById('camadaImagem');
+        const camadaVideo = document.getElementById('camadaVideo');
+        const videoPainel = document.getElementById('videoPainel');
         const imgPainel = document.getElementById('imgPainel');
         const molduraFoto = document.getElementById('molduraFoto'); 
         const nomePainel = document.getElementById('nomePainel');
@@ -344,7 +350,9 @@
         const aguardando = document.getElementById('aguardando');
         const numDiscreto = document.getElementById('numeroDiscreto');
         const barraProgresso = document.getElementById('barraProgresso');
+        const radioFCV = document.getElementById('radioFCV');
 
+        
         onSnapshot(query(collection(db, "fotos_criancas"), where("status", "==", "aprovado")), (snapshot) => {
             fotosAprovadas = [];
             snapshot.forEach(doc => fotosAprovadas.push(doc.data()));
@@ -365,6 +373,7 @@
             }
         });
 
+        
         onSnapshot(collection(db, "comunicados_criancas"), (snapshot) => {
             comunicadosAtivos = [];
             snapshot.forEach(doc => comunicadosAtivos.push(doc.data()));
@@ -384,6 +393,7 @@
             }, 50);
         }
 
+        
         function decidirProximo() {
             clearTimeout(timerCarregamento);
             clearTimeout(timerTransicao);
@@ -453,7 +463,27 @@
             indexCom = (indexCom + 1) >= comunicadosAtivos.length ? 0 : (indexCom + 1);
             const com = comunicadosAtivos[indexCom];
 
-            if(com.tipo === 'imagem' || com.url_imagem) {
+            
+            if (com.tipo === 'video' || com.url_video) {
+                transicaoApagarTudo();
+                
+                timerTransicao = setTimeout(() => {
+                    videoPainel.src = com.url_video;
+                    camadaVideo.classList.remove('escondido'); camadaVideo.classList.add('visivel');
+                    
+                    radioFCV.pause(); 
+                    videoPainel.play().catch(e => console.log("Erro video", e));
+                    
+                    animarBarra(15000); 
+                    timerExibicao = setTimeout(() => { 
+                        videoPainel.pause(); 
+                        videoPainel.src = ""; 
+                        radioFCV.play().catch(e => console.log("Retomando radio", e)); 
+                        decidirProximo(); 
+                    }, 15000); 
+                }, 800);
+                
+            } else if (com.tipo === 'imagem' || com.url_imagem) { 
                 const imgPreload = new Image();
                 timerCarregamento = setTimeout(() => { decidirProximo(); }, 8000); 
 
@@ -477,7 +507,8 @@
                 };
                 imgPreload.onerror = () => { clearTimeout(timerCarregamento); setTimeout(decidirProximo, 1000); };
                 imgPreload.src = com.url_imagem || com.url_thumb;
-            } else {
+                
+            } else { 
                 transicaoApagarTudo();
                 timerTransicao = setTimeout(() => {
                     textoDoComunicado.innerText = com.texto;
@@ -537,7 +568,10 @@
             camadaImagem.classList.remove('visivel'); camadaImagem.classList.add('escondido');
             camadaTexto.classList.remove('visivel'); camadaTexto.classList.add('escondido');
             camadaClima.classList.remove('visivel'); camadaClima.classList.add('escondido');
+            camadaVideo.classList.remove('visivel'); camadaVideo.classList.add('escondido');
             numDiscreto.style.opacity = 0;
+            videoPainel.pause();
+            videoPainel.src = "";
         }
     </script>
 </body>
