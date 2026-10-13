@@ -43,17 +43,13 @@
             flex-direction: column; align-items: center; margin: 0 auto 25px auto; 
             max-width: 600px; font-size: 14px; box-shadow: 0 4px 6px rgba(0,0,0,0.2);
         }
-        .estatisticas-linha {
-            display: flex; justify-content: center; flex-wrap: wrap; gap: 20px; width: 100%;
-        }
+        .estatisticas-linha { display: flex; justify-content: center; flex-wrap: wrap; gap: 20px; width: 100%; }
         .estatisticas-linha span { font-weight: bold; }
         .contador-total { color: #ecf0f1; }
         .contador-pendentes { color: #f1c40f; }
         .contador-aprovadas { color: #2ecc71; }
 
-        .ranking-container {
-            width: 100%; border-top: 1px dashed #7f8c8d; margin-top: 15px; padding-top: 5px;
-        }
+        .ranking-container { width: 100%; border-top: 1px dashed #7f8c8d; margin-top: 15px; padding-top: 5px; }
         .accordion-header {
             display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer;
             font-size: 11px; color: #bdc3c7; text-transform: uppercase; letter-spacing: 1px; font-weight: 600;
@@ -61,9 +57,7 @@
         }
         .accordion-header:hover { color: #f1c40f; }
         .accordion-header svg { transition: transform 0.3s ease; }
-        .accordion-content {
-            display: none; justify-content: center; flex-wrap: wrap; gap: 8px; margin-top: 10px; padding-bottom: 10px;
-        }
+        .accordion-content { display: none; justify-content: center; flex-wrap: wrap; gap: 8px; margin-top: 10px; padding-bottom: 10px; }
         .accordion-content.active { display: flex; }
         
         .badge-setor {
@@ -97,7 +91,7 @@
         .card { background: #34495e; padding: 6px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); position: relative; }
         
         .badge-numero { position: absolute; top: -5px; right: -5px; background: #e74c3c; color: white; border-radius: 50%; padding: 0 5px; height: 20px; font-size: 10px; font-weight: bold; display: flex; justify-content: center; align-items: center; z-index: 2; }
-        .card img { width: 100%; aspect-ratio: 1 / 1; border-radius: 4px; object-fit: cover; }
+        .card img, .card video { width: 100%; aspect-ratio: 1 / 1; border-radius: 4px; object-fit: cover; background: #000; }
         .nome { font-weight: 700; margin: 6px 0 2px 0; font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff; }
         .setor { font-weight: 400; font-size: 9px; color: #bdc3c7; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         
@@ -125,11 +119,12 @@
 
         .lista-comunicados { max-width: 600px; margin: 0 auto; text-align: left; }
         .item-comunicado { background: #2c3e50; padding: 12px; border-radius: 6px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid #3498db; font-size: 13px; gap: 10px; }
-        .item-com-img { width: 40px; height: 40px; object-fit: cover; border-radius: 4px; cursor: pointer; }
+        .item-com-img { width: 40px; height: 40px; object-fit: cover; border-radius: 4px; cursor: pointer; background: #000; }
         .btn-remover-com { width: auto; padding: 5px 10px; background: #e74c3c; margin: 0; font-size: 11px; border: none; border-radius: 4px; font-weight: 600; cursor: pointer; font-family: 'Montserrat', sans-serif; color: white; }
 
         #modalVerFoto { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.95); align-items: center; justify-content: center; }
         #modalImg { max-width: 95%; max-height: 85vh; border-radius: 8px; object-fit: contain; }
+        #modalVid { max-width: 95%; max-height: 85vh; border-radius: 8px; display: none; }
         .fechar-modal { position: absolute; top: 15px; right: 25px; color: white; font-size: 40px; font-weight: bold; cursor: pointer; }
     </style>
 
@@ -162,8 +157,21 @@
             });
         });
 
-        function abrirModal(url) { document.getElementById('modalImg').src = url; document.getElementById('modalVerFoto').style.display = 'flex'; }
-        function fecharModal() { document.getElementById('modalVerFoto').style.display = 'none'; }
+        function abrirModal(url, isVideo) { 
+            const img = document.getElementById('modalImg');
+            const vid = document.getElementById('modalVid');
+            if(isVideo) {
+                img.style.display = 'none'; vid.style.display = 'block'; vid.src = url; vid.play();
+            } else {
+                vid.style.display = 'none'; vid.pause(); img.style.display = 'block'; img.src = url;
+            }
+            document.getElementById('modalVerFoto').style.display = 'flex'; 
+        }
+
+        function fecharModal() { 
+            document.getElementById('modalVerFoto').style.display = 'none'; 
+            document.getElementById('modalVid').pause();
+        }
     </script>
 </head>
 <body>
@@ -192,10 +200,10 @@
                 <button class="btn-texto" id="btnAddComTxt">Publicar Texto na TV</button>
             </div>
             <div class="col-com col-divisor">
-                <span style="font-size: 12px; font-weight: bold; color: #8e44ad;">Arte (Tela Cheia)</span>
-                <input type="file" id="inputComunicadoImg" accept="image/*" style="display:none;">
-                <button class="btn-arte" id="btnSelectComImg">Escolher Imagem</button>
-                <button class="btn-enviar-arte" id="btnUploadComImg">Enviar Arte para TV</button>
+                <span style="font-size: 12px; font-weight: bold; color: #8e44ad;">Mídia (Imagem ou Vídeo MP4)</span>
+                <input type="file" id="inputComunicadoImg" accept="image/*,video/mp4,video/quicktime" style="display:none;">
+                <button class="btn-arte" id="btnSelectComImg">Escolher Arquivo</button>
+                <button class="btn-enviar-arte" id="btnUploadComImg">Enviar Mídia para TV</button>
                 <div id="msgUploadCom"></div>
             </div>
         </div>
@@ -260,11 +268,13 @@
     <div id="modalVerFoto">
         <span class="fechar-modal" onclick="fecharModal()">&times;</span>
         <img id="modalImg" src="" alt="Foto Ampliada">
+        <video id="modalVid" controls></video>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
         import { getFirestore, collection, query, where, onSnapshot, doc, updateDoc, deleteDoc, addDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+        import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-storage.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyB8ZK0jSY-1E9y90TLfznxi9PI8mf_bJuc",
@@ -277,6 +287,7 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        const storage = getStorage(app);
         const IMGBB_API_KEY = "767bd935a2b389a4fbfad4f8d92bfae7"; 
         
         const listaPendentes = document.getElementById('listaPendentes');
@@ -305,10 +316,8 @@
         });
 
         let bloqueioAprovacao = false;
-        let qtdPendentes = 0;
-        let qtdAprovadas = 0;
-        let fotosGeralPendentes = [];
-        let fotosGeralAprovadas = [];
+        let qtdPendentes = 0; let qtdAprovadas = 0;
+        let fotosGeralPendentes = []; let fotosGeralAprovadas = [];
 
         function atualizarContadores() {
             document.getElementById('lblTotal').innerText = qtdPendentes + qtdAprovadas;
@@ -359,10 +368,10 @@
             const setor = dados.setor ? dados.setor : "Sem setor";
             
             let botoes = ehPendente ? 
-                `<button class="btn-ver" onclick="abrirModal('${dados.url_imagem}')">Ver</button>
+                `<button class="btn-ver" onclick="abrirModal('${dados.url_imagem}', false)">Ver</button>
                  <button class="btn-aprovar" onclick="atualizarStatus('${id}', 'aprovado')">Aprovar</button>
                  <button class="btn-apagar" onclick="excluirFoto('${id}')">Apagar</button>` : 
-                `<button class="btn-ver" onclick="abrirModal('${dados.url_imagem}')">Ver</button>
+                `<button class="btn-ver" onclick="abrirModal('${dados.url_imagem}', false)">Ver</button>
                  <button class="btn-apagar" onclick="excluirFoto('${id}')">Remover</button>`;
 
             const card = document.createElement('div');
@@ -432,7 +441,7 @@
         document.getElementById('inputComunicadoImg').addEventListener('change', (e) => {
             if(e.target.files[0]) {
                 arteSelecionada = e.target.files[0];
-                document.getElementById('btnSelectComImg').innerText = "Arte Selecionada";
+                document.getElementById('btnSelectComImg').innerText = "Arquivo Selecionado";
                 document.getElementById('btnUploadComImg').style.display = "block";
             }
         });
@@ -442,21 +451,31 @@
             const msg = document.getElementById('msgUploadCom');
             const btnUpload = document.getElementById('btnUploadComImg');
             
-            msg.innerText = "Enviando arte..."; btnUpload.disabled = true;
-
-            const formData = new FormData(); formData.append("image", arteSelecionada);
+            msg.innerText = "Enviando arquivo..."; btnUpload.disabled = true;
 
             try {
-                const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: 'POST', body: formData });
-                const dados = await res.json();
-                
-                await addDoc(collection(db, "comunicados_criancas"), {
-                    tipo: 'imagem', url_imagem: dados.data.url, url_thumb: dados.data.thumb.url, timestamp: serverTimestamp()
-                });
+                if (arteSelecionada.type.startsWith('video/')) {
+                    const videoRef = ref(storage, 'comunicados_videos/' + Date.now() + '_' + arteSelecionada.name);
+                    const uploadTask = await uploadBytesResumable(videoRef, arteSelecionada);
+                    const urlVideo = await getDownloadURL(videoRef);
+                    
+                    await addDoc(collection(db, "comunicados_criancas"), {
+                        tipo: 'video', url_video: urlVideo, timestamp: serverTimestamp()
+                    });
+                } else {
+                    const formData = new FormData(); formData.append("image", arteSelecionada);
+                    const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: 'POST', body: formData });
+                    const dados = await res.json();
+                    
+                    await addDoc(collection(db, "comunicados_criancas"), {
+                        tipo: 'imagem', url_imagem: dados.data.url, url_thumb: dados.data.thumb.url, timestamp: serverTimestamp()
+                    });
+                }
 
-                msg.innerText = "Arte publicada!"; document.getElementById('btnSelectComImg').innerText = "Escolher Imagem";
+                msg.innerText = "Mídia publicada!"; document.getElementById('btnSelectComImg').innerText = "Escolher Arquivo";
                 btnUpload.style.display = "none"; arteSelecionada = null; setTimeout(() => msg.innerText = "", 3000);
             } catch(e) {
+                console.error(e);
                 msg.innerText = "Erro ao enviar.";
             } finally {
                 btnUpload.disabled = false;
@@ -472,9 +491,16 @@
                 const div = document.createElement('div'); div.className = 'item-comunicado';
                 
                 let conteudo = "";
-                if(dados.tipo === 'imagem' || dados.url_imagem) {
+                if(dados.tipo === 'video' || dados.url_video) {
                     conteudo = `<div style="display:flex; align-items:center; gap:10px;">
-                                    <img src="${dados.url_thumb || dados.url_imagem}" class="item-com-img" onclick="abrirModal('${dados.url_imagem}')">
+                                    <div class="item-com-img" onclick="abrirModal('${dados.url_video}', true)" style="display:flex; justify-content:center; align-items:center;">
+                                        <svg width="20" height="20" stroke="#fff" viewBox="0 0 24 24" fill="none"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                                    </div>
+                                    <span>[VÍDEO MP4]</span>
+                                </div>`;
+                } else if(dados.tipo === 'imagem' || dados.url_imagem) {
+                    conteudo = `<div style="display:flex; align-items:center; gap:10px;">
+                                    <img src="${dados.url_thumb || dados.url_imagem}" class="item-com-img" onclick="abrirModal('${dados.url_imagem}', false)">
                                     <span>[ARTE VISUAL]</span>
                                 </div>`;
                 } else {
