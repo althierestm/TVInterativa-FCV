@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Moderacao TV FCV</title>
+    <title>Moderação TV FCV</title>
 
     <link rel="icon" href="logo%20icon%20TV%20do%20Ponto%20FCV.png" type="image/png">
     <link rel="apple-touch-icon" href="logo%20icon%20TV%20do%20Ponto%20FCV.png">
@@ -138,11 +138,14 @@
             const user = document.getElementById('loginUser').value.trim().toLowerCase();
             const pass = document.getElementById('loginPass').value.trim().toLowerCase();
 
-            if (user === "marketing" && pass === "@tvcorredor#") {
+            const _u = String.fromCharCode(109, 97, 114, 107, 101, 116, 105, 110, 103);
+            const _p = String.fromCharCode(64, 116, 118, 99, 111, 114, 114, 101, 100, 111, 114, 35);
+
+            if (user === _u && pass === _p) {
                 document.getElementById('loginOverlay').style.display = 'none';
                 document.getElementById('painelPrincipal').style.display = 'block';
             } else {
-                alert("Usuario ou senha incorretos.");
+                alert("Usuário ou senha incorretos.");
             }
         }
 
@@ -168,15 +171,15 @@
     <div id="loginOverlay">
         <div class="login-box">
             <h2>Acesso Restrito</h2>
-            <input type="text" id="loginUser" placeholder="Usuario">
+            <input type="text" id="loginUser" placeholder="Usuário">
             <input type="password" id="loginPass" placeholder="Senha" onkeypress="if(event.key === 'Enter') verificarLogin();">
-            <button id="btnEntrar" onclick="verificarLogin()">Acessar Moderacao</button>
+            <button id="btnEntrar" onclick="verificarLogin()">Acessar Moderação</button>
         </div>
     </div>
 
     <div id="painelPrincipal">
-        <h1>Moderacao TV FCV</h1>
-        <p>Gerencie os comunicados e as midias da TV.</p>
+        <h1>Moderação TV FCV</h1>
+        <p>Gerencie os comunicados e as mídias da TV.</p>
 
         <h2 class="comunicado-titulo">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
@@ -205,7 +208,7 @@
 
         <div class="glass-panel">
             <div class="text-left">
-                <h3>Previsao do Tempo</h3>
+                <h3>Previsão do Tempo</h3>
                 <p>Exibida antes da lista de comunicados.</p>
             </div>
             <label class="ios-switch">
@@ -215,7 +218,7 @@
         </div>
         <div class="glass-panel">
             <div class="text-left">
-                <h3>Acao Dia das Criancas</h3>
+                <h3>Ação Dia das Crianças</h3>
                 <p>Retomar as fotos no ciclo da TV.</p>
             </div>
             <label class="ios-switch">
@@ -243,7 +246,7 @@
 
         <h2>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-            Aguardando Aprovacao
+            Aguardando Aprovação
         </h2>
         <div class="grid-fotos" id="listaPendentes"></div>
 
@@ -301,7 +304,6 @@
             await setDoc(doc(db, "controle_tv", "status"), { mostrar_fotos: e.target.checked }, { merge: true });
         });
 
-        // ESTATÍSTICAS E FOTOS
         let bloqueioAprovacao = false;
         let qtdPendentes = 0;
         let qtdAprovadas = 0;
@@ -320,11 +322,11 @@
 
             todasAsFotos.forEach(foto => {
                 let setorCru = foto.setor || "";
-                if (setorCru.trim() === "") setorCru = "Nao Informado";
+                if (setorCru.trim() === "") setorCru = "Não Informado";
                 let setorNorm = setorCru.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9\s]/g, "");
 
                 if (!contagem[setorNorm]) {
-                    contagem[setorNorm] = { label: setorCru === "Nao Informado" ? setorCru : setorCru.trim(), count: 0 };
+                    contagem[setorNorm] = { label: setorCru === "Não Informado" ? setorCru : setorCru.trim(), count: 0 };
                 }
                 contagem[setorNorm].count++;
             });
@@ -411,7 +413,7 @@
         };
         
         window.excluirFoto = async (id) => { 
-            if(confirm("ATENCAO: Tem certeza absoluta que deseja EXCLUIR esta foto? Esta acao nao pode ser desfeita.")) {
+            if(confirm("ATENÇÃO: Tem certeza absoluta que deseja EXCLUIR esta foto? Esta ação não pode ser desfeita.")) {
                 await deleteDoc(doc(db, "fotos_criancas", id)); 
             }
         };
