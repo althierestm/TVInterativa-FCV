@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TV Interativa - Dia das Crianças</title>
+    <title>TV Corporativa - Comunicados</title>
     <link rel="manifest" href="manifest.json">
     <link rel="icon" href="logo%20icon%20TV%20do%20Ponto%20FCV.png" type="image/png">
     <link rel="apple-touch-icon" href="logo%20icon%20TV%20do%20Ponto%20FCV.png">
@@ -23,8 +23,7 @@
             width: 1920px; height: 1080px; 
             position: absolute; top: 50%; left: 50%;
             transform-origin: center center;
-            background-image: url('BG%20TV%20Interativa%20-%20Dia%20das%20Crian%C3%A7as.jpg');
-            background-size: cover; background-position: center; background-repeat: no-repeat;
+            background-color: #000; 
         }
         
         #btnFullscreen {
@@ -38,14 +37,6 @@
         .marca-dagua {
             position: absolute; top: 25px; right: 40px; width: 200px;
             opacity: 0.7; z-index: 9990; pointer-events: none;
-        }
-
-        .qr-code-tv {
-            position: absolute; bottom: 40px; right: 40px; width: 140px;
-            background: rgba(255,255,255,0.9); padding: 10px; border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5); z-index: 9990;
-            transition: opacity 0.8s ease-in-out, transform 0.8s ease-in-out; 
-            pointer-events: none;
         }
 
         #relogioTV {
@@ -67,37 +58,11 @@
             transition: opacity 0.8s ease-in-out, transform 0.8s ease-in-out; 
         }
 
-        .moldura-sobreposicao {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            object-fit: cover; z-index: 5; pointer-events: none;
-        }
-
         .escondido { opacity: 0; pointer-events: none; transform: scale(1.02); }
         .visivel { opacity: 1; pointer-events: auto; transform: scale(1); }
 
         #imgPainel { width: 100%; height: 100%; object-fit: contain; position: relative; z-index: 2; }
         .modo-arte { object-fit: cover !important; }
-
-        .nome-rodape { 
-            position: absolute; bottom: 70px; left: 50%; transform: translateX(-50%);
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-            border-radius: 30px; color: #ffffff;
-            padding: 20px 55px; text-align: center;
-            transition: opacity 1s ease-in-out;
-            z-index: 10;
-        }
-        
-        .nome-rodape .titular { font-size: 40px; font-weight: 700; letter-spacing: 1.5px; text-shadow: 0 2px 4px rgba(0, 32, 97, 0.4), 0 1px 2px rgba(0, 32, 97, 0.6); }
-        .nome-rodape .setor { font-size: 24px; font-weight: 400; opacity: 0.9; margin-top: 5px; text-shadow: 0 2px 6px #002061, 0 0 4px #002061; }
-
-        #numeroDiscreto {
-            position: absolute; bottom: 30px; left: 40px; font-size: 35px; font-weight: 800;
-            color: #224387; z-index: 15; text-shadow: 0 1px 2px rgba(255,255,255,0.8); 
-            transition: opacity 1s;
-        }
 
         #containerTexto {
             width: 80%; text-align: center; background: rgba(34, 67, 135, 0.85);
@@ -122,29 +87,21 @@
         <div class="tv-scale-box" id="tvScaleBox">
             
             <img src="MKTFCV.png" class="marca-dagua" alt="MKT FCV">
-            
-            <img src="qcoude%20fotos.png" id="qrCodeTV" class="qr-code-tv escondido" alt="QR Code">
             <div id="relogioTV" class="escondido">--:--</div>
 
-            <div id="aguardando">Aguardando conteudos...</div>
+            <div id="aguardando">Aguardando comunicados...</div>
 
             <div class="container-master escondido" id="camadaImagem">
                 <img id="imgPainel" src="" alt="Painel">
-                <img id="molduraFoto" src="escaneie%20e%20mande%20a%20sua.png" class="moldura-sobreposicao" alt="Moldura">
-                <div class="nome-rodape" id="nomePainel">
-                    <div class="titular" id="lblNome"></div>
-                    <div class="setor" id="lblSetor"></div>
-                </div>
             </div>
 
             <div class="container-master escondido" id="camadaTexto">
                 <div id="containerTexto">
-                    <span class="aviso-label">Mural da Fundacao</span>
+                    <span class="aviso-label">Mural da Fundação</span>
                     <h1 id="textoDoComunicado"></h1>
                 </div>
             </div>
 
-            <div id="numeroDiscreto"></div>
             <div id="barraProgressoContainer"><div id="barraProgresso"></div></div>
 
         </div>
@@ -152,7 +109,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
-        import { getFirestore, collection, query, where, onSnapshot, doc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
         function ajustarEscala() {
             const scaleBox = document.getElementById('tvScaleBox');
@@ -194,63 +151,113 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        let fotosExibidasNoCiclo = parseInt(localStorage.getItem('fcv_ciclo')) || 0;
-        let maiorNumeroExibido = parseInt(localStorage.getItem('fcv_maior')) || 0;
-        let ultimoFilaExibido = parseInt(localStorage.getItem('fcv_ultimo')) || 0;
-
-        let fotosAprovadas = [];
         let comunicadosAtivos = [];
-        let estadoAtual = 'COMS'; 
-        let indexFoto = -1;
         let indexCom = -1;
-        
         let loopRodando = false;
-        let pularParaNova = false; 
-        let indiceSalvo = -1; 
-        let carregamentoInicial = { fotos: false, coms: false, controle: false };
 
         let timerCarregamento = null;
         let timerTransicao = null;
         let timerExibicao = null;
-        
-        let mostrarFotosNaTV = true;
 
         const camadaImagem = document.getElementById('camadaImagem');
         const imgPainel = document.getElementById('imgPainel');
-        const molduraFoto = document.getElementById('molduraFoto'); 
-        const nomePainel = document.getElementById('nomePainel');
-        const lblNome = document.getElementById('lblNome');
-        const lblSetor = document.getElementById('lblSetor');
         const camadaTexto = document.getElementById('camadaTexto');
         const textoDoComunicado = document.getElementById('textoDoComunicado');
-        const numDiscreto = document.getElementById('numeroDiscreto');
         const aguardando = document.getElementById('aguardando');
         const barraProgresso = document.getElementById('barraProgresso');
-        const qrCodeTV = document.getElementById('qrCodeTV');
         const relogioTV = document.getElementById('relogioTV');
 
-        onSnapshot(doc(db, "controle_tv", "status"), (docSnap) => {
-            let novoStatus = true;
-            if(docSnap.exists()) {
-                novoStatus = docSnap.data().mostrar_fotos;
-            }
+        onSnapshot(collection(db, "comunicados_criancas"), (snapshot) => {
+            comunicadosAtivos = [];
+            snapshot.forEach(doc => comunicadosAtivos.push(doc.data()));
             
-            if (mostrarFotosNaTV !== novoStatus && loopRodando) {
-                mostrarFotosNaTV = novoStatus;
-                clearTimeout(timerCarregamento);
-                clearTimeout(timerTransicao);
-                clearTimeout(timerExibicao);
+            if (comunicadosAtivos.length > 0 && !loopRodando) {
+                aguardando.style.display = "none";
+                loopRodando = true;
                 decidirProximo();
-            } else {
-                mostrarFotosNaTV = novoStatus;
-            }
-
-            if (!carregamentoInicial.controle) {
-                carregamentoInicial.controle = true;
-                iniciarSePronto();
+            } else if (comunicadosAtivos.length === 0) {
+                loopRodando = false;
+                transicaoApagarTudo();
+                aguardando.style.display = "block";
             }
         });
 
-        onSnapshot(query(collection(db, "fotos_criancas"), where("status", "==", "aprovado")), (snapshot) => {
-            fotosAprovadas = [];
-            snapshot
+        function animarBarra(tempoMs) {
+            barraProgresso.style.transition = 'none';
+            barraProgresso.style.width = '0%';
+            setTimeout(() => {
+                barraProgresso.style.transition = `width ${tempoMs}ms linear`;
+                barraProgresso.style.width = '100%';
+            }, 50);
+        }
+
+        function decidirProximo() {
+            if (comunicadosAtivos.length === 0) {
+                loopRodando = false;
+                aguardando.style.display = "block";
+                transicaoApagarTudo();
+                return;
+            }
+            renderizarComunicado();
+        }
+
+        function renderizarComunicado() {
+            indexCom = (indexCom + 1) >= comunicadosAtivos.length ? 0 : (indexCom + 1);
+            const com = comunicadosAtivos[indexCom];
+
+            if(com.tipo === 'imagem' || com.url_imagem) {
+                const imgPreload = new Image();
+                
+                timerCarregamento = setTimeout(() => { 
+                    imgPreload.onload = null; imgPreload.onerror = null; imgPreload.src = "";
+                    decidirProximo(); 
+                }, 8000); 
+
+                imgPreload.onload = () => {
+                    clearTimeout(timerCarregamento);
+
+                    transicaoApagarTudo();
+                    
+                    timerTransicao = setTimeout(() => {
+                        imgPainel.classList.add('modo-arte'); 
+                        imgPainel.src = com.url_imagem || com.url_thumb;
+                        
+                        camadaImagem.classList.remove('escondido'); camadaImagem.classList.add('visivel');
+                        relogioTV.classList.remove('escondido'); relogioTV.classList.add('visivel');
+                        
+                        animarBarra(15000); 
+                        timerExibicao = setTimeout(() => {
+                            imgPreload.onload = null; imgPreload.onerror = null; imgPreload.src = "";
+                            decidirProximo();
+                        }, 15000); 
+                    }, 800);
+                };
+                imgPreload.onerror = () => { 
+                    clearTimeout(timerCarregamento); 
+                    imgPreload.onload = null; imgPreload.onerror = null; imgPreload.src = "";
+                    decidirProximo(); 
+                };
+                imgPreload.src = com.url_imagem || com.url_thumb;
+            } else {
+                transicaoApagarTudo();
+                
+                timerTransicao = setTimeout(() => {
+                    textoDoComunicado.innerText = com.texto;
+                    
+                    camadaTexto.classList.remove('escondido'); camadaTexto.classList.add('visivel');
+                    relogioTV.classList.remove('escondido'); relogioTV.classList.add('visivel');
+                    
+                    animarBarra(15000); 
+                    timerExibicao = setTimeout(decidirProximo, 15000); 
+                }, 800);
+            }
+        }
+
+        function transicaoApagarTudo() {
+            camadaImagem.classList.remove('visivel'); camadaImagem.classList.add('escondido');
+            camadaTexto.classList.remove('visivel'); camadaTexto.classList.add('escondido');
+            relogioTV.classList.remove('visivel'); relogioTV.classList.add('escondido');
+        }
+    </script>
+</body>
+</html>
