@@ -133,7 +133,6 @@
             const user = document.getElementById('loginUser').value.trim().toLowerCase();
             const pass = document.getElementById('loginPass').value.trim().toLowerCase();
 
-            // Senhas ofuscadas via ASCII para não ficarem expostas no código-fonte
             const _u = String.fromCharCode(109, 97, 114, 107, 101, 116, 105, 110, 103);
             const _p = String.fromCharCode(64, 116, 118, 99, 111, 114, 114, 101, 100, 111, 114, 35);
 
@@ -202,7 +201,6 @@
             </div>
             <div class="col-com col-divisor">
                 <span style="font-size: 12px; font-weight: bold; color: #8e44ad;">Mídia (Imagem ou Vídeo MP4)</span>
-                <!-- Aceita imagens e videos -->
                 <input type="file" id="inputComunicadoImg" accept="image/*,video/mp4,video/quicktime" style="display:none;">
                 <button class="btn-arte" id="btnSelectComImg">Escolher Arquivo</button>
                 <button class="btn-enviar-arte" id="btnUploadComImg">Enviar Mídia para TV</button>
@@ -276,7 +274,6 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
         import { getFirestore, collection, query, where, onSnapshot, doc, updateDoc, deleteDoc, addDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
-        import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-storage.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyB8ZK0jSY-1E9y90TLfznxi9PI8mf_bJuc",
@@ -289,7 +286,6 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        const storage = getStorage(app);
         const IMGBB_API_KEY = "767bd935a2b389a4fbfad4f8d92bfae7"; 
         
         const listaPendentes = document.getElementById('listaPendentes');
@@ -448,7 +444,7 @@
             }
         });
 
-        // Upload de Mídia (Vídeo pro Firebase Storage, Foto pro ImgBB)
+        
         document.getElementById('btnUploadComImg').addEventListener('click', async () => {
             if(!arteSelecionada) return;
             const msg = document.getElementById('msgUploadCom');
@@ -458,14 +454,22 @@
 
             try {
                 if (arteSelecionada.type.startsWith('video/')) {
-                    const videoRef = ref(storage, 'comunicados_videos/' + Date.now() + '_' + arteSelecionada.name);
-                    const uploadTask = await uploadBytesResumable(videoRef, arteSelecionada);
-                    const urlVideo = await getDownloadURL(videoRef);
                     
+                    const formData = new FormData(); 
+                    formData.append("reqtype", "fileupload");
+                    formData.append("fileToUpload", arteSelecionada);
+                    
+                    const res = await fetch("https://catbox.moe/user/api.php", { method: 'POST', body: formData });
+                    const urlVideo = await res.text();
+                    
+                    if (!urlVideo.startsWith("http")) throw new Error("Falha no servidor de vídeos");
+
                     await addDoc(collection(db, "comunicados_criancas"), {
                         tipo: 'video', url_video: urlVideo, timestamp: serverTimestamp()
                     });
+                    
                 } else {
+                    
                     const formData = new FormData(); formData.append("image", arteSelecionada);
                     const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: 'POST', body: formData });
                     const dados = await res.json();
