@@ -33,21 +33,17 @@
         #btnFullscreen:hover { background: rgba(255,255,255,0.4); }
 
         .marca-dagua {
-            position: absolute; top: 25px; right: 40px; width: 200px;
-            opacity: 0.7; z-index: 9990; pointer-events: none;
+            position: absolute; top: 35px; left: 40px; width: 220px;
+            opacity: 0.8; z-index: 9990; pointer-events: none;
         }
 
         #relogioTV {
-            position: absolute; bottom: 40px; right: 40px;
-            background: rgba(255, 255, 255, 0.5); 
+            position: absolute; top: 35px; right: 40px;
+            background: rgba(255, 255, 255, 0.1); 
             backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.4);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            border-radius: 12px; color: #224387; 
-            padding: 10px 25px; text-align: center;
-            font-size: 32px; font-weight: 700; letter-spacing: 2px;
-            transition: opacity 0.8s ease-in-out, transform 0.8s ease-in-out; 
-            z-index: 9990; pointer-events: none;
+            border: 1px solid rgba(255, 255, 255, 0.2); box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            border-radius: 12px; color: #fff; padding: 10px 25px; text-align: center;
+            font-size: 32px; font-weight: 700; letter-spacing: 2px; z-index: 9990; pointer-events: none;
         }
 
         .container-master { 
@@ -88,7 +84,7 @@
         #aguardando { font-size: 20px; color: #7f8c8d; font-weight: 600; z-index: 20; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: none; }
 
         #barraProgressoContainer { position: absolute; bottom: 0; left: 0; width: 100%; height: 10px; background: rgba(255,255,255,0.1); z-index: 20; }
-        #barraProgresso { height: 100%; width: 0%; background: linear-gradient(to right, #3498db, #2ecc71); }
+        #barraProgresso { height: 100%; width: 0%; background: linear-gradient(to right, #2894f9, #002061); }
 
         #bgClima { position: absolute; width: 100%; height: 100%; top: 0; left: 0; z-index: 1; background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); }
         .header-clima { position: absolute; top: 80px; left: 0; width: 100%; text-align: center; z-index: 2;}
@@ -125,21 +121,21 @@
 
     <audio id="radioFCV" src="https://stm17.srvstm.com:6944/stream" preload="none" crossorigin="anonymous"></audio>
 
-    <button id="btnFullscreen">Tela Cheia (Iniciar TV e Radio)</button>
+    <button id="btnFullscreen">Tela Cheia</button>
 
     <div id="viewportWrapper">
         <div class="tv-scale-box" id="tvScaleBox">
             
             <img src="MKTFCV.png" class="marca-dagua" alt="MKT FCV">
-            <div id="relogioTV" class="escondido">--:--</div>
+            <div id="relogioTV">--:--</div>
 
-            <div id="aguardando">Aguardando informacoes da rede...</div>
+            <div id="aguardando">Aguardando informações da rede...</div>
 
             <div class="container-master escondido" id="camadaClima">
                 <div id="bgClima"></div>
                 <div class="header-clima">
-                    <h1 class="cidade-clima">Previsao do Tempo - Muriaé, MG</h1>
-                    <div class="sub-clima">Fonte: Satelite Open-Meteo</div>
+                    <h1 class="cidade-clima">Previsão do Tempo - Muriaé, MG</h1>
+                    <div class="sub-clima">Fonte: Satélite Open-Meteo</div>
                 </div>
                 <div class="grid-clima" id="gridClima">
                 </div>
@@ -156,7 +152,7 @@
 
             <div class="container-master escondido" id="camadaTexto">
                 <div id="containerTexto">
-                    <span class="aviso-label">Mural da Fundacao</span>
+                    <span class="aviso-label">Mural da Fundação</span>
                     <h1 id="textoDoComunicado"></h1>
                 </div>
             </div>
@@ -224,7 +220,7 @@
                 const resp = await fetch(url);
                 const data = await resp.json();
 
-                const diasNomes = ['Domingo', 'Segunda', 'Terca', 'Quarta', 'Quinta', 'Sexta', 'Sabado'];
+                const diasNomes = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
                 let gridHtml = '';
 
                 for(let i = 0; i < 7; i++) {
@@ -265,7 +261,7 @@
 
                             <div class="turnos-container">
                                 <div class="turno">
-                                    <div class="turno-nome">manha</div>
+                                    <div class="turno-nome">manhã</div>
                                     <div class="turno-icone">${cManha.i}</div>
                                     <div class="turno-temp">${tManha}°</div>
                                 </div>
@@ -344,12 +340,25 @@
         const aguardando = document.getElementById('aguardando');
         const numDiscreto = document.getElementById('numeroDiscreto');
         const barraProgresso = document.getElementById('barraProgresso');
-        const relogioTV = document.getElementById('relogioTV');
 
         onSnapshot(query(collection(db, "fotos_criancas"), where("status", "==", "aprovado")), (snapshot) => {
             fotosAprovadas = [];
             snapshot.forEach(doc => fotosAprovadas.push(doc.data()));
             fotosAprovadas.sort((a, b) => (a.numeroFila || 0) - (b.numeroFila || 0));
+
+            if (fotosAprovadas.length > 0) {
+                const ultimaFila = fotosAprovadas[fotosAprovadas.length - 1].numeroFila || 0;
+                
+                if (ultimaFila > maiorNumeroExibido && maiorNumeroExibido > 0) {
+                    clearTimeout(window.timerFuraFila);
+                    window.timerFuraFila = setTimeout(() => {
+                        proximaAcao = 'FOTOS'; 
+                        fotosExibidasNoCiclo = 0; 
+                        localStorage.setItem('fcv_ciclo', 0);
+                        if (loopRodando) decidirProximo();
+                    }, 1000);
+                }
+            }
         });
 
         onSnapshot(collection(db, "comunicados_criancas"), (snapshot) => {
@@ -371,8 +380,11 @@
             }, 50);
         }
 
-       
         function decidirProximo() {
+            clearTimeout(timerCarregamento);
+            clearTimeout(timerTransicao);
+            clearTimeout(timerExibicao);
+
             let temComs = comunicadosAtivos.length > 0;
             let temFotos = mostrarFotosNaTV && fotosAprovadas.length > 0;
             let podeExibirClima = mostrarClimaNaTV && dadosClimaProntos;
@@ -380,7 +392,7 @@
             if (!podeExibirClima && !temComs && !temFotos) {
                 aguardando.style.display = "block";
                 transicaoApagarTudo();
-                setTimeout(decidirProximo, 2000);
+                setTimeout(decidirProximo, 2000); 
                 return;
             }
 
@@ -427,7 +439,6 @@
             transicaoApagarTudo();
             timerTransicao = setTimeout(() => {
                 camadaClima.classList.remove('escondido'); camadaClima.classList.add('visivel');
-                relogioTV.classList.remove('escondido'); relogioTV.classList.add('visivel');
                 
                 animarBarra(15000); 
                 timerExibicao = setTimeout(decidirProximo, 15000); 
@@ -440,7 +451,7 @@
 
             if(com.tipo === 'imagem' || com.url_imagem) {
                 const imgPreload = new Image();
-                timerCarregamento = setTimeout(() => { imgPreload.src = ""; decidirProximo(); }, 8000); 
+                timerCarregamento = setTimeout(() => { decidirProximo(); }, 8000); 
 
                 imgPreload.onload = () => {
                     clearTimeout(timerCarregamento);
@@ -455,21 +466,18 @@
                         numDiscreto.style.opacity = 0;
 
                         camadaImagem.classList.remove('escondido'); camadaImagem.classList.add('visivel');
-                        relogioTV.classList.remove('escondido'); relogioTV.classList.add('visivel');
                         
                         animarBarra(15000); 
-                        timerExibicao = setTimeout(() => { imgPreload.src = ""; decidirProximo(); }, 15000); 
+                        timerExibicao = setTimeout(() => { decidirProximo(); }, 15000); 
                     }, 800);
                 };
-                imgPreload.onerror = () => { clearTimeout(timerCarregamento); imgPreload.src = ""; decidirProximo(); };
+                imgPreload.onerror = () => { clearTimeout(timerCarregamento); setTimeout(decidirProximo, 1000); };
                 imgPreload.src = com.url_imagem || com.url_thumb;
             } else {
                 transicaoApagarTudo();
                 timerTransicao = setTimeout(() => {
                     textoDoComunicado.innerText = com.texto;
-                    
                     camadaTexto.classList.remove('escondido'); camadaTexto.classList.add('visivel');
-                    relogioTV.classList.remove('escondido'); relogioTV.classList.add('visivel');
                     
                     animarBarra(15000); 
                     timerExibicao = setTimeout(decidirProximo, 15000); 
@@ -487,7 +495,7 @@
             }
 
             const imgPreload = new Image();
-            timerCarregamento = setTimeout(() => { imgPreload.src = ""; decidirProximo(); }, 8000); 
+            timerCarregamento = setTimeout(() => { decidirProximo(); }, 8000); 
             
             imgPreload.onload = () => {
                 clearTimeout(timerCarregamento); 
@@ -503,7 +511,7 @@
                     numDiscreto.style.opacity = 1;
                     molduraFoto.style.display = 'block';
 
-                    if(fotoDaVez.nome === "Nao Informado" && !fotoDaVez.setor) {
+                    if(fotoDaVez.nome === "Não Informado" && !fotoDaVez.setor) {
                         nomePainel.style.display = 'none';
                     } else {
                         nomePainel.style.display = 'block';
@@ -512,13 +520,12 @@
                     }
 
                     camadaImagem.classList.remove('escondido'); camadaImagem.classList.add('visivel');
-                    relogioTV.classList.remove('escondido'); relogioTV.classList.add('visivel');
 
                     animarBarra(7000); 
-                    timerExibicao = setTimeout(() => { imgPreload.src = ""; decidirProximo(); }, 7000);
+                    timerExibicao = setTimeout(() => { decidirProximo(); }, 7000);
                 }, 800); 
             };
-            imgPreload.onerror = () => { clearTimeout(timerCarregamento); imgPreload.src = ""; decidirProximo(); };
+            imgPreload.onerror = () => { clearTimeout(timerCarregamento); setTimeout(decidirProximo, 1000); };
             imgPreload.src = fotoDaVez.url_imagem || fotoDaVez.url_thumb;
         }
 
@@ -526,7 +533,6 @@
             camadaImagem.classList.remove('visivel'); camadaImagem.classList.add('escondido');
             camadaTexto.classList.remove('visivel'); camadaTexto.classList.add('escondido');
             camadaClima.classList.remove('visivel'); camadaClima.classList.add('escondido');
-            relogioTV.classList.remove('visivel'); relogioTV.classList.add('escondido');
             numDiscreto.style.opacity = 0;
         }
     </script>
