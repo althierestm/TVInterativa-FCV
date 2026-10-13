@@ -133,6 +133,7 @@
             const user = document.getElementById('loginUser').value.trim().toLowerCase();
             const pass = document.getElementById('loginPass').value.trim().toLowerCase();
 
+            // Senhas ofuscadas via ASCII para não ficarem expostas no código-fonte
             const _u = String.fromCharCode(109, 97, 114, 107, 101, 116, 105, 110, 103);
             const _p = String.fromCharCode(64, 116, 118, 99, 111, 114, 114, 101, 100, 111, 114, 35);
 
@@ -201,6 +202,7 @@
             </div>
             <div class="col-com col-divisor">
                 <span style="font-size: 12px; font-weight: bold; color: #8e44ad;">Mídia (Imagem ou Vídeo MP4)</span>
+                <!-- Aceita imagens e videos -->
                 <input type="file" id="inputComunicadoImg" accept="image/*,video/mp4,video/quicktime" style="display:none;">
                 <button class="btn-arte" id="btnSelectComImg">Escolher Arquivo</button>
                 <button class="btn-enviar-arte" id="btnUploadComImg">Enviar Mídia para TV</button>
@@ -446,6 +448,7 @@
             }
         });
 
+        // Upload de Mídia (Vídeo pro Firebase Storage, Foto pro ImgBB)
         document.getElementById('btnUploadComImg').addEventListener('click', async () => {
             if(!arteSelecionada) return;
             const msg = document.getElementById('msgUploadCom');
