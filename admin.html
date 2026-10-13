@@ -103,4 +103,383 @@
         
         .col-com input[type="text"] { font-family: 'Montserrat', sans-serif; padding: 10px; border-radius: 6px; border: 1px solid #7f8c8d; background: #2c3e50; color: white; width: 92%; }
         .btn-texto { background: #3498db; color: white; padding: 10px; border: none; border-radius: 4px; font-weight: 600; cursor: pointer; font-size: 12px; font-family: 'Montserrat', sans-serif; }
-        .btn-arte { background: #8e44ad; color: white; padding
+        .btn-arte { background: #8e44ad; color: white; padding: 10px; border: none; border-radius: 4px; font-weight: 600; cursor: pointer; font-size: 12px; font-family: 'Montserrat', sans-serif; }
+        .btn-enviar-arte { background: #f39c12; color: white; padding: 10px; border: none; border-radius: 4px; font-weight: 600; cursor: pointer; font-size: 12px; display: none; font-family: 'Montserrat', sans-serif; }
+        #msgUploadCom { font-size: 11px; color: #f1c40f; text-align: center; font-weight: bold; margin-top: 5px; }
+
+        .lista-comunicados { max-width: 600px; margin: 0 auto; text-align: left; }
+        .item-comunicado { background: #2c3e50; padding: 12px; border-radius: 6px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid #3498db; font-size: 13px; gap: 10px; }
+        .item-com-img { width: 40px; height: 40px; object-fit: cover; border-radius: 4px; cursor: pointer; }
+        .btn-remover-com { width: auto; padding: 5px 10px; background: #e74c3c; margin: 0; font-size: 11px; border: none; border-radius: 4px; font-weight: 600; cursor: pointer; font-family: 'Montserrat', sans-serif; color: white; }
+
+        #modalVerFoto { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.95); align-items: center; justify-content: center; }
+        #modalImg { max-width: 95%; max-height: 85vh; border-radius: 8px; object-fit: contain; }
+        .fechar-modal { position: absolute; top: 15px; right: 25px; color: white; font-size: 40px; font-weight: bold; cursor: pointer; }
+    </style>
+
+    <script>
+        function verificarLogin() {
+            const user = document.getElementById('loginUser').value.trim().toLowerCase();
+            const pass = document.getElementById('loginPass').value.trim().toLowerCase();
+
+            if (user === "marketing" && pass === "@tvcorredor#") {
+                document.getElementById('loginOverlay').style.display = 'none';
+                document.getElementById('painelPrincipal').style.display = 'block';
+            } else {
+                alert("Usuario ou senha incorretos.");
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('btnAccordionRanking').addEventListener('click', function() {
+                const content = document.getElementById('rankingSetores');
+                const svg = this.querySelector('svg');
+                content.classList.toggle('active');
+                if (content.classList.contains('active')) {
+                    svg.style.transform = 'rotate(180deg)';
+                } else {
+                    svg.style.transform = 'rotate(0deg)';
+                }
+            });
+        });
+
+        function abrirModal(url) {
+            document.getElementById('modalImg').src = url;
+            document.getElementById('modalVerFoto').style.display = 'flex';
+        }
+
+        function fecharModal() {
+            document.getElementById('modalVerFoto').style.display = 'none';
+        }
+    </script>
+</head>
+<body>
+
+    <div id="loginOverlay">
+        <div class="login-box">
+            <h2>Acesso Restrito</h2>
+            <input type="text" id="loginUser" placeholder="Usuario">
+            <input type="password" id="loginPass" placeholder="Senha" onkeypress="if(event.key === 'Enter') verificarLogin();">
+            <button id="btnEntrar" onclick="verificarLogin()">Acessar Moderacao</button>
+        </div>
+    </div>
+
+    <div id="painelPrincipal">
+        <h1>Moderacao FCV</h1>
+        <p>Aprove fotos e insira artes ou avisos para a TV.</p>
+
+        <div class="painel-estatisticas">
+            <div class="estatisticas-linha">
+                <span class="contador-total">Total Enviadas: <span id="lblTotal">0</span></span>
+                <span class="contador-pendentes">Aguardando: <span id="lblPendentes">0</span></span>
+                <span class="contador-aprovadas">Aprovadas: <span id="lblAprovadas">0</span></span>
+            </div>
+            
+            <div class="ranking-container">
+                <div class="accordion-header" id="btnAccordionRanking">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                    Top Setores Engajados
+                </div>
+                <div id="rankingSetores" class="ranking-lista accordion-content">
+                    <span style='color:#7f8c8d; font-size:12px;'>Calculando...</span>
+                </div>
+            </div>
+        </div>
+
+        <h2 class="comunicado-titulo">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+            Mural de Comunicados
+        </h2>
+        <div class="painel-comunicados">
+            <div class="col-com">
+                <span style="font-size: 12px; font-weight: bold; color: #3498db;">Recados em Texto</span>
+                <input type="text" id="inputComunicadoTxt" placeholder="Digite um recado curto...">
+                <button class="btn-texto" id="btnAddComTxt">Publicar Texto na TV</button>
+            </div>
+            <div class="col-com col-divisor">
+                <span style="font-size: 12px; font-weight: bold; color: #8e44ad;">Arte (Tela Cheia)</span>
+                <input type="file" id="inputComunicadoImg" accept="image/*" style="display:none;">
+                <button class="btn-arte" id="btnSelectComImg">Escolher Imagem</button>
+                <button class="btn-enviar-arte" id="btnUploadComImg">Enviar Arte para TV</button>
+                <div id="msgUploadCom"></div>
+            </div>
+        </div>
+        <div class="lista-comunicados" id="listaComunicados"></div>
+
+        <h2>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            Aguardando Aprovacao
+        </h2>
+        <div class="grid-fotos" id="listaPendentes"></div>
+
+        <h2 class="telao-titulo">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg>
+            Ja estao na TV
+        </h2>
+        <div class="grid-fotos" id="listaAprovadas"></div>
+    </div>
+
+    <div id="modalVerFoto">
+        <span class="fechar-modal" onclick="fecharModal()">&times;</span>
+        <img id="modalImg" src="" alt="Foto Ampliada">
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+        import { getFirestore, collection, query, where, onSnapshot, doc, updateDoc, deleteDoc, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyB8ZK0jSY-1E9y90TLfznxi9PI8mf_bJuc",
+            authDomain: "festadafirmafcv.firebaseapp.com",
+            projectId: "festadafirmafcv",
+            storageBucket: "festadafirmafcv.firebasestorage.app",
+            messagingSenderId: "930815464098",
+            appId: "1:930815464098:web:890c2300a6e1a79abd3dfb"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const IMGBB_API_KEY = "767bd935a2b389a4fbfad4f8d92bfae7"; 
+        
+        const listaPendentes = document.getElementById('listaPendentes');
+        const listaAprovadas = document.getElementById('listaAprovadas');
+        const listaComunicados = document.getElementById('listaComunicados');
+
+        let bloqueioAprovacao = false;
+        let qtdPendentes = 0;
+        let qtdAprovadas = 0;
+        let fotosGeralPendentes = [];
+        let fotosGeralAprovadas = [];
+
+        function atualizarContadores() {
+            document.getElementById('lblTotal').innerText = qtdPendentes + qtdAprovadas;
+            document.getElementById('lblPendentes').innerText = qtdPendentes;
+            document.getElementById('lblAprovadas').innerText = qtdAprovadas;
+        }
+
+        function calcularRanking() {
+            let contagem = {};
+            const todasAsFotos = [...fotosGeralPendentes, ...fotosGeralAprovadas];
+
+            todasAsFotos.forEach(foto => {
+                let setorCru = foto.setor || "";
+                if (setorCru.trim() === "") setorCru = "Nao Informado";
+                
+                let setorNorm = setorCru.trim().toLowerCase()
+                                        .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+                                        .replace(/[^a-z0-9\s]/g, "");
+
+                if (!contagem[setorNorm]) {
+                    contagem[setorNorm] = { 
+                        label: setorCru === "Nao Informado" ? setorCru : setorCru.trim(), 
+                        count: 0 
+                    };
+                }
+                contagem[setorNorm].count++;
+            });
+            
+            let ranking = Object.values(contagem).sort((a, b) => b.count - a.count);
+
+            const divRanking = document.getElementById('rankingSetores');
+            if (ranking.length === 0) {
+                divRanking.innerHTML = "<span style='color:#7f8c8d; font-size:12px;'>Nenhum dado captado...</span>";
+                return;
+            }
+
+            let html = "";
+            ranking.forEach(item => {
+                html += `<span class="badge-setor">${item.label} <b>${item.count}</b></span>`;
+            });
+            divRanking.innerHTML = html;
+        }
+
+        function atualizarVisualBotoesAprovar() {
+            const botoes = document.querySelectorAll('.btn-aprovar');
+            botoes.forEach(btn => {
+                if (bloqueioAprovacao) {
+                    btn.disabled = true;
+                    btn.style.backgroundColor = '#7f8c8d'; 
+                    btn.style.cursor = 'not-allowed';
+                    btn.innerText = "Aguarde...";
+                } else {
+                    btn.disabled = false;
+                    btn.style.backgroundColor = ''; 
+                    btn.style.cursor = 'pointer';
+                    btn.innerText = "Aprovar";
+                }
+            });
+        }
+
+        const renderizarCard = (dados, id, ehPendente) => {
+            const imagemLeve = dados.url_thumb ? dados.url_thumb : dados.url_imagem;
+            const numeroExibicao = dados.numeroFila ? dados.numeroFila : "-";
+            const setor = dados.setor ? dados.setor : "Sem setor";
+            
+            let botoes = ehPendente ? 
+                `<button class="btn-ver" onclick="abrirModal('${dados.url_imagem}')">Ver</button>
+                 <button class="btn-aprovar" onclick="atualizarStatus('${id}', 'aprovado')">Aprovar</button>
+                 <button class="btn-apagar" onclick="excluirFoto('${id}')">Apagar</button>` : 
+                `<button class="btn-ver" onclick="abrirModal('${dados.url_imagem}')">Ver</button>
+                 <button class="btn-apagar" onclick="excluirFoto('${id}')">Remover</button>`;
+
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.innerHTML = `
+                <div class="badge-numero">${numeroExibicao}</div>
+                <img src="${imagemLeve}" loading="lazy">
+                <div class="nome" title="${dados.nome}">${dados.nome}</div>
+                <div class="setor" title="${setor}">${setor}</div>
+                <div class="btn-group">${botoes}</div>
+            `;
+            return card;
+        };
+
+        onSnapshot(query(collection(db, "fotos_criancas"), where("status", "==", "pendente")), (snapshot) => {
+            listaPendentes.innerHTML = ""; 
+            qtdPendentes = snapshot.size; 
+            atualizarContadores();
+            fotosGeralPendentes = [];
+
+            if (snapshot.empty) {
+                listaPendentes.innerHTML = "<p class='vazio'>Nenhuma foto pendente.</p>";
+            } else {
+                let arrayPendentes = [];
+                snapshot.forEach(doc => {
+                    let d = doc.data();
+                    arrayPendentes.push({ id: doc.id, ...d });
+                    fotosGeralPendentes.push(d);
+                });
+                
+                arrayPendentes.sort((a, b) => (a.numeroFila || 0) - (b.numeroFila || 0));
+                arrayPendentes.forEach(dados => listaPendentes.appendChild(renderizarCard(dados, dados.id, true)));
+            }
+            atualizarVisualBotoesAprovar(); 
+            calcularRanking(); 
+        });
+
+        onSnapshot(query(collection(db, "fotos_criancas"), where("status", "==", "aprovado")), (snapshot) => {
+            listaAprovadas.innerHTML = ""; 
+            qtdAprovadas = snapshot.size; 
+            atualizarContadores();
+            fotosGeralAprovadas = [];
+
+            if (snapshot.empty) {
+                listaAprovadas.innerHTML = "<p class='vazio'>A TV esta vazia.</p>";
+            } else {
+                let arrayAprovadas = [];
+                snapshot.forEach(doc => {
+                    let d = doc.data();
+                    arrayAprovadas.push({ id: doc.id, ...d });
+                    fotosGeralAprovadas.push(d);
+                });
+                
+                arrayAprovadas.sort((a, b) => (b.numeroFila || 0) - (a.numeroFila || 0));
+                arrayAprovadas.forEach(dados => listaAprovadas.appendChild(renderizarCard(dados, dados.id, false)));
+            }
+            calcularRanking(); 
+        });
+
+        window.atualizarStatus = async (id, status) => { 
+            if (status === 'aprovado') {
+                if (bloqueioAprovacao) return; 
+                bloqueioAprovacao = true;
+                atualizarVisualBotoesAprovar(); 
+                
+                setTimeout(() => {
+                    bloqueioAprovacao = false;
+                    atualizarVisualBotoesAprovar(); 
+                }, 10000); 
+            }
+            await updateDoc(doc(db, "fotos_criancas", id), { status }); 
+        };
+        
+        window.excluirFoto = async (id) => { 
+            if(confirm("ATENCAO: Tem certeza absoluta que deseja EXCLUIR esta foto? Esta acao nao pode ser desfeita.")) {
+                await deleteDoc(doc(db, "fotos_criancas", id)); 
+            }
+        };
+
+        let arteSelecionada = null;
+        
+        document.getElementById('btnAddComTxt').addEventListener('click', async () => {
+            const input = document.getElementById('inputComunicadoTxt');
+            if(input.value.trim() === "") return;
+            await addDoc(collection(db, "comunicados_criancas"), { tipo: 'texto', texto: input.value, timestamp: serverTimestamp() });
+            input.value = "";
+        });
+
+        document.getElementById('btnSelectComImg').addEventListener('click', () => { document.getElementById('inputComunicadoImg').click(); });
+        
+        document.getElementById('inputComunicadoImg').addEventListener('change', (e) => {
+            if(e.target.files[0]) {
+                arteSelecionada = e.target.files[0];
+                document.getElementById('btnSelectComImg').innerText = "Arte Selecionada";
+                document.getElementById('btnUploadComImg').style.display = "block";
+            }
+        });
+
+        document.getElementById('btnUploadComImg').addEventListener('click', async () => {
+            if(!arteSelecionada) return;
+            const msg = document.getElementById('msgUploadCom');
+            const btnUpload = document.getElementById('btnUploadComImg');
+            
+            msg.innerText = "Enviando arte...";
+            btnUpload.disabled = true;
+
+            const formData = new FormData();
+            formData.append("image", arteSelecionada);
+
+            try {
+                const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: 'POST', body: formData });
+                const dados = await res.json();
+                
+                await addDoc(collection(db, "comunicados_criancas"), {
+                    tipo: 'imagem',
+                    url_imagem: dados.data.url,
+                    url_thumb: dados.data.thumb.url,
+                    timestamp: serverTimestamp()
+                });
+
+                msg.innerText = "Arte publicada!";
+                document.getElementById('btnSelectComImg').innerText = "Escolher Imagem";
+                btnUpload.style.display = "none";
+                arteSelecionada = null;
+                setTimeout(() => msg.innerText = "", 3000);
+            } catch(e) {
+                msg.innerText = "Erro ao enviar.";
+            } finally {
+                btnUpload.disabled = false;
+            }
+        });
+
+        onSnapshot(collection(db, "comunicados_criancas"), (snapshot) => {
+            listaComunicados.innerHTML = "";
+            if(snapshot.empty) return listaComunicados.innerHTML = "<p class='vazio' style='text-align:center;'>Nenhum comunicado ativo.</p>";
+            
+            snapshot.forEach(docSnap => {
+                const dados = docSnap.data();
+                const div = document.createElement('div');
+                div.className = 'item-comunicado';
+                
+                let conteudo = "";
+                if(dados.tipo === 'imagem' || dados.url_imagem) {
+                    conteudo = `<div style="display:flex; align-items:center; gap:10px;">
+                                    <img src="${dados.url_thumb || dados.url_imagem}" class="item-com-img" onclick="abrirModal('${dados.url_imagem}')">
+                                    <span>[ARTE VISUAL]</span>
+                                </div>`;
+                } else {
+                    conteudo = `<span>${dados.texto}</span>`;
+                }
+
+                div.innerHTML = `
+                    ${conteudo}
+                    <button class="btn-remover-com" onclick="excluirComunicado('${docSnap.id}')">Excluir</button>
+                `;
+                listaComunicados.appendChild(div);
+            });
+        });
+
+        window.excluirComunicado = async (id) => { await deleteDoc(doc(db, "comunicados_criancas", id)); };
+    </script>
+</body>
+</html>
