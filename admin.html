@@ -35,6 +35,31 @@
         .login-box button:hover { background: #2980b9; }
 
         #painelPrincipal { display: none; }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 0 auto 25px auto;
+            max-width: 600px;
+        }
+        .text-left { text-align: left; }
+        .text-left h3 { margin: 0; font-size: 15px; color: #fff; font-weight: 600; border: none; }
+        .text-left p { margin: 4px 0 0 0; font-size: 11px; color: #bdc3c7; }
+        
+        .ios-switch { position: relative; display: inline-block; width: 50px; height: 28px; flex-shrink: 0; }
+        .ios-switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #7f8c8d; transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        input:checked + .slider { background-color: #34c759; }
+        input:checked + .slider:before { transform: translateX(22px); }
         
         .painel-estatisticas {
             background: #34495e; padding: 15px 20px; border-radius: 8px; display: flex; 
@@ -123,6 +148,17 @@
         <h1>Moderação FCV</h1>
         <p>Aprove fotos e insira artes ou avisos para a TV.</p>
 
+        <div class="glass-panel">
+            <div class="text-left">
+                <h3>Exibir Fotos na TV</h3>
+                <p>Desative para a TV exibir apenas os comunicados em looping.</p>
+            </div>
+            <label class="ios-switch">
+                <input type="checkbox" id="toggleFotos" checked>
+                <span class="slider"></span>
+            </label>
+        </div>
+
         <div class="painel-estatisticas">
             <div class="estatisticas-linha">
                 <span class="contador-total">Total Enviadas: <span id="lblTotal">0</span></span>
@@ -139,16 +175,16 @@
 
         <h2 class="comunicado-titulo">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-            Mural de Comunicados (Textos e Fotos)
+            Mural de Comunicados (Textos e Artes)
         </h2>
         <div class="painel-comunicados">
             <div class="col-com">
-                <span style="font-size: 12px; font-weight: bold; color: #3498db;">Mural de Recados em Texto</span>
+                <span style="font-size: 12px; font-weight: bold; color: #3498db;">Aviso em Texto</span>
                 <input type="text" id="inputComunicadoTxt" placeholder="Digite um recado curto...">
                 <button class="btn-texto" id="btnAddComTxt">Publicar Texto na TV</button>
             </div>
             <div class="col-com col-divisor">
-                <span style="font-size: 12px; font-weight: bold; color: #8e44ad;">Comunicados 15 Segundos</span>
+                <span style="font-size: 12px; font-weight: bold; color: #8e44ad;">Arte Visual (Tela Cheia)</span>
                 <input type="file" id="inputComunicadoImg" accept="image/*" style="display:none;">
                 <button class="btn-arte" id="btnSelectComImg">Escolher Imagem</button>
                 <button class="btn-enviar-arte" id="btnUploadComImg">Enviar Arte para TV</button>
@@ -177,7 +213,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
-        import { getFirestore, collection, query, where, onSnapshot, doc, updateDoc, deleteDoc, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+        import { getFirestore, collection, query, where, onSnapshot, doc, updateDoc, deleteDoc, addDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
         document.getElementById('btnEntrar').addEventListener('click', verificarLogin);
         document.getElementById('loginPass').addEventListener('keypress', function (e) {
@@ -213,9 +249,23 @@
         const listaAprovadas = document.getElementById('listaAprovadas');
         const listaComunicados = document.getElementById('listaComunicados');
 
+        const toggleFotos = document.getElementById('toggleFotos');
+        onSnapshot(doc(db, "controle_tv", "status"), (docSnap) => {
+            if(docSnap.exists()) {
+                toggleFotos.checked = docSnap.data().mostrar_fotos;
+            } else {
+                toggleFotos.checked = true;
+            }
+        });
+
+        toggleFotos.addEventListener('change', async (e) => {
+            await setDoc(doc(db, "controle_tv", "status"), {
+                mostrar_fotos: e.target.checked
+            }, { merge: true });
+        });
+
         let bloqueioAprovacao = false;
 
-        
         let qtdPendentes = 0;
         let qtdAprovadas = 0;
         let fotosGeralPendentes = [];
@@ -234,14 +284,12 @@
             todasAsFotos.forEach(foto => {
                 let setorCru = foto.setor || "";
                 if (setorCru.trim() === "") setorCru = "Não Informado";
-
                 
                 let setorNorm = setorCru.trim().toLowerCase()
                                         .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
                                         .replace(/[^a-z0-9\s]/g, "");
 
                 if (!contagem[setorNorm]) {
-                    
                     contagem[setorNorm] = { 
                         label: setorCru === "Não Informado" ? setorCru : setorCru.trim(), 
                         count: 0 
@@ -249,7 +297,6 @@
                 }
                 contagem[setorNorm].count++;
             });
-
             
             let ranking = Object.values(contagem).sort((a, b) => b.count - a.count);
 
@@ -273,7 +320,7 @@
                     btn.disabled = true;
                     btn.style.backgroundColor = '#7f8c8d'; 
                     btn.style.cursor = 'not-allowed';
-                    btn.innerText = "⏳ 10s...";
+                    btn.innerText = "Aguarde 10s...";
                 } else {
                     btn.disabled = false;
                     btn.style.backgroundColor = ''; 
@@ -293,7 +340,7 @@
                  <button class="btn-aprovar" onclick="atualizarStatus('${id}', 'aprovado')">Aprovar</button>
                  <button class="btn-apagar" onclick="excluirFoto('${id}')">Apagar</button>` : 
                 `<button class="btn-ver" onclick="abrirModal('${dados.url_imagem}')">Ver</button>
-                 <button class="btn-apagar" onclick="excluirFoto('${id}')">🗑 Remover</button>`;
+                 <button class="btn-apagar" onclick="excluirFoto('${id}')">Remover</button>`;
 
             const card = document.createElement('div');
             card.className = 'card';
@@ -323,9 +370,7 @@
                     fotosGeralPendentes.push(d);
                 });
                 
-                
                 arrayPendentes.sort((a, b) => (a.numeroFila || 0) - (b.numeroFila || 0));
-                
                 arrayPendentes.forEach(dados => listaPendentes.appendChild(renderizarCard(dados, dados.id, true)));
             }
             atualizarVisualBotoesAprovar(); 
@@ -348,9 +393,7 @@
                     fotosGeralAprovadas.push(d);
                 });
                 
-                
                 arrayAprovadas.sort((a, b) => (b.numeroFila || 0) - (a.numeroFila || 0));
-                
                 arrayAprovadas.forEach(dados => listaAprovadas.appendChild(renderizarCard(dados, dados.id, false)));
             }
             calcularRanking(); 
@@ -371,12 +414,11 @@
         };
         
         window.excluirFoto = async (id) => { 
-            if(confirm("⚠️ ATENÇÃO: Tem certeza absoluta que deseja EXCLUIR esta foto? Esta ação não pode ser desfeita.")) {
+            if(confirm("ATENÇÃO: Tem certeza absoluta que deseja EXCLUIR esta foto? Esta ação não pode ser desfeita.")) {
                 await deleteDoc(doc(db, "fotos_criancas", id)); 
             }
         };
 
-        
         let arteSelecionada = null;
         
         document.getElementById('btnAddComTxt').addEventListener('click', async () => {
@@ -391,7 +433,7 @@
         document.getElementById('inputComunicadoImg').addEventListener('change', (e) => {
             if(e.target.files[0]) {
                 arteSelecionada = e.target.files[0];
-                document.getElementById('btnSelectComImg').innerText = "Arte Selecionada ✔️";
+                document.getElementById('btnSelectComImg').innerText = "Arte Selecionada";
                 document.getElementById('btnUploadComImg').style.display = "block";
             }
         });
@@ -401,7 +443,7 @@
             const msg = document.getElementById('msgUploadCom');
             const btnUpload = document.getElementById('btnUploadComImg');
             
-            msg.innerText = "⏳ Enviando arte...";
+            msg.innerText = "Enviando arte...";
             btnUpload.disabled = true;
 
             const formData = new FormData();
@@ -424,7 +466,7 @@
                 arteSelecionada = null;
                 setTimeout(() => msg.innerText = "", 3000);
             } catch(e) {
-                msg.innerText = "❌ Erro ao enviar.";
+                msg.innerText = "Erro ao enviar.";
             } finally {
                 btnUpload.disabled = false;
             }
@@ -446,7 +488,7 @@
                                     <span>[ARTE VISUAL]</span>
                                 </div>`;
                 } else {
-                    conteudo = `<span>📝 ${dados.texto}</span>`;
+                    conteudo = `<span>${dados.texto}</span>`;
                 }
 
                 div.innerHTML = `
