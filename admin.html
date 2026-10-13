@@ -38,6 +38,7 @@
 
         #painelPrincipal { display: none; }
         
+        /* ESTILO IOS GLASS PARA O CONTROLE DE CLIMA */
         .glass-panel {
             background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
@@ -111,6 +112,7 @@
         <h1>Moderacao TV FCV</h1>
         <p>Gerencie os comunicados e os widgets da TV.</p>
 
+        <!-- PAINEL IOS GLASS PARA CONTROLE DO CLIMA -->
         <div class="glass-panel">
             <div class="text-left">
                 <h3>Exibir Previsao do Tempo</h3>
@@ -167,4 +169,104 @@
         
         const listaComunicados = document.getElementById('listaComunicados');
 
-        const toggleClima = document.getElementById('toggle
+        // LÓGICA DO TOGGLE IOS (CONTROLE DO CLIMA NA TV)
+        const toggleClima = document.getElementById('toggleClima');
+        onSnapshot(doc(db, "controle_tv", "status_clima"), (docSnap) => {
+            if(docSnap.exists()) {
+                toggleClima.checked = docSnap.data().mostrar_clima;
+            } else {
+                toggleClima.checked = true;
+            }
+        });
+
+        toggleClima.addEventListener('change', async (e) => {
+            await setDoc(doc(db, "controle_tv", "status_clima"), {
+                mostrar_clima: e.target.checked
+            }, { merge: true });
+        });
+
+        // --- SISTEMA DE COMUNICADOS ---
+        let arteSelecionada = null;
+        
+        document.getElementById('btnAddComTxt').addEventListener('click', async () => {
+            const input = document.getElementById('inputComunicadoTxt');
+            if(input.value.trim() === "") return;
+            await addDoc(collection(db, "comunicados_criancas"), { tipo: 'texto', texto: input.value, timestamp: serverTimestamp() });
+            input.value = "";
+        });
+
+        document.getElementById('btnSelectComImg').addEventListener('click', () => { document.getElementById('inputComunicadoImg').click(); });
+        
+        document.getElementById('inputComunicadoImg').addEventListener('change', (e) => {
+            if(e.target.files[0]) {
+                arteSelecionada = e.target.files[0];
+                document.getElementById('btnSelectComImg').innerText = "Arte Selecionada";
+                document.getElementById('btnUploadComImg').style.display = "block";
+            }
+        });
+
+        document.getElementById('btnUploadComImg').addEventListener('click', async () => {
+            if(!arteSelecionada) return;
+            const msg = document.getElementById('msgUploadCom');
+            const btnUpload = document.getElementById('btnUploadComImg');
+            
+            msg.innerText = "Enviando arte...";
+            btnUpload.disabled = true;
+
+            const formData = new FormData();
+            formData.append("image", arteSelecionada);
+
+            try {
+                const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: 'POST', body: formData });
+                const dados = await res.json();
+                
+                await addDoc(collection(db, "comunicados_criancas"), {
+                    tipo: 'imagem',
+                    url_imagem: dados.data.url,
+                    url_thumb: dados.data.thumb.url,
+                    timestamp: serverTimestamp()
+                });
+
+                msg.innerText = "Arte publicada!";
+                document.getElementById('btnSelectComImg').innerText = "Escolher Imagem";
+                btnUpload.style.display = "none";
+                arteSelecionada = null;
+                setTimeout(() => msg.innerText = "", 3000);
+            } catch(e) {
+                msg.innerText = "Erro ao enviar.";
+            } finally {
+                btnUpload.disabled = false;
+            }
+        });
+
+        onSnapshot(collection(db, "comunicados_criancas"), (snapshot) => {
+            listaComunicados.innerHTML = "";
+            if(snapshot.empty) return listaComunicados.innerHTML = "<p class='vazio' style='text-align:center;'>Nenhum comunicado ativo.</p>";
+            
+            snapshot.forEach(docSnap => {
+                const dados = docSnap.data();
+                const div = document.createElement('div');
+                div.className = 'item-comunicado';
+                
+                let conteudo = "";
+                if(dados.tipo === 'imagem' || dados.url_imagem) {
+                    conteudo = `<div style="display:flex; align-items:center; gap:10px;">
+                                    <img src="${dados.url_thumb || dados.url_imagem}" class="item-com-img" onclick="abrirModal('${dados.url_imagem}')">
+                                    <span>[ARTE VISUAL]</span>
+                                </div>`;
+                } else {
+                    conteudo = `<span>${dados.texto}</span>`;
+                }
+
+                div.innerHTML = `
+                    ${conteudo}
+                    <button class="btn-remover-com" onclick="excluirComunicado('${docSnap.id}')">Excluir</button>
+                `;
+                listaComunicados.appendChild(div);
+            });
+        });
+
+        window.excluirComunicado = async (id) => { await deleteDoc(doc(db, "comunicados_criancas", id)); };
+    </script>
+</body>
+</html>
