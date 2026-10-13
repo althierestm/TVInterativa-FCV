@@ -139,7 +139,7 @@
 
             <div class="container-master escondido" id="camadaTexto">
                 <div id="containerTexto">
-                    <span class="aviso-label">📢 Mural da Fundação</span>
+                    <span class="aviso-label">Mural da Fundação</span>
                     <h1 id="textoDoComunicado"></h1>
                 </div>
             </div>
@@ -152,7 +152,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
-        import { getFirestore, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+        import { getFirestore, collection, query, where, onSnapshot, doc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
         function ajustarEscala() {
             const scaleBox = document.getElementById('tvScaleBox');
@@ -212,20 +212,15 @@
         let timerCarregamento = null;
         let timerTransicao = null;
         let timerExibicao = null;
+        
+        let mostrarFotosNaTV = true;
 
-        const camadaImagem = document.getElementById('camadaImagem');
-        const imgPainel = document.getElementById('imgPainel');
-        const molduraFoto = document.getElementById('molduraFoto'); 
-        const nomePainel = document.getElementById('nomePainel');
-        const lblNome = document.getElementById('lblNome');
-        const lblSetor = document.getElementById('lblSetor');
-        const camadaTexto = document.getElementById('camadaTexto');
-        const textoDoComunicado = document.getElementById('textoDoComunicado');
-        const numDiscreto = document.getElementById('numeroDiscreto');
-        const aguardando = document.getElementById('aguardando');
-        const barraProgresso = document.getElementById('barraProgresso');
-        const qrCodeTV = document.getElementById('qrCodeTV');
-        const relogioTV = document.getElementById('relogioTV');
+
+        onSnapshot(doc(db, "controle_tv", "status"), (docSnap) => {
+            if(docSnap.exists()) {
+                mostrarFotosNaTV = docSnap.data().mostrar_fotos;
+            }
+        });
 
         onSnapshot(query(collection(db, "fotos_criancas"), where("status", "==", "aprovado")), (snapshot) => {
             fotosAprovadas = [];
@@ -292,14 +287,17 @@
         }
 
         function decidirProximo() {
-            if (fotosAprovadas.length === 0 && comunicadosAtivos.length === 0) {
+
+            let qtdeFotosAtivas = mostrarFotosNaTV ? fotosAprovadas.length : 0;
+
+            if (qtdeFotosAtivas === 0 && comunicadosAtivos.length === 0) {
                 loopRodando = false;
                 aguardando.style.display = "block";
                 transicaoApagarTudo();
                 return;
             }
 
-            if (fotosAprovadas.length === 0) estadoAtual = 'COMS';
+            if (qtdeFotosAtivas === 0) estadoAtual = 'COMS';
             else if (comunicadosAtivos.length === 0) estadoAtual = 'FOTOS';
 
             if (estadoAtual === 'FOTOS') {
