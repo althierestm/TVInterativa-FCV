@@ -125,7 +125,7 @@
 
     <audio id="radioFCV" src="https://stm17.srvstm.com:6944/stream" preload="none" crossorigin="anonymous"></audio>
 
-    <button id="btnFullscreen">Tela Cheia</button>
+    <button id="btnFullscreen">Tela Cheia (Iniciar TV e Rádio)</button>
 
     <div id="viewportWrapper">
         <div class="tv-scale-box" id="tvScaleBox">
@@ -175,7 +175,6 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
         import { getFirestore, collection, query, where, onSnapshot, doc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
-        // INICIAR TELA CHEIA E SOM
         document.getElementById('btnFullscreen').addEventListener('click', () => {
             const radio = document.getElementById('radioFCV');
             radio.play().catch(e => console.log("Erro no autoplay do áudio:", e));
@@ -352,7 +351,6 @@
         const barraProgresso = document.getElementById('barraProgresso');
         const radioFCV = document.getElementById('radioFCV');
 
-        
         onSnapshot(query(collection(db, "fotos_criancas"), where("status", "==", "aprovado")), (snapshot) => {
             fotosAprovadas = [];
             snapshot.forEach(doc => fotosAprovadas.push(doc.data()));
@@ -373,7 +371,6 @@
             }
         });
 
-        
         onSnapshot(collection(db, "comunicados_criancas"), (snapshot) => {
             comunicadosAtivos = [];
             snapshot.forEach(doc => comunicadosAtivos.push(doc.data()));
@@ -393,7 +390,6 @@
             }, 50);
         }
 
-        
         function decidirProximo() {
             clearTimeout(timerCarregamento);
             clearTimeout(timerTransicao);
@@ -453,6 +449,7 @@
             transicaoApagarTudo();
             timerTransicao = setTimeout(() => {
                 camadaClima.classList.remove('escondido'); camadaClima.classList.add('visivel');
+                relogioTV.classList.remove('escondido'); relogioTV.classList.add('visivel');
                 
                 animarBarra(15000); 
                 timerExibicao = setTimeout(decidirProximo, 15000); 
@@ -463,13 +460,13 @@
             indexCom = (indexCom + 1) >= comunicadosAtivos.length ? 0 : (indexCom + 1);
             const com = comunicadosAtivos[indexCom];
 
-            
             if (com.tipo === 'video' || com.url_video) {
                 transicaoApagarTudo();
                 
                 timerTransicao = setTimeout(() => {
                     videoPainel.src = com.url_video;
                     camadaVideo.classList.remove('escondido'); camadaVideo.classList.add('visivel');
+                    relogioTV.classList.remove('escondido'); relogioTV.classList.add('visivel');
                     
                     radioFCV.pause(); 
                     videoPainel.play().catch(e => console.log("Erro video", e));
@@ -478,12 +475,12 @@
                     timerExibicao = setTimeout(() => { 
                         videoPainel.pause(); 
                         videoPainel.src = ""; 
-                        radioFCV.play().catch(e => console.log("Retomando radio", e)); 
+                        radioFCV.play().catch(e => console.log("Retomando rádio", e)); 
                         decidirProximo(); 
                     }, 15000); 
                 }, 800);
                 
-            } else if (com.tipo === 'imagem' || com.url_imagem) { 
+            } else if (com.tipo === 'imagem' || com.url_imagem) {
                 const imgPreload = new Image();
                 timerCarregamento = setTimeout(() => { decidirProximo(); }, 8000); 
 
@@ -500,6 +497,7 @@
                         numDiscreto.style.opacity = 0;
 
                         camadaImagem.classList.remove('escondido'); camadaImagem.classList.add('visivel');
+                        relogioTV.classList.remove('escondido'); relogioTV.classList.add('visivel');
                         
                         animarBarra(15000); 
                         timerExibicao = setTimeout(() => { decidirProximo(); }, 15000); 
@@ -508,11 +506,12 @@
                 imgPreload.onerror = () => { clearTimeout(timerCarregamento); setTimeout(decidirProximo, 1000); };
                 imgPreload.src = com.url_imagem || com.url_thumb;
                 
-            } else { 
+            } else {
                 transicaoApagarTudo();
                 timerTransicao = setTimeout(() => {
                     textoDoComunicado.innerText = com.texto;
                     camadaTexto.classList.remove('escondido'); camadaTexto.classList.add('visivel');
+                    relogioTV.classList.remove('escondido'); relogioTV.classList.add('visivel');
                     
                     animarBarra(15000); 
                     timerExibicao = setTimeout(decidirProximo, 15000); 
@@ -555,6 +554,7 @@
                     }
 
                     camadaImagem.classList.remove('escondido'); camadaImagem.classList.add('visivel');
+                    relogioTV.classList.remove('escondido'); relogioTV.classList.add('visivel');
 
                     animarBarra(7000); 
                     timerExibicao = setTimeout(() => { decidirProximo(); }, 7000);
