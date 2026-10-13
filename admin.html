@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Moderação - Dia das Crianças</title>
+    <title>Moderacao - Dia das Criancas</title>
 
     <link rel="icon" href="logo%20icon%20TV%20do%20Ponto%20FCV.png" type="image/png">
     <link rel="apple-touch-icon" href="logo%20icon%20TV%20do%20Ponto%20FCV.png">
@@ -14,7 +14,7 @@
         h1 { margin-top: 10px; font-size: 24px; color: #f1c40f; font-weight: 700; }
         p { font-size: 14px; color: #ecf0f1; margin-bottom: 20px; }
         
-        button, input { touch-action: manipulation; } /* Previne zoom acidental no celular */
+        button, input { touch-action: manipulation; }
 
         #loginOverlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -51,7 +51,6 @@
         .contador-pendentes { color: #f1c40f; }
         .contador-aprovadas { color: #2ecc71; }
 
-        /* ABA SANFONADA (ACCORDION) PARA O RANKING */
         .ranking-container {
             width: 100%; border-top: 1px dashed #7f8c8d; margin-top: 15px; padding-top: 5px;
         }
@@ -63,12 +62,10 @@
         .accordion-header:hover { color: #f1c40f; }
         .accordion-header svg { transition: transform 0.3s ease; }
         .accordion-content {
-            display: none; /* Escondido por defeito */
+            display: none;
             justify-content: center; flex-wrap: wrap; gap: 8px; margin-top: 10px; padding-bottom: 10px;
         }
-        .accordion-content.active {
-            display: flex; /* Mostra ao clicar */
-        }
+        .accordion-content.active { display: flex; }
         
         .badge-setor {
             background: rgba(52, 152, 219, 0.15); border: 1px solid #3498db; color: #ecf0f1;
@@ -106,46 +103,4 @@
         
         .col-com input[type="text"] { font-family: 'Montserrat', sans-serif; padding: 10px; border-radius: 6px; border: 1px solid #7f8c8d; background: #2c3e50; color: white; width: 92%; }
         .btn-texto { background: #3498db; color: white; padding: 10px; border: none; border-radius: 4px; font-weight: 600; cursor: pointer; font-size: 12px; font-family: 'Montserrat', sans-serif; }
-        .btn-arte { background: #8e44ad; color: white; padding: 10px; border: none; border-radius: 4px; font-weight: 600; cursor: pointer; font-size: 12px; font-family: 'Montserrat', sans-serif; }
-        .btn-enviar-arte { background: #f39c12; color: white; padding: 10px; border: none; border-radius: 4px; font-weight: 600; cursor: pointer; font-size: 12px; display: none; font-family: 'Montserrat', sans-serif; }
-        #msgUploadCom { font-size: 11px; color: #f1c40f; text-align: center; font-weight: bold; margin-top: 5px; }
-
-        .lista-comunicados { max-width: 600px; margin: 0 auto; text-align: left; }
-        .item-comunicado { background: #2c3e50; padding: 12px; border-radius: 6px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid #3498db; font-size: 13px; gap: 10px; }
-        .item-com-img { width: 40px; height: 40px; object-fit: cover; border-radius: 4px; cursor: pointer; }
-        .btn-remover-com { width: auto; padding: 5px 10px; background: #e74c3c; margin: 0; font-size: 11px; border: none; border-radius: 4px; font-weight: 600; cursor: pointer; font-family: 'Montserrat', sans-serif; color: white; }
-
-        #modalVerFoto { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.95); align-items: center; justify-content: center; }
-        #modalImg { max-width: 95%; max-height: 85vh; border-radius: 8px; object-fit: contain; }
-        .fechar-modal { position: absolute; top: 15px; right: 25px; color: white; font-size: 40px; font-weight: bold; cursor: pointer; }
-    </style>
-</head>
-<body>
-
-    <div id="loginOverlay">
-        <div class="login-box">
-            <h2>Acesso Restrito</h2>
-            <input type="text" id="loginUser" placeholder="Usuário">
-            <input type="password" id="loginPass" placeholder="Senha">
-            <button id="btnEntrar">Acessar Moderação</button>
-        </div>
-    </div>
-
-    <div id="painelPrincipal">
-        <h1>Moderação FCV</h1>
-        <p>Aprove fotos e insira artes ou avisos para a TV.</p>
-
-        <div class="painel-estatisticas">
-            <div class="estatisticas-linha">
-                <span class="contador-total">Total Enviadas: <span id="lblTotal">0</span></span>
-                <span class="contador-pendentes">Aguardando: <span id="lblPendentes">0</span></span>
-                <span class="contador-aprovadas">Aprovadas: <span id="lblAprovadas">0</span></span>
-            </div>
-            
-            <div class="ranking-container">
-                <div class="accordion-header" id="btnAccordionRanking">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
-                    Top Setores Engajados
-                </div>
-                <div id="rankingSetores" class="ranking-lista accordion-content">
-                    <span
+        .btn-arte { background: #8e44ad; color: white; padding
