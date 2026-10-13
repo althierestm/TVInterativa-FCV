@@ -227,7 +227,7 @@
         <div class="glass-panel">
             <div class="text-left">
                 <h3>Ação Dia das Crianças</h3>
-                <p>Retomar as fotos no ciclo da TV.</p>
+                <p>Ative para retomar com a ação</p>
             </div>
             <label class="ios-switch">
                 <input type="checkbox" id="toggleFotos">
@@ -444,32 +444,41 @@
             }
         });
 
-        
         document.getElementById('btnUploadComImg').addEventListener('click', async () => {
             if(!arteSelecionada) return;
             const msg = document.getElementById('msgUploadCom');
             const btnUpload = document.getElementById('btnUploadComImg');
             
-            msg.innerText = "Enviando arquivo..."; btnUpload.disabled = true;
+            msg.innerText = "A enviar arquivo..."; btnUpload.disabled = true;
 
             try {
                 if (arteSelecionada.type.startsWith('video/')) {
-                    
-                    const formData = new FormData(); 
-                    formData.append("reqtype", "fileupload");
-                    formData.append("fileToUpload", arteSelecionada);
-                    
-                    const res = await fetch("https://catbox.moe/user/api.php", { method: 'POST', body: formData });
-                    const urlVideo = await res.text();
-                    
-                    if (!urlVideo.startsWith("http")) throw new Error("Falha no servidor de vídeos");
+                    const CLOUD_NAME = "gd3fxkx6";
+                    const UPLOAD_PRESET = "soejqtfk";  
+                    if(CLOUD_NAME === "COLOQUE_AQUI_O_SEU_CLOUD_NAME") {
+                        alert("Por favor, configure o Cloud Name e o Preset do Cloudinary no código do admin.html!");
+                        btnUpload.disabled = false;
+                        msg.innerText = "Erro de configuração.";
+                        return;
+                    }
+
+                    const formData = new FormData();
+                    formData.append("file", arteSelecionada);
+                    formData.append("upload_preset", UPLOAD_PRESET);
+
+                    const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/video/upload`, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    const dados = await res.json();
+
+                    if (!dados.secure_url) throw new Error("Falha no upload do vídeo");
 
                     await addDoc(collection(db, "comunicados_criancas"), {
-                        tipo: 'video', url_video: urlVideo, timestamp: serverTimestamp()
+                        tipo: 'video', url_video: dados.secure_url, timestamp: serverTimestamp()
                     });
-                    
+
                 } else {
-                    
                     const formData = new FormData(); formData.append("image", arteSelecionada);
                     const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: 'POST', body: formData });
                     const dados = await res.json();
