@@ -33,17 +33,21 @@
         #btnFullscreen:hover { background: rgba(255,255,255,0.4); }
 
         .marca-dagua {
-            position: absolute; top: 35px; left: 40px; width: 220px;
-            opacity: 0.8; z-index: 9990; pointer-events: none;
+            position: absolute; top: 25px; right: 40px; width: 200px;
+            opacity: 0.7; z-index: 9990; pointer-events: none;
         }
 
         #relogioTV {
-            position: absolute; top: 35px; right: 40px;
-            background: rgba(255, 255, 255, 0.1); 
+            position: absolute; bottom: 40px; right: 40px;
+            background: rgba(255, 255, 255, 0.5); 
             backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.2); box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            border-radius: 12px; color: #fff; padding: 10px 25px; text-align: center;
-            font-size: 32px; font-weight: 700; letter-spacing: 2px; z-index: 9990; pointer-events: none;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            border-radius: 12px; color: #224387; 
+            padding: 10px 25px; text-align: center;
+            font-size: 32px; font-weight: 700; letter-spacing: 2px;
+            transition: opacity 0.8s ease-in-out, transform 0.8s ease-in-out; 
+            z-index: 9990; pointer-events: none;
         }
 
         .container-master { 
@@ -52,11 +56,25 @@
             transition: opacity 0.8s ease-in-out, transform 0.8s ease-in-out; 
         }
 
+        .moldura-sobreposicao { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 5; pointer-events: none; }
+
         .escondido { opacity: 0; pointer-events: none; transform: scale(1.02); }
         .visivel { opacity: 1; pointer-events: auto; transform: scale(1); }
 
         #imgPainel { width: 100%; height: 100%; object-fit: contain; position: relative; z-index: 2; }
         .modo-arte { object-fit: cover !important; }
+
+        .nome-rodape { 
+            position: absolute; bottom: 70px; left: 50%; transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.3); box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            border-radius: 30px; color: #ffffff; padding: 20px 55px; text-align: center;
+            transition: opacity 1s ease-in-out; z-index: 10;
+        }
+        .nome-rodape .titular { font-size: 40px; font-weight: 700; letter-spacing: 1.5px; text-shadow: 0 2px 4px rgba(0, 32, 97, 0.4), 0 1px 2px rgba(0, 32, 97, 0.6); }
+        .nome-rodape .setor { font-size: 24px; font-weight: 400; opacity: 0.9; margin-top: 5px; text-shadow: 0 2px 6px #002061, 0 0 4px #002061; }
+
+        #numeroDiscreto { position: absolute; bottom: 30px; left: 40px; font-size: 35px; font-weight: 800; color: #224387; z-index: 15; text-shadow: 0 1px 2px rgba(255,255,255,0.8); transition: opacity 1s; }
 
         #containerTexto {
             width: 80%; text-align: center; background: rgba(34, 67, 135, 0.85);
@@ -72,17 +90,14 @@
         #barraProgressoContainer { position: absolute; bottom: 0; left: 0; width: 100%; height: 10px; background: rgba(255,255,255,0.1); z-index: 20; }
         #barraProgresso { height: 100%; width: 0%; background: linear-gradient(to right, #3498db, #2ecc71); }
 
-        #bgClima {
-            position: absolute; width: 100%; height: 100%; top: 0; left: 0; z-index: 1;
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-        }
-        .header-clima { position: absolute; top: 40px; left: 0; width: 100%; text-align: center; z-index: 2;}
-        .cidade-clima { font-size: 40px; font-weight: 600; margin: 0; color: #fff; letter-spacing: 1px;}
-        .sub-clima { font-size: 20px; font-weight: 300; color: #bdc3c7; margin-top: 5px; }
+        #bgClima { position: absolute; width: 100%; height: 100%; top: 0; left: 0; z-index: 1; background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); }
+        .header-clima { position: absolute; top: 80px; left: 0; width: 100%; text-align: center; z-index: 2;}
+        .cidade-clima { font-size: 45px; font-weight: 600; margin: 0; color: #fff; letter-spacing: 1px;}
+        .sub-clima { font-size: 22px; font-weight: 300; color: #bdc3c7; margin-top: 5px; }
         
         .grid-clima {
             display: grid; grid-template-columns: repeat(7, 1fr); gap: 20px;
-            width: 90%; max-width: 1750px; z-index: 2; margin-top: 50px;
+            width: 90%; max-width: 1750px; z-index: 2; margin-top: 90px;
         }
         .card-dia {
             background: rgba(255, 255, 255, 0.07); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
@@ -101,7 +116,7 @@
         
         .turnos-container { display: flex; justify-content: space-around; width: 100%; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px; }
         .turno { display: flex; flex-direction: column; align-items: center; gap: 8px; }
-        .turno-nome { font-size: 14px; font-weight: 600; color: #bdc3c7; text-transform: lowercase; }
+        .turno-nome { font-size: 14px; font-weight: 600; color: #bdc3c7; text-transform: uppercase; }
         .turno-icone svg { width: 35px; height: 35px; }
         .turno-temp { font-size: 18px; font-weight: 600; }
     </style>
@@ -110,21 +125,21 @@
 
     <audio id="radioFCV" src="https://stm17.srvstm.com:6944/stream" preload="none" crossorigin="anonymous"></audio>
 
-    <button id="btnFullscreen">Tela Cheia (Iniciar Som)</button>
+    <button id="btnFullscreen">Tela Cheia (Iniciar TV e Radio)</button>
 
     <div id="viewportWrapper">
         <div class="tv-scale-box" id="tvScaleBox">
             
             <img src="MKTFCV.png" class="marca-dagua" alt="MKT FCV">
-            <div id="relogioTV">--:--</div>
+            <div id="relogioTV" class="escondido">--:--</div>
 
-            <div id="aguardando">Aguardando informacoes...</div>
+            <div id="aguardando">Aguardando informacoes da rede...</div>
 
             <div class="container-master escondido" id="camadaClima">
                 <div id="bgClima"></div>
                 <div class="header-clima">
-                    <h1 class="cidade-clima">Previsao do Tempo - Muriae, MG</h1>
-                    <div class="sub-clima">Fonte: Open-Meteo Satelite</div>
+                    <h1 class="cidade-clima">Previsao do Tempo - Muriaé, MG</h1>
+                    <div class="sub-clima">Fonte: Satelite Open-Meteo</div>
                 </div>
                 <div class="grid-clima" id="gridClima">
                 </div>
@@ -132,6 +147,11 @@
 
             <div class="container-master escondido" id="camadaImagem">
                 <img id="imgPainel" src="" alt="Painel">
+                <img id="molduraFoto" src="escaneie%20e%20mande%20a%20sua.png" class="moldura-sobreposicao" style="display:none;" alt="Moldura">
+                <div class="nome-rodape" id="nomePainel" style="display:none;">
+                    <div class="titular" id="lblNome"></div>
+                    <div class="setor" id="lblSetor"></div>
+                </div>
             </div>
 
             <div class="container-master escondido" id="camadaTexto">
@@ -141,6 +161,7 @@
                 </div>
             </div>
 
+            <div id="numeroDiscreto" style="opacity: 0;"></div>
             <div id="barraProgressoContainer"><div id="barraProgresso"></div></div>
 
         </div>
@@ -148,11 +169,11 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, doc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+        import { getFirestore, collection, query, where, onSnapshot, doc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
         document.getElementById('btnFullscreen').addEventListener('click', () => {
             const radio = document.getElementById('radioFCV');
-            radio.play().catch(e => console.log("Som bloqueado pelo navegador", e));
+            radio.play().catch(e => console.log("Erro no autoplay do áudio:", e));
             
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen().catch(err => console.log(err));
@@ -177,7 +198,6 @@
         atualizarRelogio();
 
         let dadosClimaProntos = false;
-        let htmlClimaCache = "";
 
         const svgs = {
             sol: '<svg stroke="#f1c40f" viewBox="0 0 24 24" fill="none" stroke-width="1.5"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>',
@@ -192,7 +212,7 @@
             if(code === 0) return { t: 'Limpo', i: isNight ? svgs.lua : svgs.sol };
             if(code >= 1 && code <= 3) return { t: 'Parc. Nublado', i: isNight ? svgs.nuvem : svgs.solNuvem };
             if(code >= 45 && code <= 48) return { t: 'Neblina', i: svgs.nuvem };
-            if(code >= 51 && code <= 67) return { t: 'Chuva Leve', i: svgs.chuva };
+            if(code >= 51 && code <= 67) return { t: 'Chuva', i: svgs.chuva };
             if(code >= 80 && code <= 82) return { t: 'Pancadas', i: svgs.chuva };
             if(code >= 95) return { t: 'Tempestade', i: svgs.tempestade };
             return { t: 'Nublado', i: svgs.nuvem };
@@ -217,7 +237,6 @@
                     let iconeMain = getClimaIcon(mainCode, false);
                     let tempMedia = Math.round((max + min) / 2);
 
-                    
                     let baseIdx = i * 24;
                     let idxManha = baseIdx + 9;  
                     let idxTarde = baseIdx + 15; 
@@ -289,34 +308,56 @@
         const db = getFirestore(app);
 
         let comunicadosAtivos = [];
+        let fotosAprovadas = [];
         let indexCom = -1;
+        let indexFoto = -1;
+        
         let loopRodando = false;
-        
         let mostrarClimaNaTV = true; 
+        let mostrarFotosNaTV = false;
         let proximaAcao = 'CLIMA'; 
-        
+
+        let fotosExibidasNoCiclo = parseInt(localStorage.getItem('fcv_ciclo')) || 0;
+        let maiorNumeroExibido = parseInt(localStorage.getItem('fcv_maior')) || 0;
+        let ultimoFilaExibido = parseInt(localStorage.getItem('fcv_ultimo')) || 0;
+
+        let timerCarregamento = null;
+        let timerTransicao = null;
+        let timerExibicao = null;
+
         onSnapshot(doc(db, "controle_tv", "status_clima"), (docSnap) => {
-            if(docSnap.exists()) {
-                mostrarClimaNaTV = docSnap.data().mostrar_clima;
-            }
+            if(docSnap.exists()) mostrarClimaNaTV = docSnap.data().mostrar_clima;
+        });
+        onSnapshot(doc(db, "controle_tv", "status"), (docSnap) => {
+            if(docSnap.exists()) mostrarFotosNaTV = docSnap.data().mostrar_fotos;
         });
 
         const camadaClima = document.getElementById('camadaClima');
         const camadaImagem = document.getElementById('camadaImagem');
         const imgPainel = document.getElementById('imgPainel');
+        const molduraFoto = document.getElementById('molduraFoto'); 
+        const nomePainel = document.getElementById('nomePainel');
+        const lblNome = document.getElementById('lblNome');
+        const lblSetor = document.getElementById('lblSetor');
         const camadaTexto = document.getElementById('camadaTexto');
         const textoDoComunicado = document.getElementById('textoDoComunicado');
         const aguardando = document.getElementById('aguardando');
+        const numDiscreto = document.getElementById('numeroDiscreto');
         const barraProgresso = document.getElementById('barraProgresso');
+        const relogioTV = document.getElementById('relogioTV');
+
+        onSnapshot(query(collection(db, "fotos_criancas"), where("status", "==", "aprovado")), (snapshot) => {
+            fotosAprovadas = [];
+            snapshot.forEach(doc => fotosAprovadas.push(doc.data()));
+            fotosAprovadas.sort((a, b) => (a.numeroFila || 0) - (b.numeroFila || 0));
+        });
 
         onSnapshot(collection(db, "comunicados_criancas"), (snapshot) => {
             comunicadosAtivos = [];
             snapshot.forEach(doc => comunicadosAtivos.push(doc.data()));
             
-            if (!loopRodando && (comunicadosAtivos.length > 0 || mostrarClimaNaTV)) {
-                aguardando.style.display = "none";
+            if (!loopRodando) {
                 loopRodando = true;
-                proximaAcao = mostrarClimaNaTV ? 'CLIMA' : 'COMS';
                 decidirProximo();
             }
         });
@@ -330,32 +371,55 @@
             }, 50);
         }
 
+       
         function decidirProximo() {
             let temComs = comunicadosAtivos.length > 0;
+            let temFotos = mostrarFotosNaTV && fotosAprovadas.length > 0;
             let podeExibirClima = mostrarClimaNaTV && dadosClimaProntos;
 
-            if (!podeExibirClima && !temComs) {
-                loopRodando = false;
-                transicaoApagarTudo();
+            if (!podeExibirClima && !temComs && !temFotos) {
                 aguardando.style.display = "block";
+                transicaoApagarTudo();
+                setTimeout(decidirProximo, 2000);
                 return;
             }
 
             aguardando.style.display = "none";
 
-            if (proximaAcao === 'CLIMA' && podeExibirClima) {
-                renderizarClima();
-                proximaAcao = temComs ? 'COMS' : 'CLIMA';
-            } else if (temComs) {
-                renderizarComunicado();
-                if (indexCom === comunicadosAtivos.length - 1 && podeExibirClima) {
-                    proximaAcao = 'CLIMA';
+            if (proximaAcao === 'CLIMA') {
+                if (podeExibirClima) {
+                    proximaAcao = temComs ? 'COMS' : (temFotos ? 'FOTOS' : 'CLIMA');
+                    renderizarClima();
                 } else {
-                    proximaAcao = 'COMS';
+                    proximaAcao = temComs ? 'COMS' : 'FOTOS';
+                    decidirProximo();
                 }
-            } else {
-                proximaAcao = podeExibirClima ? 'CLIMA' : 'COMS';
-                setTimeout(decidirProximo, 1000);
+            } else if (proximaAcao === 'COMS') {
+                if (temComs) {
+                    renderizarComunicado();
+                    if (indexCom === comunicadosAtivos.length - 1) { 
+                        proximaAcao = temFotos ? 'FOTOS' : (podeExibirClima ? 'CLIMA' : 'COMS');
+                    } else {
+                        proximaAcao = 'COMS';
+                    }
+                } else {
+                    proximaAcao = temFotos ? 'FOTOS' : 'CLIMA';
+                    decidirProximo();
+                }
+            } else if (proximaAcao === 'FOTOS') {
+                if (temFotos) {
+                    if (fotosExibidasNoCiclo >= 4) { 
+                        fotosExibidasNoCiclo = 0;
+                        localStorage.setItem('fcv_ciclo', 0);
+                        proximaAcao = podeExibirClima ? 'CLIMA' : (temComs ? 'COMS' : 'FOTOS');
+                        decidirProximo();
+                    } else {
+                        renderizarFoto();
+                    }
+                } else {
+                    proximaAcao = podeExibirClima ? 'CLIMA' : 'COMS';
+                    decidirProximo();
+                }
             }
         }
 
@@ -363,6 +427,7 @@
             transicaoApagarTudo();
             timerTransicao = setTimeout(() => {
                 camadaClima.classList.remove('escondido'); camadaClima.classList.add('visivel');
+                relogioTV.classList.remove('escondido'); relogioTV.classList.add('visivel');
                 
                 animarBarra(15000); 
                 timerExibicao = setTimeout(decidirProximo, 15000); 
@@ -375,11 +440,7 @@
 
             if(com.tipo === 'imagem' || com.url_imagem) {
                 const imgPreload = new Image();
-                
-                timerCarregamento = setTimeout(() => { 
-                    imgPreload.onload = null; imgPreload.onerror = null; imgPreload.src = "";
-                    decidirProximo(); 
-                }, 8000); 
+                timerCarregamento = setTimeout(() => { imgPreload.src = ""; decidirProximo(); }, 8000); 
 
                 imgPreload.onload = () => {
                     clearTimeout(timerCarregamento);
@@ -389,28 +450,26 @@
                         imgPainel.classList.add('modo-arte'); 
                         imgPainel.src = com.url_imagem || com.url_thumb;
                         
+                        molduraFoto.style.display = 'none';
+                        nomePainel.style.display = 'none';
+                        numDiscreto.style.opacity = 0;
+
                         camadaImagem.classList.remove('escondido'); camadaImagem.classList.add('visivel');
+                        relogioTV.classList.remove('escondido'); relogioTV.classList.add('visivel');
                         
                         animarBarra(15000); 
-                        timerExibicao = setTimeout(() => {
-                            imgPreload.onload = null; imgPreload.onerror = null; imgPreload.src = "";
-                            decidirProximo();
-                        }, 15000); 
+                        timerExibicao = setTimeout(() => { imgPreload.src = ""; decidirProximo(); }, 15000); 
                     }, 800);
                 };
-                imgPreload.onerror = () => { 
-                    clearTimeout(timerCarregamento); 
-                    imgPreload.onload = null; imgPreload.onerror = null; imgPreload.src = "";
-                    decidirProximo(); 
-                };
+                imgPreload.onerror = () => { clearTimeout(timerCarregamento); imgPreload.src = ""; decidirProximo(); };
                 imgPreload.src = com.url_imagem || com.url_thumb;
             } else {
                 transicaoApagarTudo();
-                
                 timerTransicao = setTimeout(() => {
                     textoDoComunicado.innerText = com.texto;
                     
                     camadaTexto.classList.remove('escondido'); camadaTexto.classList.add('visivel');
+                    relogioTV.classList.remove('escondido'); relogioTV.classList.add('visivel');
                     
                     animarBarra(15000); 
                     timerExibicao = setTimeout(decidirProximo, 15000); 
@@ -418,10 +477,57 @@
             }
         }
 
+        function renderizarFoto() {
+            indexFoto = (indexFoto + 1) >= fotosAprovadas.length ? 0 : (indexFoto + 1); 
+            const fotoDaVez = fotosAprovadas[indexFoto];
+            
+            localStorage.setItem('fcv_ultimo', fotoDaVez.numeroFila);
+            if ((fotoDaVez.numeroFila || 0) > maiorNumeroExibido) { 
+                maiorNumeroExibido = fotoDaVez.numeroFila; localStorage.setItem('fcv_maior', maiorNumeroExibido);
+            }
+
+            const imgPreload = new Image();
+            timerCarregamento = setTimeout(() => { imgPreload.src = ""; decidirProximo(); }, 8000); 
+            
+            imgPreload.onload = () => {
+                clearTimeout(timerCarregamento); 
+                transicaoApagarTudo();
+
+                timerTransicao = setTimeout(() => {
+                    fotosExibidasNoCiclo++; localStorage.setItem('fcv_ciclo', fotosExibidasNoCiclo);
+
+                    imgPainel.classList.remove('modo-arte'); 
+                    imgPainel.src = fotoDaVez.url_imagem || fotoDaVez.url_thumb;
+                    
+                    numDiscreto.innerText = fotoDaVez.numeroFila ? `#${fotoDaVez.numeroFila}` : "";
+                    numDiscreto.style.opacity = 1;
+                    molduraFoto.style.display = 'block';
+
+                    if(fotoDaVez.nome === "Nao Informado" && !fotoDaVez.setor) {
+                        nomePainel.style.display = 'none';
+                    } else {
+                        nomePainel.style.display = 'block';
+                        lblNome.innerText = fotoDaVez.nome;
+                        lblSetor.innerText = fotoDaVez.setor ? fotoDaVez.setor : "";
+                    }
+
+                    camadaImagem.classList.remove('escondido'); camadaImagem.classList.add('visivel');
+                    relogioTV.classList.remove('escondido'); relogioTV.classList.add('visivel');
+
+                    animarBarra(7000); 
+                    timerExibicao = setTimeout(() => { imgPreload.src = ""; decidirProximo(); }, 7000);
+                }, 800); 
+            };
+            imgPreload.onerror = () => { clearTimeout(timerCarregamento); imgPreload.src = ""; decidirProximo(); };
+            imgPreload.src = fotoDaVez.url_imagem || fotoDaVez.url_thumb;
+        }
+
         function transicaoApagarTudo() {
             camadaImagem.classList.remove('visivel'); camadaImagem.classList.add('escondido');
             camadaTexto.classList.remove('visivel'); camadaTexto.classList.add('escondido');
             camadaClima.classList.remove('visivel'); camadaClima.classList.add('escondido');
+            relogioTV.classList.remove('visivel'); relogioTV.classList.add('escondido');
+            numDiscreto.style.opacity = 0;
         }
     </script>
 </body>
