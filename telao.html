@@ -125,7 +125,7 @@
 
     <audio id="radioFCV" src="https://stm17.srvstm.com:6944/stream" preload="none" crossorigin="anonymous"></audio>
 
-    <button id="btnFullscreen">Tela Cheia (Iniciar TV e Rádio)</button>
+    <button id="btnFullscreen">Tela Cheia</button>
 
     <div id="viewportWrapper">
         <div class="tv-scale-box" id="tvScaleBox">
@@ -158,6 +158,7 @@
                 <video id="videoPainel" class="modo-arte" src="" playsinline></video>
             </div>
 
+            <!-- CAMADA TEXTO -->
             <div class="container-master escondido" id="camadaTexto">
                 <div id="containerTexto">
                     <span class="aviso-label">Mural da Fundação</span>
@@ -174,6 +175,18 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
         import { getFirestore, collection, query, where, onSnapshot, doc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyB8ZK0jSY-1E9y90TLfznxi9PI8mf_bJuc",
+            authDomain: "festadafirmafcv.firebaseapp.com",
+            projectId: "festadafirmafcv",
+            storageBucket: "festadafirmafcv.firebasestorage.app",
+            messagingSenderId: "930815464098",
+            appId: "1:930815464098:web:890c2300a6e1a79abd3dfb"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
 
         document.getElementById('btnFullscreen').addEventListener('click', () => {
             const radio = document.getElementById('radioFCV');
@@ -299,18 +312,6 @@
         processarClima();
         setInterval(processarClima, 1800000); 
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyB8ZK0jSY-1E9y90TLfznxi9PI8mf_bJuc",
-            authDomain: "festadafirmafcv.firebaseapp.com",
-            projectId: "festadafirmafcv",
-            storageBucket: "festadafirmafcv.firebasestorage.app",
-            messagingSenderId: "930815464098",
-            appId: "1:930815464098:web:890c2300a6e1a79abd3dfb"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-
         let comunicadosAtivos = [];
         let fotosAprovadas = [];
         let indexCom = -1;
@@ -358,7 +359,6 @@
 
             if (fotosAprovadas.length > 0) {
                 const ultimaFila = fotosAprovadas[fotosAprovadas.length - 1].numeroFila || 0;
-                
                 if (ultimaFila > maiorNumeroExibido && maiorNumeroExibido > 0) {
                     clearTimeout(window.timerFuraFila);
                     window.timerFuraFila = setTimeout(() => {
@@ -374,7 +374,6 @@
         onSnapshot(collection(db, "comunicados_criancas"), (snapshot) => {
             comunicadosAtivos = [];
             snapshot.forEach(doc => comunicadosAtivos.push(doc.data()));
-            
             if (!loopRodando) {
                 loopRodando = true;
                 decidirProximo();
@@ -475,12 +474,12 @@
                     timerExibicao = setTimeout(() => { 
                         videoPainel.pause(); 
                         videoPainel.src = ""; 
-                        radioFCV.play().catch(e => console.log("Retomando rádio", e)); 
+                        radioFCV.play().catch(e => console.log("Retomando radio", e)); 
                         decidirProximo(); 
                     }, 15000); 
                 }, 800);
                 
-            } else if (com.tipo === 'imagem' || com.url_imagem) {
+            } else if (com.tipo === 'imagem' || com.url_imagem) { 
                 const imgPreload = new Image();
                 timerCarregamento = setTimeout(() => { decidirProximo(); }, 8000); 
 
@@ -506,7 +505,7 @@
                 imgPreload.onerror = () => { clearTimeout(timerCarregamento); setTimeout(decidirProximo, 1000); };
                 imgPreload.src = com.url_imagem || com.url_thumb;
                 
-            } else {
+            } else { 
                 transicaoApagarTudo();
                 timerTransicao = setTimeout(() => {
                     textoDoComunicado.innerText = com.texto;
