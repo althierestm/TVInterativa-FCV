@@ -32,7 +32,6 @@
         }
         #btnFullscreen:hover { background: rgba(255,255,255,0.4); }
 
-        /* LOGO E RELÓGIO NAS POSIÇÕES ORIGINAIS */
         .marca-dagua {
             position: absolute; top: 25px; right: 40px; width: 200px;
             opacity: 0.7; z-index: 9990; pointer-events: none;
@@ -91,7 +90,6 @@
         #barraProgressoContainer { position: absolute; bottom: 0; left: 0; width: 100%; height: 10px; background: rgba(255,255,255,0.1); z-index: 20; }
         #barraProgresso { height: 100%; width: 0%; background: linear-gradient(to right, #2894f9, #002061); }
 
-        /* --- TELA DE PREVISÃO DO TEMPO ESTILO IOS --- */
         #bgClima { position: absolute; width: 100%; height: 100%; top: 0; left: 0; z-index: 1; background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); }
         .header-clima { position: absolute; top: 80px; left: 0; width: 100%; text-align: center; z-index: 2;}
         .cidade-clima { font-size: 45px; font-weight: 600; margin: 0; color: #fff; letter-spacing: 1px;}
@@ -127,27 +125,26 @@
 
     <audio id="radioFCV" src="https://stm17.srvstm.com:6944/stream" preload="none" crossorigin="anonymous"></audio>
 
-    <button id="btnFullscreen">Tela Cheia (Iniciar TV e Rádio)</button>
+    <button id="btnFullscreen">Tela Cheia</button>
 
     <div id="viewportWrapper">
         <div class="tv-scale-box" id="tvScaleBox">
             
             <img src="MKTFCV.png" class="marca-dagua" alt="MKT FCV">
-            <div id="relogioTV">--:--</div>
+            <div id="relogioTV" class="escondido">--:--</div>
 
             <div id="aguardando">Aguardando informações da rede...</div>
 
-            <!-- CAMADA CLIMA -->
             <div class="container-master escondido" id="camadaClima">
                 <div id="bgClima"></div>
                 <div class="header-clima">
                     <h1 class="cidade-clima">Previsão do Tempo - Muriaé, MG</h1>
                     <div class="sub-clima">Fonte: Satélite Open-Meteo</div>
                 </div>
-                <div class="grid-clima" id="gridClima"></div>
+                <div class="grid-clima" id="gridClima">
+                </div>
             </div>
 
-            <!-- CAMADA IMAGEM (COMUNICADOS/FOTOS) -->
             <div class="container-master escondido" id="camadaImagem">
                 <img id="imgPainel" src="" alt="Painel">
                 <img id="molduraFoto" src="escaneie%20e%20mande%20a%20sua.png" class="moldura-sobreposicao" style="display:none;" alt="Moldura">
@@ -157,12 +154,10 @@
                 </div>
             </div>
 
-            <!-- CAMADA DE VÍDEO -->
             <div class="container-master escondido" id="camadaVideo">
                 <video id="videoPainel" class="modo-arte" src="" playsinline></video>
             </div>
 
-            <!-- CAMADA TEXTO -->
             <div class="container-master escondido" id="camadaTexto">
                 <div id="containerTexto">
                     <span class="aviso-label">Mural da Fundação</span>
@@ -180,18 +175,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
         import { getFirestore, collection, query, where, onSnapshot, doc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyB8ZK0jSY-1E9y90TLfznxi9PI8mf_bJuc",
-            authDomain: "festadafirmafcv.firebaseapp.com",
-            projectId: "festadafirmafcv",
-            storageBucket: "festadafirmafcv.firebasestorage.app",
-            messagingSenderId: "930815464098",
-            appId: "1:930815464098:web:890c2300a6e1a79abd3dfb"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-
+        // INICIAR TELA CHEIA E SOM
         document.getElementById('btnFullscreen').addEventListener('click', () => {
             const radio = document.getElementById('radioFCV');
             radio.play().catch(e => console.log("Erro no autoplay do áudio:", e));
@@ -316,6 +300,18 @@
         processarClima();
         setInterval(processarClima, 1800000); 
 
+        const firebaseConfig = {
+            apiKey: "AIzaSyB8ZK0jSY-1E9y90TLfznxi9PI8mf_bJuc",
+            authDomain: "festadafirmafcv.firebaseapp.com",
+            projectId: "festadafirmafcv",
+            storageBucket: "festadafirmafcv.firebasestorage.app",
+            messagingSenderId: "930815464098",
+            appId: "1:930815464098:web:890c2300a6e1a79abd3dfb"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
         let comunicadosAtivos = [];
         let fotosAprovadas = [];
         let indexCom = -1;
@@ -356,6 +352,7 @@
         const barraProgresso = document.getElementById('barraProgresso');
         const radioFCV = document.getElementById('radioFCV');
 
+        
         onSnapshot(query(collection(db, "fotos_criancas"), where("status", "==", "aprovado")), (snapshot) => {
             fotosAprovadas = [];
             snapshot.forEach(doc => fotosAprovadas.push(doc.data()));
@@ -363,6 +360,7 @@
 
             if (fotosAprovadas.length > 0) {
                 const ultimaFila = fotosAprovadas[fotosAprovadas.length - 1].numeroFila || 0;
+                
                 if (ultimaFila > maiorNumeroExibido && maiorNumeroExibido > 0) {
                     clearTimeout(window.timerFuraFila);
                     window.timerFuraFila = setTimeout(() => {
@@ -375,9 +373,11 @@
             }
         });
 
+        
         onSnapshot(collection(db, "comunicados_criancas"), (snapshot) => {
             comunicadosAtivos = [];
             snapshot.forEach(doc => comunicadosAtivos.push(doc.data()));
+            
             if (!loopRodando) {
                 loopRodando = true;
                 decidirProximo();
@@ -393,6 +393,7 @@
             }, 50);
         }
 
+        
         function decidirProximo() {
             clearTimeout(timerCarregamento);
             clearTimeout(timerTransicao);
@@ -462,6 +463,7 @@
             indexCom = (indexCom + 1) >= comunicadosAtivos.length ? 0 : (indexCom + 1);
             const com = comunicadosAtivos[indexCom];
 
+            
             if (com.tipo === 'video' || com.url_video) {
                 transicaoApagarTudo();
                 
@@ -476,12 +478,12 @@
                     timerExibicao = setTimeout(() => { 
                         videoPainel.pause(); 
                         videoPainel.src = ""; 
-                        radioFCV.play().catch(e => console.log("Retomando rádio", e)); 
+                        radioFCV.play().catch(e => console.log("Retomando radio", e)); 
                         decidirProximo(); 
                     }, 15000); 
                 }, 800);
                 
-            } else if (com.tipo === 'imagem' || com.url_imagem) {
+            } else if (com.tipo === 'imagem' || com.url_imagem) { 
                 const imgPreload = new Image();
                 timerCarregamento = setTimeout(() => { decidirProximo(); }, 8000); 
 
@@ -506,7 +508,7 @@
                 imgPreload.onerror = () => { clearTimeout(timerCarregamento); setTimeout(decidirProximo, 1000); };
                 imgPreload.src = com.url_imagem || com.url_thumb;
                 
-            } else {
+            } else { 
                 transicaoApagarTudo();
                 timerTransicao = setTimeout(() => {
                     textoDoComunicado.innerText = com.texto;
