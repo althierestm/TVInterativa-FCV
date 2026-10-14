@@ -9,6 +9,8 @@
     <link rel="apple-touch-icon" href="logo%20icon%20TV%20do%20Ponto%20FCV.png">
 
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+
     <style>
         body { font-family: 'Montserrat', sans-serif; background-color: #2c3e50; color: white; padding: 15px; text-align: center; margin: 0; }
         h1 { margin-top: 10px; font-size: 24px; color: #f1c40f; font-weight: 700; }
@@ -115,12 +117,31 @@
         .btn-texto { background: #3498db; color: white; padding: 10px; border: none; border-radius: 4px; font-weight: 600; cursor: pointer; font-size: 12px; font-family: 'Montserrat', sans-serif; }
         .btn-arte { background: #8e44ad; color: white; padding: 10px; border: none; border-radius: 4px; font-weight: 600; cursor: pointer; font-size: 12px; font-family: 'Montserrat', sans-serif; }
         .btn-enviar-arte { background: #f39c12; color: white; padding: 10px; border: none; border-radius: 4px; font-weight: 600; cursor: pointer; font-size: 12px; display: none; font-family: 'Montserrat', sans-serif; }
-        #msgUploadCom { font-size: 11px; color: #f1c40f; text-align: center; font-weight: bold; margin-top: 5px; }
 
         .lista-comunicados { max-width: 600px; margin: 0 auto; text-align: left; }
         .item-comunicado { background: #2c3e50; padding: 12px; border-radius: 6px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid #3498db; font-size: 13px; gap: 10px; }
-        .item-com-img { width: 40px; height: 40px; object-fit: cover; border-radius: 4px; cursor: pointer; background: #000; }
-        .btn-remover-com { width: auto; padding: 5px 10px; background: #e74c3c; margin: 0; font-size: 11px; border: none; border-radius: 4px; font-weight: 600; cursor: pointer; font-family: 'Montserrat', sans-serif; color: white; }
+        
+        .drag-handle { cursor: grab; font-size: 18px; color: #7f8c8d; padding: 0 5px; }
+        .drag-handle:active { cursor: grabbing; color: #f1c40f; }
+
+        .info-com { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .info-com strong { font-size: 13px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .info-com span { font-size: 10px; color: #bdc3c7; }
+        
+        .acoes-com { display: flex; align-items: center; gap: 8px; }
+        .ios-switch-sm { transform: scale(0.8); margin: 0; }
+        
+        .item-com-img { width: 35px; height: 35px; object-fit: cover; border-radius: 4px; cursor: pointer; background: #000; flex-shrink: 0; }
+        .btn-editar-com { width: auto; padding: 5px 8px; background: #f39c12; margin: 0; font-size: 10px; border: none; border-radius: 4px; font-weight: 600; cursor: pointer; font-family: 'Montserrat', sans-serif; color: white; }
+        .btn-remover-com { width: auto; padding: 5px 8px; background: #e74c3c; margin: 0; font-size: 10px; border: none; border-radius: 4px; font-weight: 600; cursor: pointer; font-family: 'Montserrat', sans-serif; color: white; }
+
+        #modalConfigCom { display: none; position: fixed; z-index: 10000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.85); align-items: center; justify-content: center; }
+        .config-box { background: #34495e; padding: 30px; border-radius: 12px; width: 320px; max-width: 90%; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .config-box h3 { color: #f1c40f; margin-top: 0; border-bottom: 1px solid #7f8c8d; padding-bottom: 10px; margin-bottom: 20px; font-size: 18px; }
+        .config-box label { font-size: 12px; color: #bdc3c7; display: block; text-align: left; margin-bottom: 5px; font-weight: bold; }
+        .config-box input { width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 6px; border: 1px solid #7f8c8d; background: #2c3e50; color: white; font-family: 'Montserrat', sans-serif; box-sizing: border-box; font-size: 13px; }
+        .btn-salvar-config { width: 100%; padding: 12px; background: #2ecc71; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-family: 'Montserrat', sans-serif; font-size: 14px; margin-bottom: 10px; }
+        .btn-cancelar-config { width: 100%; padding: 10px; background: #7f8c8d; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-family: 'Montserrat', sans-serif; font-size: 13px; }
 
         #modalVerFoto { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.95); align-items: center; justify-content: center; }
         #modalImg { max-width: 95%; max-height: 85vh; border-radius: 8px; object-fit: contain; }
@@ -172,6 +193,10 @@
             document.getElementById('modalVerFoto').style.display = 'none'; 
             document.getElementById('modalVid').pause();
         }
+
+        function fecharModalConfig() {
+            document.getElementById('modalConfigCom').style.display = 'none';
+        }
     </script>
 </head>
 <body>
@@ -182,6 +207,24 @@
             <input type="text" id="loginUser" placeholder="Usuário">
             <input type="password" id="loginPass" placeholder="Senha" onkeypress="if(event.key === 'Enter') verificarLogin();">
             <button id="btnEntrar" onclick="verificarLogin()">Acessar Moderação</button>
+        </div>
+    </div>
+
+    <div id="modalConfigCom">
+        <div class="config-box">
+            <h3 id="tituloModalConfig">Configurar Comunicado</h3>
+            
+            <label>Nome / Título:</label>
+            <input type="text" id="confNome" placeholder="Ex: Aviso Feriado (Interno)">
+            
+            <label>Exibir a partir de (Opcional):</label>
+            <input type="date" id="confInicio">
+            
+            <label>Exibir até dia (Opcional):</label>
+            <input type="date" id="confFim">
+            
+            <button class="btn-salvar-config" id="btnSalvarConfig">Salvar e Concluir</button>
+            <button class="btn-cancelar-config" onclick="fecharModalConfig()">Cancelar</button>
         </div>
     </div>
 
@@ -197,14 +240,13 @@
             <div class="col-com">
                 <span style="font-size: 12px; font-weight: bold; color: #3498db;">Recados em Texto</span>
                 <input type="text" id="inputComunicadoTxt" placeholder="Digite um recado curto...">
-                <button class="btn-texto" id="btnAddComTxt">Publicar Texto na TV</button>
+                <button class="btn-texto" id="btnAddComTxt">Configurar e Publicar</button>
             </div>
             <div class="col-com col-divisor">
                 <span style="font-size: 12px; font-weight: bold; color: #8e44ad;">Mídia (Imagem ou Vídeo MP4)</span>
                 <input type="file" id="inputComunicadoImg" accept="image/*,video/mp4,video/quicktime" style="display:none;">
                 <button class="btn-arte" id="btnSelectComImg">Escolher Arquivo</button>
-                <button class="btn-enviar-arte" id="btnUploadComImg">Enviar Mídia para TV</button>
-                <div id="msgUploadCom"></div>
+                <button class="btn-enviar-arte" id="btnUploadComImg">Configurar e Enviar Mídia</button>
             </div>
         </div>
         <div class="lista-comunicados" id="listaComunicados"></div>
@@ -217,8 +259,7 @@
         <div class="glass-panel">
             <div class="text-left">
                 <h3>Previsão do Tempo</h3>
-                <p>Exibida antes da lista de comunicados.</p>
-            </div>
+        </div>
             <label class="ios-switch">
                 <input type="checkbox" id="toggleClima" checked>
                 <span class="slider"></span>
@@ -227,7 +268,7 @@
         <div class="glass-panel">
             <div class="text-left">
                 <h3>Ação Dia das Crianças</h3>
-                <p>Ative para retomar com a ação</p>
+                <p>Retomar as fotos no ciclo da TV.</p>
             </div>
             <label class="ios-switch">
                 <input type="checkbox" id="toggleFotos">
@@ -331,33 +372,16 @@
                 let setorCru = foto.setor || "";
                 if (setorCru.trim() === "") setorCru = "Não Informado";
                 let setorNorm = setorCru.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9\s]/g, "");
-
-                if (!contagem[setorNorm]) {
-                    contagem[setorNorm] = { label: setorCru === "Não Informado" ? setorCru : setorCru.trim(), count: 0 };
-                }
+                if (!contagem[setorNorm]) contagem[setorNorm] = { label: setorCru === "Não Informado" ? setorCru : setorCru.trim(), count: 0 };
                 contagem[setorNorm].count++;
             });
             
             let ranking = Object.values(contagem).sort((a, b) => b.count - a.count);
             const divRanking = document.getElementById('rankingSetores');
-            if (ranking.length === 0) {
-                divRanking.innerHTML = "<span style='color:#7f8c8d; font-size:12px;'>Nenhum dado captado...</span>";
-                return;
-            }
+            if (ranking.length === 0) return divRanking.innerHTML = "<span style='color:#7f8c8d; font-size:12px;'>Nenhum dado captado...</span>";
             let html = "";
             ranking.forEach(item => { html += `<span class="badge-setor">${item.label} <b>${item.count}</b></span>`; });
             divRanking.innerHTML = html;
-        }
-
-        function atualizarVisualBotoesAprovar() {
-            const botoes = document.querySelectorAll('.btn-aprovar');
-            botoes.forEach(btn => {
-                if (bloqueioAprovacao) {
-                    btn.disabled = true; btn.style.backgroundColor = '#7f8c8d'; btn.style.cursor = 'not-allowed'; btn.innerText = "Aguarde...";
-                } else {
-                    btn.disabled = false; btn.style.backgroundColor = ''; btn.style.cursor = 'pointer'; btn.innerText = "Aprovar";
-                }
-            });
         }
 
         const renderizarCard = (dados, id, ehPendente) => {
@@ -372,8 +396,7 @@
                 `<button class="btn-ver" onclick="abrirModal('${dados.url_imagem}', false)">Ver</button>
                  <button class="btn-apagar" onclick="excluirFoto('${id}')">Remover</button>`;
 
-            const card = document.createElement('div');
-            card.className = 'card';
+            const card = document.createElement('div'); card.className = 'card';
             card.innerHTML = `
                 <div class="badge-numero">${numeroExibicao}</div>
                 <img src="${imagemLeve}" loading="lazy">
@@ -386,22 +409,18 @@
 
         onSnapshot(query(collection(db, "fotos_criancas"), where("status", "==", "pendente")), (snapshot) => {
             listaPendentes.innerHTML = ""; qtdPendentes = snapshot.size; atualizarContadores(); fotosGeralPendentes = [];
-            if (snapshot.empty) {
-                listaPendentes.innerHTML = "<p class='vazio'>Nenhuma foto pendente.</p>";
-            } else {
+            if (snapshot.empty) { listaPendentes.innerHTML = "<p class='vazio'>Nenhuma foto pendente.</p>"; } else {
                 let arrayPendentes = [];
                 snapshot.forEach(doc => { let d = doc.data(); arrayPendentes.push({ id: doc.id, ...d }); fotosGeralPendentes.push(d); });
                 arrayPendentes.sort((a, b) => (a.numeroFila || 0) - (b.numeroFila || 0));
                 arrayPendentes.forEach(dados => listaPendentes.appendChild(renderizarCard(dados, dados.id, true)));
             }
-            atualizarVisualBotoesAprovar(); calcularRanking(); 
+            calcularRanking(); 
         });
 
         onSnapshot(query(collection(db, "fotos_criancas"), where("status", "==", "aprovado")), (snapshot) => {
             listaAprovadas.innerHTML = ""; qtdAprovadas = snapshot.size; atualizarContadores(); fotosGeralAprovadas = [];
-            if (snapshot.empty) {
-                listaAprovadas.innerHTML = "<p class='vazio'>Galeria vazia.</p>";
-            } else {
+            if (snapshot.empty) { listaAprovadas.innerHTML = "<p class='vazio'>Galeria vazia.</p>"; } else {
                 let arrayAprovadas = [];
                 snapshot.forEach(doc => { let d = doc.data(); arrayAprovadas.push({ id: doc.id, ...d }); fotosGeralAprovadas.push(d); });
                 arrayAprovadas.sort((a, b) => (b.numeroFila || 0) - (a.numeroFila || 0));
@@ -411,31 +430,19 @@
         });
 
         window.atualizarStatus = async (id, status) => { 
-            if (status === 'aprovado') {
-                if (bloqueioAprovacao) return; 
-                bloqueioAprovacao = true; atualizarVisualBotoesAprovar(); 
-                setTimeout(() => { bloqueioAprovacao = false; atualizarVisualBotoesAprovar(); }, 10000); 
-            }
+            if (status === 'aprovado' && bloqueioAprovacao) return; 
+            if (status === 'aprovado') { bloqueioAprovacao = true; setTimeout(() => bloqueioAprovacao = false, 10000); }
             await updateDoc(doc(db, "fotos_criancas", id), { status }); 
         };
         
-        window.excluirFoto = async (id) => { 
-            if(confirm("ATENÇÃO: Tem certeza absoluta que deseja EXCLUIR esta foto? Esta ação não pode ser desfeita.")) {
-                await deleteDoc(doc(db, "fotos_criancas", id)); 
-            }
-        };
+        window.excluirFoto = async (id) => { if(confirm("ATENÇÃO: Deseja EXCLUIR esta foto?")) await deleteDoc(doc(db, "fotos_criancas", id)); };
 
+
+       
         let arteSelecionada = null;
-        
-        document.getElementById('btnAddComTxt').addEventListener('click', async () => {
-            const input = document.getElementById('inputComunicadoTxt');
-            if(input.value.trim() === "") return;
-            await addDoc(collection(db, "comunicados_criancas"), { tipo: 'texto', texto: input.value, timestamp: serverTimestamp() });
-            input.value = "";
-        });
+        let acaoUpload = null; 
 
         document.getElementById('btnSelectComImg').addEventListener('click', () => { document.getElementById('inputComunicadoImg').click(); });
-        
         document.getElementById('inputComunicadoImg').addEventListener('change', (e) => {
             if(e.target.files[0]) {
                 arteSelecionada = e.target.files[0];
@@ -444,91 +451,164 @@
             }
         });
 
-        document.getElementById('btnUploadComImg').addEventListener('click', async () => {
-            if(!arteSelecionada) return;
-            const msg = document.getElementById('msgUploadCom');
-            const btnUpload = document.getElementById('btnUploadComImg');
+        document.getElementById('btnAddComTxt').addEventListener('click', () => {
+            const txt = document.getElementById('inputComunicadoTxt').value.trim();
+            if(!txt) return alert("Digite um recado primeiro.");
             
-            msg.innerText = "A enviar arquivo..."; btnUpload.disabled = true;
+            document.getElementById('confNome').value = txt.substring(0, 20) + "..."; 
+            document.getElementById('confInicio').value = ""; document.getElementById('confFim').value = "";
+            acaoUpload = { tipo: 'texto', texto: txt };
+            document.getElementById('modalConfigCom').style.display = 'flex';
+        });
+
+        document.getElementById('btnUploadComImg').addEventListener('click', () => {
+            if(!arteSelecionada) return;
+            document.getElementById('confNome').value = arteSelecionada.name; 
+            document.getElementById('confInicio').value = ""; document.getElementById('confFim').value = "";
+            acaoUpload = { tipo: 'midia', file: arteSelecionada };
+            document.getElementById('modalConfigCom').style.display = 'flex';
+        });
+
+        document.getElementById('btnSalvarConfig').addEventListener('click', async () => {
+            const btn = document.getElementById('btnSalvarConfig');
+            const nome = document.getElementById('confNome').value.trim() || "Comunicado sem título";
+            const data_inicio = document.getElementById('confInicio').value; 
+            const data_fim = document.getElementById('confFim').value;
+            const timestamp = Date.now(); 
+
+            btn.innerText = "A processar..."; btn.disabled = true;
 
             try {
-                if (arteSelecionada.type.startsWith('video/')) {
-                    const CLOUD_NAME = "gd3fxkx6";
-                    const UPLOAD_PRESET = "soejqtfk";  
-                    if(CLOUD_NAME === "COLOQUE_AQUI_O_SEU_CLOUD_NAME") {
-                        alert("Por favor, configure o Cloud Name e o Preset do Cloudinary no código do admin.html!");
-                        btnUpload.disabled = false;
-                        msg.innerText = "Erro de configuração.";
-                        return;
+                if(acaoUpload.tipo === 'editar') {
+                    await updateDoc(doc(db, "comunicados_criancas", acaoUpload.id), {
+                        nome: nome, data_inicio: data_inicio, data_fim: data_fim
+                    });
+
+                } else if(acaoUpload.tipo === 'texto') {
+                    await addDoc(collection(db, "comunicados_criancas"), {
+                        tipo: 'texto', texto: acaoUpload.texto, nome: nome, data_inicio: data_inicio, data_fim: data_fim,
+                        ativo: true, ordem: timestamp, timestamp: serverTimestamp()
+                    });
+                    document.getElementById('inputComunicadoTxt').value = "";
+
+                } else if(acaoUpload.tipo === 'midia') {
+                    if (acaoUpload.file.type.startsWith('video/')) {
+                        const CLOUD_NAME = "gd3fxkx6";
+                        const UPLOAD_PRESET = "soejqtfk";  
+                        const formData = new FormData();
+                        formData.append("file", acaoUpload.file); formData.append("upload_preset", UPLOAD_PRESET);
+                        const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/video/upload`, { method: 'POST', body: formData });
+                        const dados = await res.json();
+                        if (!dados.secure_url) throw new Error("Falha no upload do vídeo");
+
+                        await addDoc(collection(db, "comunicados_criancas"), {
+                            tipo: 'video', url_video: dados.secure_url, nome: nome, data_inicio: data_inicio, data_fim: data_fim,
+                            ativo: true, ordem: timestamp, timestamp: serverTimestamp()
+                        });
+                    } else {
+                        const formData = new FormData(); formData.append("image", acaoUpload.file);
+                        const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: 'POST', body: formData });
+                        const dados = await res.json();
+                        
+                        await addDoc(collection(db, "comunicados_criancas"), {
+                            tipo: 'imagem', url_imagem: dados.data.url, url_thumb: dados.data.thumb.url, nome: nome, data_inicio: data_inicio, data_fim: data_fim,
+                            ativo: true, ordem: timestamp, timestamp: serverTimestamp()
+                        });
                     }
-
-                    const formData = new FormData();
-                    formData.append("file", arteSelecionada);
-                    formData.append("upload_preset", UPLOAD_PRESET);
-
-                    const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/video/upload`, {
-                        method: 'POST',
-                        body: formData
-                    });
-                    const dados = await res.json();
-
-                    if (!dados.secure_url) throw new Error("Falha no upload do vídeo");
-
-                    await addDoc(collection(db, "comunicados_criancas"), {
-                        tipo: 'video', url_video: dados.secure_url, timestamp: serverTimestamp()
-                    });
-
-                } else {
-                    const formData = new FormData(); formData.append("image", arteSelecionada);
-                    const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: 'POST', body: formData });
-                    const dados = await res.json();
-                    
-                    await addDoc(collection(db, "comunicados_criancas"), {
-                        tipo: 'imagem', url_imagem: dados.data.url, url_thumb: dados.data.thumb.url, timestamp: serverTimestamp()
-                    });
+                    document.getElementById('btnSelectComImg').innerText = "Escolher Arquivo";
+                    document.getElementById('btnUploadComImg').style.display = "none";
+                    arteSelecionada = null;
                 }
 
-                msg.innerText = "Mídia publicada!"; document.getElementById('btnSelectComImg').innerText = "Escolher Arquivo";
-                btnUpload.style.display = "none"; arteSelecionada = null; setTimeout(() => msg.innerText = "", 3000);
+                document.getElementById('modalConfigCom').style.display = 'none';
             } catch(e) {
-                console.error(e);
-                msg.innerText = "Erro ao enviar.";
+                alert("Erro ao enviar: " + e.message);
             } finally {
-                btnUpload.disabled = false;
+                btn.innerText = "Salvar e Concluir"; btn.disabled = false;
             }
         });
 
         onSnapshot(collection(db, "comunicados_criancas"), (snapshot) => {
             listaComunicados.innerHTML = "";
-            if(snapshot.empty) return listaComunicados.innerHTML = "<p class='vazio' style='text-align:center;'>Nenhum comunicado ativo.</p>";
+            let arrayComs = [];
+            snapshot.forEach(docSnap => arrayComs.push({ id: docSnap.id, ...docSnap.data() }));
             
-            snapshot.forEach(docSnap => {
-                const dados = docSnap.data();
-                const div = document.createElement('div'); div.className = 'item-comunicado';
+            arrayComs.sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
+
+            if(arrayComs.length === 0) return listaComunicados.innerHTML = "<p class='vazio' style='text-align:center;'>Nenhum comunicado ativo.</p>";
+            
+            arrayComs.forEach(dados => {
+                const div = document.createElement('div'); 
+                div.className = 'item-comunicado';
+                div.setAttribute('data-id', dados.id);
                 
-                let conteudo = "";
+                let midiaHtml = "";
                 if(dados.tipo === 'video' || dados.url_video) {
-                    conteudo = `<div style="display:flex; align-items:center; gap:10px;">
-                                    <div class="item-com-img" onclick="abrirModal('${dados.url_video}', true)" style="display:flex; justify-content:center; align-items:center;">
-                                        <svg width="20" height="20" stroke="#fff" viewBox="0 0 24 24" fill="none"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-                                    </div>
-                                    <span>[VÍDEO MP4]</span>
-                                </div>`;
+                    midiaHtml = `<div class="item-com-img" onclick="abrirModal('${dados.url_video}', true)" style="display:flex; justify-content:center; align-items:center;"><svg width="15" height="15" stroke="#fff" viewBox="0 0 24 24" fill="none"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg></div>`;
                 } else if(dados.tipo === 'imagem' || dados.url_imagem) {
-                    conteudo = `<div style="display:flex; align-items:center; gap:10px;">
-                                    <img src="${dados.url_thumb || dados.url_imagem}" class="item-com-img" onclick="abrirModal('${dados.url_imagem}', false)">
-                                    <span>[ARTE VISUAL]</span>
-                                </div>`;
+                    midiaHtml = `<img src="${dados.url_thumb || dados.url_imagem}" class="item-com-img" onclick="abrirModal('${dados.url_imagem}', false)">`;
                 } else {
-                    conteudo = `<span>${dados.texto}</span>`;
+                    midiaHtml = `<div class="item-com-img" style="background:#3498db; display:flex; justify-content:center; align-items:center;"><svg width="15" height="15" stroke="#fff" viewBox="0 0 24 24" fill="none"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg></div>`;
                 }
 
-                div.innerHTML = `${conteudo}<button class="btn-remover-com" onclick="excluirComunicado('${docSnap.id}')">Excluir</button>`;
+                let periodo = "Sempre visível";
+                if(dados.data_inicio && dados.data_fim) periodo = `${dados.data_inicio.split('-').reverse().join('/')} até ${dados.data_fim.split('-').reverse().join('/')}`;
+                else if(dados.data_inicio) periodo = `A partir de ${dados.data_inicio.split('-').reverse().join('/')}`;
+                else if(dados.data_fim) periodo = `Até ${dados.data_fim.split('-').reverse().join('/')}`;
+
+                const ativoChecked = dados.ativo !== false ? 'checked' : ''; 
+
+                div.innerHTML = `
+                    <div style="display:flex; align-items:center; flex:1; gap:10px; overflow:hidden;">
+                        <span class="drag-handle" title="Arrastar para reordenar">☰</span>
+                        ${midiaHtml}
+                        <div class="info-com">
+                            <strong>${dados.nome || 'Comunicado Antigo'}</strong>
+                            <span>📅 ${periodo}</span>
+                        </div>
+                    </div>
+                    <div class="acoes-com">
+                        <label class="ios-switch ios-switch-sm" title="Ligar/Desligar na TV">
+                            <input type="checkbox" onchange="alterarAtivoCom('${dados.id}', this.checked)" ${ativoChecked}>
+                            <span class="slider"></span>
+                        </label>
+                        <button class="btn-editar-com" onclick="editarComunicado('${dados.id}', '${dados.nome || ''}', '${dados.data_inicio || ''}', '${dados.data_fim || ''}')">Editar</button>
+                        <button class="btn-remover-com" onclick="excluirComunicado('${dados.id}')">Excluir</button>
+                    </div>
+                `;
                 listaComunicados.appendChild(div);
+            });
+
+            new Sortable(listaComunicados, {
+                animation: 150,
+                handle: '.drag-handle',
+                onEnd: async function () {
+                    const items = document.querySelectorAll('.item-comunicado');
+                    const promessas = [];
+                    items.forEach((item, index) => {
+                        const id = item.getAttribute('data-id');
+                        promessas.push(updateDoc(doc(db, "comunicados_criancas", id), { ordem: index }));
+                    });
+                    await Promise.all(promessas);
+                }
             });
         });
 
-        window.excluirComunicado = async (id) => { await deleteDoc(doc(db, "comunicados_criancas", id)); };
+        window.alterarAtivoCom = async (id, estado) => {
+            await updateDoc(doc(db, "comunicados_criancas", id), { ativo: estado });
+        };
+
+        window.editarComunicado = (id, nome, inicio, fim) => {
+            document.getElementById('confNome').value = nome !== 'undefined' ? nome : '';
+            document.getElementById('confInicio').value = inicio !== 'undefined' ? inicio : '';
+            document.getElementById('confFim').value = fim !== 'undefined' ? fim : '';
+            acaoUpload = { tipo: 'editar', id: id };
+            document.getElementById('modalConfigCom').style.display = 'flex';
+        };
+
+        window.excluirComunicado = async (id) => { 
+            if(confirm("Apagar comunicado?")) await deleteDoc(doc(db, "comunicados_criancas", id)); 
+        };
     </script>
 </body>
 </html>
