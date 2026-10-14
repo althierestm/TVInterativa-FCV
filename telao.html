@@ -155,10 +155,9 @@
             </div>
 
             <div class="container-master escondido" id="camadaVideo">
-                <video id="videoPainel" class="modo-arte" src="" playsinline></video>
+                <video id="videoPainel" class="modo-arte" src="" playsinline muted></video>
             </div>
 
-            <!-- CAMADA TEXTO -->
             <div class="container-master escondido" id="camadaTexto">
                 <div id="containerTexto">
                     <span class="aviso-label">Mural da Fundação</span>
@@ -371,9 +370,28 @@
             }
         });
 
+       
         onSnapshot(collection(db, "comunicados_criancas"), (snapshot) => {
             comunicadosAtivos = [];
-            snapshot.forEach(doc => comunicadosAtivos.push(doc.data()));
+            
+            
+            const hojeISO = new Date().toLocaleDateString('en-CA'); 
+
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                
+               
+                if (data.ativo === false) return; 
+
+                
+                if (data.data_inicio && hojeISO < data.data_inicio) return; 
+                if (data.data_fim && hojeISO > data.data_fim) return;       
+                
+                comunicadosAtivos.push(data);
+            });
+
+            comunicadosAtivos.sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
+
             if (!loopRodando) {
                 loopRodando = true;
                 decidirProximo();
@@ -467,14 +485,12 @@
                     camadaVideo.classList.remove('escondido'); camadaVideo.classList.add('visivel');
                     relogioTV.classList.remove('escondido'); relogioTV.classList.add('visivel');
                     
-                    radioFCV.pause(); 
                     videoPainel.play().catch(e => console.log("Erro video", e));
                     
                     animarBarra(15000); 
                     timerExibicao = setTimeout(() => { 
                         videoPainel.pause(); 
                         videoPainel.src = ""; 
-                        radioFCV.play().catch(e => console.log("Retomando radio", e)); 
                         decidirProximo(); 
                     }, 15000); 
                 }, 800);
