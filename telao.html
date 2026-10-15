@@ -46,20 +46,27 @@
             border-radius: 12px; color: #224387; 
             padding: 10px 25px; text-align: center;
             font-size: 32px; font-weight: 700; letter-spacing: 2px;
-            transition: opacity 0.8s ease-in-out, transform 0.8s ease-in-out; 
             z-index: 9990; pointer-events: none;
         }
+
+        body[data-transicao="fade"] .container-master { transition: opacity 0.8s ease; }
+        body[data-transicao="fade"] .escondido { opacity: 0; pointer-events: none; }
+        body[data-transicao="fade"] .visivel { opacity: 1; pointer-events: auto; }
+
+        body[data-transicao="slide"] .container-master { transition: transform 0.8s ease-in-out, opacity 0.8s ease-in-out; }
+        body[data-transicao="slide"] .escondido { transform: translateX(100%); opacity: 0; pointer-events: none; }
+        body[data-transicao="slide"] .visivel { transform: translateX(0); opacity: 1; pointer-events: auto; }
+
+        body[data-transicao="zoom"] .container-master { transition: transform 0.8s ease-in-out, opacity 0.8s ease-in-out; }
+        body[data-transicao="zoom"] .escondido { transform: scale(0.9); opacity: 0; pointer-events: none; }
+        body[data-transicao="zoom"] .visivel { transform: scale(1); opacity: 1; pointer-events: auto; }
 
         .container-master { 
             width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; 
             position: absolute; top:0; left:0; 
-            transition: opacity 0.8s ease-in-out, transform 0.8s ease-in-out; 
         }
 
         .moldura-sobreposicao { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 5; pointer-events: none; }
-
-        .escondido { opacity: 0; pointer-events: none; transform: scale(1.02); }
-        .visivel { opacity: 1; pointer-events: auto; transform: scale(1); }
 
         #imgPainel { width: 100%; height: 100%; object-fit: contain; position: relative; z-index: 2; }
         .modo-arte { object-fit: cover !important; }
@@ -95,25 +102,15 @@
         .cidade-clima { font-size: 45px; font-weight: 600; margin: 0; color: #fff; letter-spacing: 1px;}
         .sub-clima { font-size: 22px; font-weight: 300; color: #bdc3c7; margin-top: 5px; }
         
-        .grid-clima {
-            display: grid; grid-template-columns: repeat(7, 1fr); gap: 20px;
-            width: 90%; max-width: 1750px; z-index: 2; margin-top: 90px;
-        }
-        .card-dia {
-            background: rgba(255, 255, 255, 0.07); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
-            border-radius: 24px; padding: 30px 15px; border: 1px solid rgba(255, 255, 255, 0.15);
-            box-shadow: 0 15px 35px rgba(0,0,0,0.2); text-align: center; display: flex; flex-direction: column; align-items: center;
-        }
+        .grid-clima { display: grid; grid-template-columns: repeat(7, 1fr); gap: 20px; width: 90%; max-width: 1750px; z-index: 2; margin-top: 90px; }
+        .card-dia { background: rgba(255, 255, 255, 0.07); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); border-radius: 24px; padding: 30px 15px; border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 15px 35px rgba(0,0,0,0.2); text-align: center; display: flex; flex-direction: column; align-items: center; }
         .dia-titulo { font-size: 32px; font-weight: 600; color: #fff; margin-bottom: 25px; }
         .dia-hoje { color: #3498db; }
-        
         .icone-principal svg { width: 100px; height: 100px; margin-bottom: 20px;}
         .temp-principal { font-size: 70px; font-weight: 300; line-height: 1; margin-bottom: 10px; }
         .desc-principal { font-size: 16px; font-weight: 600; color: #bdc3c7; height: 40px; margin-bottom: 20px; }
-        
         .maxmin { font-size: 22px; font-weight: 600; display: flex; gap: 15px; margin-bottom: 30px; }
         .t-max { color: #e74c3c; } .t-min { color: #3498db; }
-        
         .turnos-container { display: flex; justify-content: space-around; width: 100%; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px; }
         .turno { display: flex; flex-direction: column; align-items: center; gap: 8px; }
         .turno-nome { font-size: 14px; font-weight: 600; color: #bdc3c7; text-transform: uppercase; }
@@ -121,7 +118,7 @@
         .turno-temp { font-size: 18px; font-weight: 600; }
     </style>
 </head>
-<body>
+<body data-transicao="fade">
 
     <audio id="radioFCV" src="https://stm17.srvstm.com:6944/stream" preload="none" crossorigin="anonymous"></audio>
 
@@ -131,7 +128,7 @@
         <div class="tv-scale-box" id="tvScaleBox">
             
             <img src="MKTFCV.png" class="marca-dagua" alt="MKT FCV">
-            <div id="relogioTV" class="escondido">--:--</div>
+            <div id="relogioTV">--:--</div>
 
             <div id="aguardando">Aguardando informações da rede...</div>
 
@@ -141,8 +138,7 @@
                     <h1 class="cidade-clima">Previsão do Tempo - Muriaé, MG</h1>
                     <div class="sub-clima">Fonte: Satélite Open-Meteo</div>
                 </div>
-                <div class="grid-clima" id="gridClima">
-                </div>
+                <div class="grid-clima" id="gridClima"></div>
             </div>
 
             <div class="container-master escondido" id="camadaImagem">
@@ -189,12 +185,32 @@
 
         document.getElementById('btnFullscreen').addEventListener('click', () => {
             const radio = document.getElementById('radioFCV');
-            radio.play().catch(e => console.log("Erro no autoplay do áudio:", e));
+            radio.play().catch(e => console.log(e));
             
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen().catch(err => console.log(err));
                 document.getElementById('btnFullscreen').style.display = 'none'; 
             }
+        });
+
+        setInterval(() => {
+            const radio = document.getElementById('radioFCV');
+            if (document.fullscreenElement) {
+                radio.src = "https://stm17.srvstm.com:6944/stream?" + new Date().getTime();
+                radio.load();
+                radio.play().catch(e => console.log(e));
+            }
+        }, 3600000);
+
+        document.getElementById('radioFCV').addEventListener('error', () => {
+            setTimeout(() => {
+                const radio = document.getElementById('radioFCV');
+                if (document.fullscreenElement) {
+                    radio.src = "https://stm17.srvstm.com:6944/stream?" + new Date().getTime();
+                    radio.load();
+                    radio.play().catch(e => console.log(e));
+                }
+            }, 5000);
         });
 
         function ajustarEscala() {
@@ -303,7 +319,7 @@
                 document.getElementById('gridClima').innerHTML = gridHtml;
                 dadosClimaProntos = true;
             } catch (e) {
-                console.log("Erro Clima:", e);
+                console.log(e);
                 dadosClimaProntos = false;
             }
         }
@@ -325,7 +341,6 @@
         let maiorNumeroExibido = parseInt(localStorage.getItem('fcv_maior')) || 0;
 
         let timerCarregamento = null;
-        let timerTransicao = null;
         let timerExibicao = null;
 
         onSnapshot(doc(db, "controle_tv", "status_clima"), (docSnap) => {
@@ -333,6 +348,13 @@
         });
         onSnapshot(doc(db, "controle_tv", "status"), (docSnap) => {
             if(docSnap.exists()) mostrarFotosNaTV = docSnap.data().mostrar_fotos;
+        });
+        onSnapshot(doc(db, "controle_tv", "status_transicao"), (docSnap) => {
+            if(docSnap.exists() && docSnap.data().efeito) {
+                document.body.setAttribute('data-transicao', docSnap.data().efeito);
+            } else {
+                document.body.setAttribute('data-transicao', 'fade');
+            }
         });
 
         const camadaClima = document.getElementById('camadaClima');
@@ -349,7 +371,6 @@
         const aguardando = document.getElementById('aguardando');
         const numDiscreto = document.getElementById('numeroDiscreto');
         const barraProgresso = document.getElementById('barraProgresso');
-        const radioFCV = document.getElementById('radioFCV');
 
         onSnapshot(query(collection(db, "fotos_criancas"), where("status", "==", "aprovado")), (snapshot) => {
             fotosAprovadas = [];
@@ -369,21 +390,14 @@
                 }
             }
         });
-
        
         onSnapshot(collection(db, "comunicados_criancas"), (snapshot) => {
             comunicadosAtivos = [];
-            
-            
             const hojeISO = new Date().toLocaleDateString('en-CA'); 
 
             snapshot.forEach(doc => {
                 const data = doc.data();
-                
-               
                 if (data.ativo === false) return; 
-
-                
                 if (data.data_inicio && hojeISO < data.data_inicio) return; 
                 if (data.data_fim && hojeISO > data.data_fim) return;       
                 
@@ -407,9 +421,32 @@
             }, 50);
         }
 
+        function transitarPara(novaCamada) {
+            const camadas = [camadaClima, camadaImagem, camadaVideo, camadaTexto];
+            camadas.forEach(c => {
+                if (c === novaCamada) {
+                    c.classList.remove('escondido');
+                    c.classList.add('visivel');
+                    c.style.zIndex = "2";
+                } else {
+                    if (c.classList.contains('visivel')) {
+                        c.classList.remove('visivel');
+                        c.classList.add('escondido');
+                        c.style.zIndex = "1";
+                        if (c === camadaVideo) {
+                            setTimeout(() => { videoPainel.pause(); videoPainel.src = ""; }, 800);
+                        }
+                    }
+                }
+            });
+            if (novaCamada !== camadaImagem) {
+                numDiscreto.style.opacity = 0;
+            }
+            aguardando.style.display = "none";
+        }
+
         function decidirProximo() {
             clearTimeout(timerCarregamento);
-            clearTimeout(timerTransicao);
             clearTimeout(timerExibicao);
 
             let temComs = comunicadosAtivos.length > 0;
@@ -418,12 +455,10 @@
 
             if (!podeExibirClima && !temComs && !temFotos) {
                 aguardando.style.display = "block";
-                transicaoApagarTudo();
+                transitarPara(null);
                 setTimeout(decidirProximo, 2000); 
                 return;
             }
-
-            aguardando.style.display = "none";
 
             if (proximaAcao === 'CLIMA') {
                 if (podeExibirClima) {
@@ -463,14 +498,9 @@
         }
 
         function renderizarClima() {
-            transicaoApagarTudo();
-            timerTransicao = setTimeout(() => {
-                camadaClima.classList.remove('escondido'); camadaClima.classList.add('visivel');
-                relogioTV.classList.remove('escondido'); relogioTV.classList.add('visivel');
-                
-                animarBarra(15000); 
-                timerExibicao = setTimeout(decidirProximo, 15000); 
-            }, 800);
+            transitarPara(camadaClima);
+            animarBarra(15000); 
+            timerExibicao = setTimeout(decidirProximo, 15000); 
         }
 
         function renderizarComunicado() {
@@ -478,59 +508,33 @@
             const com = comunicadosAtivos[indexCom];
 
             if (com.tipo === 'video' || com.url_video) {
-                transicaoApagarTudo();
-                
-                timerTransicao = setTimeout(() => {
-                    videoPainel.src = com.url_video;
-                    camadaVideo.classList.remove('escondido'); camadaVideo.classList.add('visivel');
-                    relogioTV.classList.remove('escondido'); relogioTV.classList.add('visivel');
-                    
-                    videoPainel.play().catch(e => console.log("Erro video", e));
-                    
-                    animarBarra(15000); 
-                    timerExibicao = setTimeout(() => { 
-                        videoPainel.pause(); 
-                        videoPainel.src = ""; 
-                        decidirProximo(); 
-                    }, 15000); 
-                }, 800);
-                
+                videoPainel.src = com.url_video;
+                videoPainel.play().catch(e => console.log(e));
+                transitarPara(camadaVideo);
+                animarBarra(15000); 
+                timerExibicao = setTimeout(() => { decidirProximo(); }, 15000); 
             } else if (com.tipo === 'imagem' || com.url_imagem) { 
                 const imgPreload = new Image();
                 timerCarregamento = setTimeout(() => { decidirProximo(); }, 8000); 
 
                 imgPreload.onload = () => {
                     clearTimeout(timerCarregamento);
-                    transicaoApagarTudo();
-                    
-                    timerTransicao = setTimeout(() => {
-                        imgPainel.classList.add('modo-arte'); 
-                        imgPainel.src = com.url_imagem || com.url_thumb;
-                        
-                        molduraFoto.style.display = 'none';
-                        nomePainel.style.display = 'none';
-                        numDiscreto.style.opacity = 0;
-
-                        camadaImagem.classList.remove('escondido'); camadaImagem.classList.add('visivel');
-                        relogioTV.classList.remove('escondido'); relogioTV.classList.add('visivel');
-                        
-                        animarBarra(15000); 
-                        timerExibicao = setTimeout(() => { decidirProximo(); }, 15000); 
-                    }, 800);
+                    imgPainel.classList.add('modo-arte'); 
+                    imgPainel.src = com.url_imagem || com.url_thumb;
+                    molduraFoto.style.display = 'none';
+                    nomePainel.style.display = 'none';
+                    numDiscreto.style.opacity = 0;
+                    transitarPara(camadaImagem);
+                    animarBarra(15000); 
+                    timerExibicao = setTimeout(() => { decidirProximo(); }, 15000); 
                 };
                 imgPreload.onerror = () => { clearTimeout(timerCarregamento); setTimeout(decidirProximo, 1000); };
                 imgPreload.src = com.url_imagem || com.url_thumb;
-                
             } else { 
-                transicaoApagarTudo();
-                timerTransicao = setTimeout(() => {
-                    textoDoComunicado.innerText = com.texto;
-                    camadaTexto.classList.remove('escondido'); camadaTexto.classList.add('visivel');
-                    relogioTV.classList.remove('escondido'); relogioTV.classList.add('visivel');
-                    
-                    animarBarra(15000); 
-                    timerExibicao = setTimeout(decidirProximo, 15000); 
-                }, 800);
+                textoDoComunicado.innerText = com.texto;
+                transitarPara(camadaTexto);
+                animarBarra(15000); 
+                timerExibicao = setTimeout(decidirProximo, 15000); 
             }
         }
 
@@ -548,45 +552,29 @@
             
             imgPreload.onload = () => {
                 clearTimeout(timerCarregamento); 
-                transicaoApagarTudo();
+                fotosExibidasNoCiclo++; localStorage.setItem('fcv_ciclo', fotosExibidasNoCiclo);
 
-                timerTransicao = setTimeout(() => {
-                    fotosExibidasNoCiclo++; localStorage.setItem('fcv_ciclo', fotosExibidasNoCiclo);
+                imgPainel.classList.remove('modo-arte'); 
+                imgPainel.src = fotoDaVez.url_imagem || fotoDaVez.url_thumb;
+                
+                numDiscreto.innerText = fotoDaVez.numeroFila ? `#${fotoDaVez.numeroFila}` : "";
+                numDiscreto.style.opacity = 1;
+                molduraFoto.style.display = 'block';
 
-                    imgPainel.classList.remove('modo-arte'); 
-                    imgPainel.src = fotoDaVez.url_imagem || fotoDaVez.url_thumb;
-                    
-                    numDiscreto.innerText = fotoDaVez.numeroFila ? `#${fotoDaVez.numeroFila}` : "";
-                    numDiscreto.style.opacity = 1;
-                    molduraFoto.style.display = 'block';
+                if(fotoDaVez.nome === "Não Informado" && !fotoDaVez.setor) {
+                    nomePainel.style.display = 'none';
+                } else {
+                    nomePainel.style.display = 'block';
+                    lblNome.innerText = fotoDaVez.nome;
+                    lblSetor.innerText = fotoDaVez.setor ? fotoDaVez.setor : "";
+                }
 
-                    if(fotoDaVez.nome === "Não Informado" && !fotoDaVez.setor) {
-                        nomePainel.style.display = 'none';
-                    } else {
-                        nomePainel.style.display = 'block';
-                        lblNome.innerText = fotoDaVez.nome;
-                        lblSetor.innerText = fotoDaVez.setor ? fotoDaVez.setor : "";
-                    }
-
-                    camadaImagem.classList.remove('escondido'); camadaImagem.classList.add('visivel');
-                    relogioTV.classList.remove('escondido'); relogioTV.classList.add('visivel');
-
-                    animarBarra(7000); 
-                    timerExibicao = setTimeout(() => { decidirProximo(); }, 7000);
-                }, 800); 
+                transitarPara(camadaImagem);
+                animarBarra(7000); 
+                timerExibicao = setTimeout(() => { decidirProximo(); }, 7000);
             };
             imgPreload.onerror = () => { clearTimeout(timerCarregamento); setTimeout(decidirProximo, 1000); };
             imgPreload.src = fotoDaVez.url_imagem || fotoDaVez.url_thumb;
-        }
-
-        function transicaoApagarTudo() {
-            camadaImagem.classList.remove('visivel'); camadaImagem.classList.add('escondido');
-            camadaTexto.classList.remove('visivel'); camadaTexto.classList.add('escondido');
-            camadaClima.classList.remove('visivel'); camadaClima.classList.add('escondido');
-            camadaVideo.classList.remove('visivel'); camadaVideo.classList.add('escondido');
-            numDiscreto.style.opacity = 0;
-            videoPainel.pause();
-            videoPainel.src = "";
         }
     </script>
 </body>
