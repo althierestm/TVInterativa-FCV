@@ -4,10 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Moderação TV FCV</title>
-
     <link rel="icon" href="logo%20icon%20TV%20do%20Ponto%20FCV.png" type="image/png">
     <link rel="apple-touch-icon" href="logo%20icon%20TV%20do%20Ponto%20FCV.png">
-
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
 
@@ -15,88 +13,47 @@
         body { font-family: 'Montserrat', sans-serif; background-color: #2c3e50; color: white; padding: 15px; text-align: center; margin: 0; }
         h1 { margin-top: 10px; font-size: 24px; color: #f1c40f; font-weight: 700; }
         p { font-size: 14px; color: #ecf0f1; margin-bottom: 20px; }
-        
         button, input { touch-action: manipulation; } 
-
-        #loginOverlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #2c3e50; z-index: 9999; display: flex; flex-direction: column;
-            justify-content: center; align-items: center;
-        }
-        .login-box {
-            background: #34495e; padding: 40px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            width: 300px; max-width: 90%;
-        }
+        #loginOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #2c3e50; z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .login-box { background: #34495e; padding: 40px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); width: 300px; max-width: 90%; }
         .login-box h2 { color: #f1c40f; margin-bottom: 25px; margin-top: 0; border: none; font-size: 22px; }
-        .login-box input {
-            width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 6px; border: 1px solid #7f8c8d;
-            background: #2c3e50; color: white; font-family: 'Montserrat', sans-serif; box-sizing: border-box; font-size: 14px;
-        }
-        .login-box button {
-            width: 100%; padding: 12px; background: #3498db; color: white; border: none; border-radius: 6px;
-            font-weight: bold; cursor: pointer; font-family: 'Montserrat', sans-serif; font-size: 15px; transition: 0.2s;
-        }
+        .login-box input { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 6px; border: 1px solid #7f8c8d; background: #2c3e50; color: white; font-family: 'Montserrat', sans-serif; box-sizing: border-box; font-size: 14px; }
+        .login-box button { width: 100%; padding: 12px; background: #3498db; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-family: 'Montserrat', sans-serif; font-size: 15px; transition: 0.2s; }
         .login-box button:hover { background: #2980b9; }
-
         #painelPrincipal { display: none; }
-        
-        .painel-estatisticas {
-            background: #34495e; padding: 15px 20px; border-radius: 8px; display: flex; 
-            flex-direction: column; align-items: center; margin: 0 auto 25px auto; 
-            max-width: 600px; font-size: 14px; box-shadow: 0 4px 6px rgba(0,0,0,0.2);
-        }
+        .painel-estatisticas { background: #34495e; padding: 15px 20px; border-radius: 8px; display: flex; flex-direction: column; align-items: center; margin: 0 auto 25px auto; max-width: 600px; font-size: 14px; box-shadow: 0 4px 6px rgba(0,0,0,0.2); }
         .estatisticas-linha { display: flex; justify-content: center; flex-wrap: wrap; gap: 20px; width: 100%; }
         .estatisticas-linha span { font-weight: bold; }
         .contador-total { color: #ecf0f1; }
         .contador-pendentes { color: #f1c40f; }
         .contador-aprovadas { color: #2ecc71; }
-
         .ranking-container { width: 100%; border-top: 1px dashed #7f8c8d; margin-top: 15px; padding-top: 5px; }
-        .accordion-header {
-            display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer;
-            font-size: 11px; color: #bdc3c7; text-transform: uppercase; letter-spacing: 1px; font-weight: 600;
-            padding: 8px; transition: color 0.3s;
-        }
+        .accordion-header { display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; font-size: 11px; color: #bdc3c7; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; padding: 8px; transition: color 0.3s; }
         .accordion-header:hover { color: #f1c40f; }
         .accordion-header svg { transition: transform 0.3s ease; }
         .accordion-content { display: none; justify-content: center; flex-wrap: wrap; gap: 8px; margin-top: 10px; padding-bottom: 10px; }
         .accordion-content.active { display: flex; }
-        
-        .badge-setor {
-            background: rgba(52, 152, 219, 0.15); border: 1px solid #3498db; color: #ecf0f1;
-            padding: 5px 12px; border-radius: 20px; font-size: 11px; white-space: nowrap;
-        }
+        .badge-setor { background: rgba(52, 152, 219, 0.15); border: 1px solid #3498db; color: #ecf0f1; padding: 5px 12px; border-radius: 20px; font-size: 11px; white-space: nowrap; }
         .badge-setor b { color: #f1c40f; margin-left: 4px; font-size: 12px; }
-
-        .glass-panel {
-            background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
-            border-radius: 12px; padding: 15px 20px; display: flex; justify-content: space-between;
-            align-items: center; margin: 0 auto 15px auto; max-width: 600px;
-        }
+        .glass-panel { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3); border-radius: 12px; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; margin: 0 auto 15px auto; max-width: 600px; }
         .text-left { text-align: left; }
         .text-left h3 { margin: 0; font-size: 14px; color: #fff; font-weight: 600; border: none; }
         .text-left p { margin: 4px 0 0 0; font-size: 10px; color: #bdc3c7; }
-        
         .ios-switch { position: relative; display: inline-block; width: 44px; height: 24px; flex-shrink: 0; }
         .ios-switch input { opacity: 0; width: 0; height: 0; }
         .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #7f8c8d; transition: .4s; border-radius: 34px; }
         .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
         input:checked + .slider { background-color: #34c759; }
         input:checked + .slider:before { transform: translateX(20px); }
-
         h2 { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 40px; font-size: 18px; border-bottom: 1px solid #555; padding-bottom: 10px; color: #e67e22; }
         h2.telao-titulo { color: #2ecc71; }
         h2.comunicado-titulo { color: #3498db; }
-
         .grid-fotos { display: grid; grid-template-columns: repeat(auto-fill, minmax(85px, 1fr)); gap: 8px; margin-bottom: 30px; }
         .card { background: #34495e; padding: 6px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); position: relative; }
-        
         .badge-numero { position: absolute; top: -5px; right: -5px; background: #e74c3c; color: white; border-radius: 50%; padding: 0 5px; height: 20px; font-size: 10px; font-weight: bold; display: flex; justify-content: center; align-items: center; z-index: 2; }
         .card img, .card video { width: 100%; aspect-ratio: 1 / 1; border-radius: 4px; object-fit: cover; background: #000; }
         .nome { font-weight: 700; margin: 6px 0 2px 0; font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff; }
         .setor { font-weight: 400; font-size: 9px; color: #bdc3c7; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        
         .btn-group { display: flex; flex-direction: column; gap: 4px; }
         .btn-group button { font-family: 'Montserrat', sans-serif; padding: 5px 2px; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 9px; width: 100%; transition: background-color 0.2s; }
         .btn-ver { background-color: #3498db; color: white; }
@@ -105,36 +62,27 @@
         .btn-aprovar:hover { background-color: #27ae60; }
         .btn-apagar { background-color: #e74c3c; color: white; }
         .btn-apagar:hover { background-color: #c0392b; }
-        
         .vazio { margin-top: 10px; color: #bdc3c7; font-style: italic; grid-column: 1 / -1; font-size: 13px; }
-
         .painel-comunicados { background: #34495e; padding: 15px; border-radius: 8px; max-width: 600px; margin: 0 auto 30px auto; display: flex; flex-wrap: wrap; gap: 15px; text-align: left; }
         .col-com { flex: 1; min-width: 250px; display: flex; flex-direction: column; gap: 8px; }
         .col-divisor { border-left: 2px dashed #7f8c8d; padding-left: 15px; }
         @media(max-width: 600px) { .col-divisor { border-left: none; padding-left: 0; border-top: 2px dashed #7f8c8d; padding-top: 15px; } }
-        
         .col-com input[type="text"] { font-family: 'Montserrat', sans-serif; padding: 10px; border-radius: 6px; border: 1px solid #7f8c8d; background: #2c3e50; color: white; width: 92%; }
         .btn-texto { background: #3498db; color: white; padding: 10px; border: none; border-radius: 4px; font-weight: 600; cursor: pointer; font-size: 12px; font-family: 'Montserrat', sans-serif; }
         .btn-arte { background: #8e44ad; color: white; padding: 10px; border: none; border-radius: 4px; font-weight: 600; cursor: pointer; font-size: 12px; font-family: 'Montserrat', sans-serif; }
         .btn-enviar-arte { background: #f39c12; color: white; padding: 10px; border: none; border-radius: 4px; font-weight: 600; cursor: pointer; font-size: 12px; display: none; font-family: 'Montserrat', sans-serif; }
-
         .lista-comunicados { max-width: 600px; margin: 0 auto; text-align: left; }
         .item-comunicado { background: #2c3e50; padding: 12px; border-radius: 6px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid #3498db; font-size: 13px; gap: 10px; }
-        
         .drag-handle { cursor: grab; font-size: 18px; color: #7f8c8d; padding: 0 5px; }
         .drag-handle:active { cursor: grabbing; color: #f1c40f; }
-
         .info-com { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
         .info-com strong { font-size: 13px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .info-com span { font-size: 10px; color: #bdc3c7; }
-        
         .acoes-com { display: flex; align-items: center; gap: 8px; }
         .ios-switch-sm { transform: scale(0.8); margin: 0; }
-        
         .item-com-img { width: 35px; height: 35px; object-fit: cover; border-radius: 4px; cursor: pointer; background: #000; flex-shrink: 0; }
         .btn-editar-com { width: auto; padding: 5px 8px; background: #f39c12; margin: 0; font-size: 10px; border: none; border-radius: 4px; font-weight: 600; cursor: pointer; font-family: 'Montserrat', sans-serif; color: white; }
         .btn-remover-com { width: auto; padding: 5px 8px; background: #e74c3c; margin: 0; font-size: 10px; border: none; border-radius: 4px; font-weight: 600; cursor: pointer; font-family: 'Montserrat', sans-serif; color: white; }
-
         #modalConfigCom { display: none; position: fixed; z-index: 10000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.85); align-items: center; justify-content: center; }
         .config-box { background: #34495e; padding: 30px; border-radius: 12px; width: 320px; max-width: 90%; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         .config-box h3 { color: #f1c40f; margin-top: 0; border-bottom: 1px solid #7f8c8d; padding-bottom: 10px; margin-bottom: 20px; font-size: 18px; }
@@ -142,21 +90,17 @@
         .config-box input { width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 6px; border: 1px solid #7f8c8d; background: #2c3e50; color: white; font-family: 'Montserrat', sans-serif; box-sizing: border-box; font-size: 13px; }
         .btn-salvar-config { width: 100%; padding: 12px; background: #2ecc71; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-family: 'Montserrat', sans-serif; font-size: 14px; margin-bottom: 10px; }
         .btn-cancelar-config { width: 100%; padding: 10px; background: #7f8c8d; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-family: 'Montserrat', sans-serif; font-size: 13px; }
-
         #modalVerFoto { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.95); align-items: center; justify-content: center; }
         #modalImg { max-width: 95%; max-height: 85vh; border-radius: 8px; object-fit: contain; }
         #modalVid { max-width: 95%; max-height: 85vh; border-radius: 8px; display: none; }
         .fechar-modal { position: absolute; top: 15px; right: 25px; color: white; font-size: 40px; font-weight: bold; cursor: pointer; }
     </style>
-
     <script>
         function verificarLogin() {
             const user = document.getElementById('loginUser').value.trim().toLowerCase();
             const pass = document.getElementById('loginPass').value.trim().toLowerCase();
-
             const _u = String.fromCharCode(109, 97, 114, 107, 101, 116, 105, 110, 103);
             const _p = String.fromCharCode(64, 116, 118, 99, 111, 114, 114, 101, 100, 111, 114, 35);
-
             if (user === _u && pass === _p) {
                 document.getElementById('loginOverlay').style.display = 'none';
                 document.getElementById('painelPrincipal').style.display = 'block';
@@ -164,7 +108,6 @@
                 alert("Usuário ou senha incorretos.");
             }
         }
-
         document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('btnAccordionRanking').addEventListener('click', function() {
                 const content = document.getElementById('rankingSetores');
@@ -177,7 +120,6 @@
                 }
             });
         });
-
         function abrirModal(url, isVideo) { 
             const img = document.getElementById('modalImg');
             const vid = document.getElementById('modalVid');
@@ -188,12 +130,10 @@
             }
             document.getElementById('modalVerFoto').style.display = 'flex'; 
         }
-
         function fecharModal() { 
             document.getElementById('modalVerFoto').style.display = 'none'; 
             document.getElementById('modalVid').pause();
         }
-
         function fecharModalConfig() {
             document.getElementById('modalConfigCom').style.display = 'none';
         }
@@ -213,16 +153,12 @@
     <div id="modalConfigCom">
         <div class="config-box">
             <h3 id="tituloModalConfig">Configurar Comunicado</h3>
-            
             <label>Nome / Título:</label>
             <input type="text" id="confNome" placeholder="Ex: Aviso Feriado (Interno)">
-            
             <label>Exibir a partir de (Opcional):</label>
             <input type="date" id="confInicio">
-            
             <label>Exibir até dia (Opcional):</label>
             <input type="date" id="confFim">
-            
             <button class="btn-salvar-config" id="btnSalvarConfig">Salvar e Concluir</button>
             <button class="btn-cancelar-config" onclick="fecharModalConfig()">Cancelar</button>
         </div>
@@ -259,12 +195,13 @@
         <div class="glass-panel">
             <div class="text-left">
                 <h3>Previsão do Tempo</h3>
-        </div>
+            </div>
             <label class="ios-switch">
                 <input type="checkbox" id="toggleClima" checked>
                 <span class="slider"></span>
             </label>
         </div>
+
         <div class="glass-panel">
             <div class="text-left">
                 <h3>Ação Dia das Crianças</h3>
@@ -274,6 +211,18 @@
                 <input type="checkbox" id="toggleFotos">
                 <span class="slider"></span>
             </label>
+        </div>
+
+        <div class="glass-panel">
+            <div class="text-left">
+                <h3>Efeito de Transição</h3>
+                <p>Animação de troca de tela.</p>
+            </div>
+            <select id="selectTransicao" style="padding: 8px; border-radius: 6px; background: #2c3e50; color: white; border: 1px solid #7f8c8d; font-family: 'Montserrat', sans-serif; cursor: pointer; outline: none;">
+                <option value="fade">Suave (Fade)</option>
+                <option value="slide">Deslizar Direita</option>
+                <option value="zoom">Aproximação</option>
+            </select>
         </div>
 
         <div class="painel-estatisticas">
@@ -335,6 +284,7 @@
 
         const toggleClima = document.getElementById('toggleClima');
         const toggleFotos = document.getElementById('toggleFotos');
+        const selectTransicao = document.getElementById('selectTransicao');
 
         onSnapshot(doc(db, "controle_tv", "status_clima"), (docSnap) => {
             if(docSnap.exists()) toggleClima.checked = docSnap.data().mostrar_clima;
@@ -346,12 +296,24 @@
             else toggleFotos.checked = false;
         });
 
+        onSnapshot(doc(db, "controle_tv", "status_transicao"), (docSnap) => {
+            if(docSnap.exists() && docSnap.data().efeito) {
+                selectTransicao.value = docSnap.data().efeito;
+            } else {
+                selectTransicao.value = 'fade';
+            }
+        });
+
         toggleClima.addEventListener('change', async (e) => {
             await setDoc(doc(db, "controle_tv", "status_clima"), { mostrar_clima: e.target.checked }, { merge: true });
         });
 
         toggleFotos.addEventListener('change', async (e) => {
             await setDoc(doc(db, "controle_tv", "status"), { mostrar_fotos: e.target.checked }, { merge: true });
+        });
+
+        selectTransicao.addEventListener('change', async (e) => {
+            await setDoc(doc(db, "controle_tv", "status_transicao"), { efeito: e.target.value }, { merge: true });
         });
 
         let bloqueioAprovacao = false;
@@ -382,6 +344,17 @@
             let html = "";
             ranking.forEach(item => { html += `<span class="badge-setor">${item.label} <b>${item.count}</b></span>`; });
             divRanking.innerHTML = html;
+        }
+
+        function atualizarVisualBotoesAprovar() {
+            const botoes = document.querySelectorAll('.btn-aprovar');
+            botoes.forEach(btn => {
+                if (bloqueioAprovacao) {
+                    btn.disabled = true; btn.style.backgroundColor = '#7f8c8d'; btn.style.cursor = 'not-allowed'; btn.innerText = "Aguarde...";
+                } else {
+                    btn.disabled = false; btn.style.backgroundColor = ''; btn.style.cursor = 'pointer'; btn.innerText = "Aprovar";
+                }
+            });
         }
 
         const renderizarCard = (dados, id, ehPendente) => {
@@ -415,7 +388,7 @@
                 arrayPendentes.sort((a, b) => (a.numeroFila || 0) - (b.numeroFila || 0));
                 arrayPendentes.forEach(dados => listaPendentes.appendChild(renderizarCard(dados, dados.id, true)));
             }
-            calcularRanking(); 
+            atualizarVisualBotoesAprovar(); calcularRanking(); 
         });
 
         onSnapshot(query(collection(db, "fotos_criancas"), where("status", "==", "aprovado")), (snapshot) => {
@@ -437,8 +410,6 @@
         
         window.excluirFoto = async (id) => { if(confirm("ATENÇÃO: Deseja EXCLUIR esta foto?")) await deleteDoc(doc(db, "fotos_criancas", id)); };
 
-
-       
         let arteSelecionada = null;
         let acaoUpload = null; 
 
@@ -454,7 +425,6 @@
         document.getElementById('btnAddComTxt').addEventListener('click', () => {
             const txt = document.getElementById('inputComunicadoTxt').value.trim();
             if(!txt) return alert("Digite um recado primeiro.");
-            
             document.getElementById('confNome').value = txt.substring(0, 20) + "..."; 
             document.getElementById('confInicio').value = ""; document.getElementById('confFim').value = "";
             acaoUpload = { tipo: 'texto', texto: txt };
@@ -483,14 +453,12 @@
                     await updateDoc(doc(db, "comunicados_criancas", acaoUpload.id), {
                         nome: nome, data_inicio: data_inicio, data_fim: data_fim
                     });
-
                 } else if(acaoUpload.tipo === 'texto') {
                     await addDoc(collection(db, "comunicados_criancas"), {
                         tipo: 'texto', texto: acaoUpload.texto, nome: nome, data_inicio: data_inicio, data_fim: data_fim,
                         ativo: true, ordem: timestamp, timestamp: serverTimestamp()
                     });
                     document.getElementById('inputComunicadoTxt').value = "";
-
                 } else if(acaoUpload.tipo === 'midia') {
                     if (acaoUpload.file.type.startsWith('video/')) {
                         const CLOUD_NAME = "gd3fxkx6";
@@ -519,7 +487,6 @@
                     document.getElementById('btnUploadComImg').style.display = "none";
                     arteSelecionada = null;
                 }
-
                 document.getElementById('modalConfigCom').style.display = 'none';
             } catch(e) {
                 alert("Erro ao enviar: " + e.message);
@@ -532,7 +499,6 @@
             listaComunicados.innerHTML = "";
             let arrayComs = [];
             snapshot.forEach(docSnap => arrayComs.push({ id: docSnap.id, ...docSnap.data() }));
-            
             arrayComs.sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
 
             if(arrayComs.length === 0) return listaComunicados.innerHTML = "<p class='vazio' style='text-align:center;'>Nenhum comunicado ativo.</p>";
@@ -594,9 +560,7 @@
             });
         });
 
-        window.alterarAtivoCom = async (id, estado) => {
-            await updateDoc(doc(db, "comunicados_criancas", id), { ativo: estado });
-        };
+        window.alterarAtivoCom = async (id, estado) => { await updateDoc(doc(db, "comunicados_criancas", id), { ativo: estado }); };
 
         window.editarComunicado = (id, nome, inicio, fim) => {
             document.getElementById('confNome').value = nome !== 'undefined' ? nome : '';
@@ -606,9 +570,7 @@
             document.getElementById('modalConfigCom').style.display = 'flex';
         };
 
-        window.excluirComunicado = async (id) => { 
-            if(confirm("Apagar comunicado?")) await deleteDoc(doc(db, "comunicados_criancas", id)); 
-        };
+        window.excluirComunicado = async (id) => { if(confirm("Apagar comunicado?")) await deleteDoc(doc(db, "comunicados_criancas", id)); };
     </script>
 </body>
 </html>
