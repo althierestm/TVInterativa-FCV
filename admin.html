@@ -118,6 +118,17 @@
                     svg.style.transform = 'rotate(0deg)';
                 }
             });
+
+            document.getElementById('btnAccordionGaleria').addEventListener('click', function() {
+                const content = document.getElementById('containerGaleria');
+                const svg = this.querySelectorAll('svg')[1];
+                content.classList.toggle('active');
+                if (content.classList.contains('active')) {
+                    svg.style.transform = 'rotate(180deg)';
+                } else {
+                    svg.style.transform = 'rotate(0deg)';
+                }
+            });
         });
         function abrirModal(url, isVideo) { 
             const img = document.getElementById('modalImg');
@@ -201,11 +212,11 @@
         <div class="lista-comunicados" id="listaComunicados"></div>
         <h2>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-            Controles Especiais da TV
+            Controles Especiais das TV´s
         </h2>
         <div class="glass-panel">
             <div class="text-left">
-                <h3>Link do Cardápio (TV Refeitório)</h3>
+                <h3>Link do Cardápio</h3>
                 <p>O que aparece como padrão no refeitório.</p>
                 <input type="text" id="inputLinkCardapio" placeholder="http://fcvconnect/fcvnow/cardapio/semana" style="width: 100%; padding: 8px; margin-top: 8px; border-radius: 6px; border: 1px solid #7f8c8d; background: #2c3e50; color: white; box-sizing: border-box;">
                 <button id="btnSalvarCardapio" style="background: #2ecc71; color: white; border: none; padding: 8px 15px; border-radius: 4px; margin-top: 5px; font-weight: bold; cursor: pointer; font-size: 11px;">Atualizar Link</button>
@@ -213,7 +224,7 @@
         </div>
         <div class="glass-panel">
             <div class="text-left">
-                <h3>Previsão do Tempo (Corredor)</h3>
+                <h3>Previsão do Tempo</h3>
             </div>
             <label class="ios-switch">
                 <input type="checkbox" id="toggleClima" checked>
@@ -223,7 +234,7 @@
         <div class="glass-panel">
             <div class="text-left">
                 <h3>Ação Dia das Crianças</h3>
-                <p>Retomar as fotos no ciclo (Corredor).</p>
+                <p>Retomar as fotos no ciclo.</p>
             </div>
             <label class="ios-switch">
                 <input type="checkbox" id="toggleFotos">
@@ -236,7 +247,7 @@
                 <p>Animação de troca de tela.</p>
             </div>
             <select id="selectTransicao" style="padding: 8px; border-radius: 6px; background: #2c3e50; color: white; border: 1px solid #7f8c8d; font-family: 'Montserrat', sans-serif; cursor: pointer; outline: none;">
-                <option value="fade">Suave (Fade)</option>
+                <option value="fade">Suave</option>
                 <option value="slide">Deslizar Direita</option>
                 <option value="zoom">Aproximação</option>
             </select>
@@ -262,11 +273,17 @@
             Aguardando Aprovação
         </h2>
         <div class="grid-fotos" id="listaPendentes"></div>
-        <h2 class="telao-titulo">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg>
-            Fotos na Galeria
-        </h2>
-        <div class="grid-fotos" id="listaAprovadas"></div>
+        
+        <div style="width: 100%; border-top: 1px dashed #7f8c8d; margin-top: 25px; padding-top: 15px;">
+            <div class="accordion-header" id="btnAccordionGaleria" style="font-size: 16px; color: #2ecc71;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg>
+                Fotos na Galeria (Aprovadas)
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 5px;"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </div>
+            <div id="containerGaleria" class="accordion-content">
+                <div class="grid-fotos" id="listaAprovadas" style="width: 100%;"></div>
+            </div>
+        </div>
     </div>
     <div id="modalVerFoto">
         <span class="fechar-modal" onclick="fecharModal()">&times;</span>
@@ -537,8 +554,7 @@
                 let periodo = "Sempre visível";
                 if(dados.data_inicio && dados.data_fim) periodo = `${dados.data_inicio.split('-').reverse().join('/')} a ${dados.data_fim.split('-').reverse().join('/')}`; else if(dados.data_inicio) periodo = `A partir de ${dados.data_inicio.split('-').reverse().join('/')}`; else if(dados.data_fim) periodo = `Até ${dados.data_fim.split('-').reverse().join('/')}`;
                 let badgesLocais = "";
-                if(dados.exibir_corredor !== false) badgesLocais += '<span style="background:#2980b9; color:white; padding:2px 6px; border-radius:4px; font-size:9px; margin-right:4px;">Corredor</span>';
-                if(dados.exibir_refeitorio === true) badgesLocais += '<span style="background:#8e44ad; color:white; padding:2px 6px; border-radius:4px; font-size:9px;">Refeitório</span>';
+                if(dados.exibir_refeitorio === true) badgesLocais += '<span style="background:#8e44ad; color:white; padding:2px 6px; border-radius:4px; font-size:9px; margin-right:4px;">Refeitório</span>';
                 const ativoChecked = dados.ativo !== false ? 'checked' : ''; 
                 div.innerHTML = `<div style="display:flex; align-items:center; flex:1; gap:10px; overflow:hidden;"><span class="drag-handle" title="Arrastar para reordenar">☰</span>${midiaHtml}<div class="info-com"><strong>${dados.nome || 'Comunicado Antigo'}</strong><div style="margin-top:2px;">${badgesLocais}<span>📅 ${periodo}</span></div></div></div><div class="acoes-com"><label class="ios-switch ios-switch-sm" title="Ligar/Desligar na TV"><input type="checkbox" onchange="alterarAtivoCom('${dados.id}', this.checked)" ${ativoChecked}><span class="slider"></span></label><button class="btn-editar-com" onclick="prepararEdicao('${dados.id}')">Editar</button><button class="btn-remover-com" onclick="excluirComunicado('${dados.id}')">Excluir</button></div>`;
                 listaComunicados.appendChild(div);
