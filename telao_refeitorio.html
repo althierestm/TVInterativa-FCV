@@ -24,7 +24,7 @@
         body[data-transicao="zoom"] .escondido { transform: scale(0.9); opacity: 0; pointer-events: none; }
         body[data-transicao="zoom"] .visivel { transform: scale(1); opacity: 1; pointer-events: auto; }
         .container-master { width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; position: absolute; top:0; left:0; }
-        #imgPainel { width: 100%; height: 100%; object-fit: contain; position: relative; z-index: 2; }
+        #imgPainel1, #imgPainel2 { width: 100%; height: 100%; object-fit: contain; position: relative; z-index: 2; }
         .modo-arte { object-fit: cover !important; }
         #containerTexto { width: 80%; text-align: center; background: rgba(34, 67, 135, 0.85); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); padding: 80px; border-radius: 40px; border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
         #textoDoComunicado { font-size: 70px; font-weight: 700; line-height: 1.3; margin: 0; color: #fff; }
@@ -32,7 +32,6 @@
         #aguardando { font-size: 20px; color: #7f8c8d; font-weight: 600; z-index: 20; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: none; }
         #barraProgressoContainer { position: absolute; bottom: 0; left: 0; width: 100%; height: 10px; background: rgba(255,255,255,0.1); z-index: 20; }
         #barraProgresso { height: 100%; width: 0%; background: linear-gradient(to right, #2894f9, #002061); }
-        
         #iframeCardapio { width: 100%; height: 100%; border: none; background: #ffffff; }
     </style>
 </head>
@@ -40,7 +39,7 @@
 
     <audio id="radioFCV" src="https://stm17.srvstm.com:6944/stream" preload="none" crossorigin="anonymous"></audio>
 
-    <button id="btnFullscreen">Tela Cheia (Iniciar Rádio)</button>
+    <button id="btnFullscreen">Tela Cheia</button>
 
     <div id="viewportWrapper">
         <div class="tv-scale-box" id="tvScaleBox">
@@ -54,8 +53,12 @@
                 <iframe id="iframeCardapio" src="about:blank"></iframe>
             </div>
 
-            <div class="container-master escondido" id="camadaImagem">
-                <img id="imgPainel" src="" alt="Painel">
+            <div class="container-master escondido" id="camadaImagem1">
+                <img id="imgPainel1" src="" alt="Painel">
+            </div>
+
+            <div class="container-master escondido" id="camadaImagem2">
+                <img id="imgPainel2" src="" alt="Painel">
             </div>
 
             <div class="container-master escondido" id="camadaVideo">
@@ -149,6 +152,7 @@
         let timerCarregamento = null;
         let timerExibicao = null;
         let dataUltimoRefresh = null;
+        let toggleImgLayer = 1;
 
         setInterval(() => {
             let agora = new Date();
@@ -179,10 +183,10 @@
         });
 
         const camadaCardapio = document.getElementById('camadaCardapio');
-        const camadaImagem = document.getElementById('camadaImagem');
+        const camadaImagem1 = document.getElementById('camadaImagem1');
+        const camadaImagem2 = document.getElementById('camadaImagem2');
         const camadaVideo = document.getElementById('camadaVideo');
         const videoPainel = document.getElementById('videoPainel');
-        const imgPainel = document.getElementById('imgPainel');
         const camadaTexto = document.getElementById('camadaTexto');
         const textoDoComunicado = document.getElementById('textoDoComunicado');
         const aguardando = document.getElementById('aguardando');
@@ -220,7 +224,7 @@
         }
 
         function transitarPara(novaCamada) {
-            const camadas = [camadaCardapio, camadaImagem, camadaVideo, camadaTexto];
+            const camadas = [camadaCardapio, camadaImagem1, camadaImagem2, camadaVideo, camadaTexto];
             camadas.forEach(c => {
                 if (c === novaCamada) {
                     c.classList.remove('escondido');
@@ -296,15 +300,19 @@
                 videoPainel.onerror = () => { setTimeout(decidirProximo, 1000); };
                 
             } else if (com.tipo === 'imagem' || com.url_imagem) { 
+                toggleImgLayer = toggleImgLayer === 1 ? 2 : 1;
+                const camadaAtual = toggleImgLayer === 1 ? camadaImagem1 : camadaImagem2;
+                const imgAtual = document.getElementById('imgPainel' + toggleImgLayer);
+                
                 const imgPreload = new Image();
                 timerCarregamento = setTimeout(() => { decidirProximo(); }, 8000); 
 
                 imgPreload.onload = () => {
                     clearTimeout(timerCarregamento);
-                    imgPainel.classList.add('modo-arte'); 
-                    imgPainel.src = com.url_imagem || com.url_thumb;
-                    transitarPara(camadaImagem);
+                    imgAtual.classList.add('modo-arte'); 
+                    imgAtual.src = com.url_imagem || com.url_thumb;
                     
+                    transitarPara(camadaAtual);
                     animarBarra(tempoTextoArte); 
                     timerExibicao = setTimeout(() => { decidirProximo(); }, tempoTextoArte); 
                 };
@@ -313,7 +321,6 @@
             } else { 
                 textoDoComunicado.innerText = com.texto;
                 transitarPara(camadaTexto);
-                
                 animarBarra(tempoTextoArte); 
                 timerExibicao = setTimeout(decidirProximo, tempoTextoArte); 
             }
