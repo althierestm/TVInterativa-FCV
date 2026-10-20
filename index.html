@@ -2,94 +2,84 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Dia das Crianças - Fundação</title>
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TV Refeitório - FCV</title>
     <link rel="icon" href="logo%20icon%20TV%20do%20Ponto%20FCV.png" type="image/png">
-    <link rel="apple-touch-icon" href="logo%20icon%20TV%20do%20Ponto%20FCV.png">
-
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Montserrat', sans-serif; text-align: center; background-color: #f0f8ff; padding: 20px; }
-        .container { max-width: 400px; margin: 0 auto; background: white; padding: 30px 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border-top: 5px solid #ff9800; }
-        h2 { color: #333; margin-bottom: 5px; font-weight: 700; }
-        p { color: #666; margin-bottom: 25px; font-size: 14px; }
-        .obs { font-size: 11px; color: #888; margin-top: -5px; margin-bottom: 20px; text-align: left; padding-left: 5%; }
-        
-        input[type="text"] { font-family: 'Montserrat', sans-serif; width: 90%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; }
-        input[type="file"] { display: none; }
-
-        .botoes-acao { display: flex; gap: 10px; width: 90%; margin: 0 auto; }
-        .btn-acao { font-family: 'Montserrat', sans-serif; flex: 1; padding: 12px; border: 1px solid #ccc; background-color: #f9f9f9; color: #333; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; }
-        .btn-acao:hover { background-color: #eee; }
-
-        #previewContainer { display: none; margin-top: 20px; }
-        #previewContainer p { margin-bottom: 5px; font-size: 12px; color: #555; font-weight: 600; }
-        #fotoPreview { max-width: 90%; max-height: 250px; border-radius: 8px; object-fit: cover; border: 1px solid #ccc; }
-
-        #btnEnviar { font-family: 'Montserrat', sans-serif; background: linear-gradient(to right, #002061, #061e50); color: white; border: none; padding: 15px 20px; width: 90%; font-size: 16px; border-radius: 8px; cursor: pointer; font-weight: 700; margin-top: 20px; }
-        #btnEnviar:hover { opacity: 0.9; }
-        #btnEnviar:disabled { background: #ccc; cursor: not-allowed; }
-        
-        .aviso-privacidade {
-            font-size: 11px; color: #d84315; background-color: #fbe9e7;
-            padding: 10px 12px; border-radius: 8px; margin-top: 15px;
-            margin-bottom: 5px; font-weight: 600; line-height: 1.4; text-align: center;
-        }
-
-        .ramal-duvidas { font-size: 12px; color: #666; margin-top: 10px; font-weight: 400; }
-        .ramal-duvidas strong { font-weight: 700; color: #002061; }
-        
-        #mensagem { margin-top: 20px; font-weight: 600; font-size: 15px; }
-        .senha-destaque { font-size: 24px; color: #224387; font-weight: 700; margin-top: 10px; display: block; }
-
-        .rodape-assinatura { margin-top: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding-bottom: 10px; }
-        .rodape-assinatura img { width: 130px; opacity: 0.6; margin-bottom: -20px; }
-        .rodape-assinatura span { font-size: 7px; color: #999; font-weight: 700; letter-spacing: 1px; }
-
-        button, input { touch-action: manipulation; }
+        body { margin: 0; padding: 0; background-color: #000; color: white; font-family: 'Montserrat', sans-serif; overflow: hidden; }
+        #viewportWrapper { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; overflow: hidden; }
+        .tv-scale-box { width: 1920px; height: 1080px; position: absolute; top: 50%; left: 50%; transform-origin: center center; background-color: #000; }
+        #btnFullscreen { position: fixed; top: 20px; right: 20px; z-index: 99999; background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.5); padding: 10px 15px; border-radius: 8px; cursor: pointer; font-family: 'Montserrat', sans-serif; font-weight: 600; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); transition: 0.3s; }
+        #btnFullscreen:hover { background: rgba(255,255,255,0.4); }
+        .marca-dagua { position: absolute; top: 25px; right: 40px; width: 200px; opacity: 0.7; z-index: 9990; pointer-events: none; }
+        #relogioTV { position: absolute; bottom: 40px; right: 40px; background: rgba(255, 255, 255, 0.5); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.4); box-shadow: 0 4px 15px rgba(0,0,0,0.3); border-radius: 12px; color: #224387; padding: 10px 25px; text-align: center; font-size: 32px; font-weight: 700; letter-spacing: 2px; z-index: 9990; pointer-events: none; }
+        body[data-transicao="fade"] .container-master { transition: opacity 0.8s ease; }
+        body[data-transicao="fade"] .escondido { opacity: 0; pointer-events: none; }
+        body[data-transicao="fade"] .visivel { opacity: 1; pointer-events: auto; }
+        body[data-transicao="slide"] .container-master { transition: transform 0.8s ease-in-out, opacity 0.8s ease-in-out; }
+        body[data-transicao="slide"] .escondido { transform: translateX(100%); opacity: 0; pointer-events: none; }
+        body[data-transicao="slide"] .visivel { transform: translateX(0); opacity: 1; pointer-events: auto; }
+        body[data-transicao="zoom"] .container-master { transition: transform 0.8s ease-in-out, opacity 0.8s ease-in-out; }
+        body[data-transicao="zoom"] .escondido { transform: scale(0.9); opacity: 0; pointer-events: none; }
+        body[data-transicao="zoom"] .visivel { transform: scale(1); opacity: 1; pointer-events: auto; }
+        .container-master { width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; position: absolute; top:0; left:0; }
+        #imgPainel1, #imgPainel2 { width: 100%; height: 100%; object-fit: contain; position: relative; z-index: 2; }
+        .modo-arte { object-fit: cover !important; }
+        #containerTexto { width: 80%; text-align: center; background: rgba(34, 67, 135, 0.85); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); padding: 80px; border-radius: 40px; border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
+        #textoDoComunicado { font-size: 70px; font-weight: 700; line-height: 1.3; margin: 0; color: #fff; }
+        .aviso-label { font-size: 30px; color: #ff9800; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 25px; display: block;}
+        #aguardando { font-size: 20px; color: #7f8c8d; font-weight: 600; z-index: 20; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: none; }
+        #barraProgressoContainer { position: absolute; bottom: 0; left: 0; width: 100%; height: 10px; background: rgba(255,255,255,0.1); z-index: 20; }
+        #barraProgresso { height: 100%; width: 0%; background: linear-gradient(to right, #2894f9, #002061); }
+        #iframeCardapio { width: 100%; height: 100%; border: none; background: #ffffff; }
     </style>
 </head>
-<body>
+<body data-transicao="fade">
 
-    <div class="container">
-        <h2>Dia das Crianças FCV</h2>
-        <p>Envie sua foto de infância para a TV do Corredor!</p>
+    <audio id="radioFCV" src="https://stm17.srvstm.com:6944/stream" preload="none" crossorigin="anonymous"></audio>
 
-        <input type="text" id="nomeInput" placeholder="Seu nome (ex: João Silva)">
-        <input type="text" id="setorInput" placeholder="Seu setor (ex: TI, Marketing)">
-        <div class="obs">O nome e setor serão exibidos na TV com a foto.</div>
-        
-        <div class="botoes-acao">
-            <button class="btn-acao" id="btnGaleria">Escolher Foto da Galeria</button>
+    <button id="btnFullscreen">Tela Cheia (Iniciar Rádio)</button>
+
+    <div id="viewportWrapper">
+        <div class="tv-scale-box" id="tvScaleBox">
+            
+            <img src="MKTFCV.png" class="marca-dagua" alt="MKT FCV">
+            <div id="relogioTV">--:--</div>
+
+            <div id="aguardando">Aguardando informações da rede...</div>
+
+            <div class="container-master escondido" id="camadaCardapio">
+                <iframe id="iframeCardapio" src="about:blank"></iframe>
+            </div>
+
+            <div class="container-master escondido" id="camadaImagem1">
+                <img id="imgPainel1" src="" alt="Painel">
+            </div>
+
+            <div class="container-master escondido" id="camadaImagem2">
+                <img id="imgPainel2" src="" alt="Painel">
+            </div>
+
+            <div class="container-master escondido" id="camadaVideo">
+                <video id="videoPainel" class="modo-arte" src="" playsinline muted></video>
+            </div>
+
+            <div class="container-master escondido" id="camadaTexto">
+                <div id="containerTexto">
+                    <span class="aviso-label">Mural da Fundação</span>
+                    <h1 id="textoDoComunicado"></h1>
+                </div>
+            </div>
+
+            <div id="barraProgressoContainer"><div id="barraProgresso"></div></div>
+
         </div>
-
-        <input type="file" id="inputGaleria" accept="image/*">
-
-        <div id="previewContainer">
-            <p>Sua foto de infância:</p>
-            <img id="fotoPreview" src="" alt="Pré-visualização">
-        </div>
-        
-        <button id="btnEnviar">Enviar para a TV</button>
-        
-        <div class="aviso-privacidade">
-            ⚠️ Envie somente a sua foto, respeitando o direito de não querer participar dos demais colaboradores.
-        </div>
-        
-        <div class="ramal-duvidas">Ramal para dúvidas: <strong>7849</strong></div>
-        <div id="mensagem"></div>
-    </div>
-
-    <div class="rodape-assinatura">
-        <img src="MKTFCV.png" alt="MKT FCV">
-        <span>by Althieres Dias</span>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, serverTimestamp, getDocs } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+        import { getFirestore, collection, query, where, onSnapshot, doc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyB8ZK0jSY-1E9y90TLfznxi9PI8mf_bJuc",
@@ -99,106 +89,247 @@
             messagingSenderId: "930815464098",
             appId: "1:930815464098:web:890c2300a6e1a79abd3dfb"
         };
-
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        const IMGBB_API_KEY = "767bd935a2b389a4fbfad4f8d92bfae7"; 
 
-        let arquivoSelecionado = null;
+        document.getElementById('btnFullscreen').addEventListener('click', () => {
+            const radio = document.getElementById('radioFCV');
+            radio.play().catch(e => console.log(e));
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => console.log(err));
+                document.getElementById('btnFullscreen').style.display = 'none'; 
+            }
+        });
 
-        const btnGaleria = document.getElementById('btnGaleria');
-        const inputGaleria = document.getElementById('inputGaleria');
-        const previewContainer = document.getElementById('previewContainer');
-        const fotoPreview = document.getElementById('fotoPreview');
-        const btnEnviar = document.getElementById('btnEnviar');
-        const mensagem = document.getElementById('mensagem');
+        setInterval(() => {
+            let r = document.getElementById('radioFCV');
+            let h = new Date().getHours();
+            r.volume = (h >= 20 || h < 7) ? 0.3 : 1.0;
+        }, 30000);
 
-        btnGaleria.addEventListener('click', () => inputGaleria.click());
+        setInterval(() => {
+            const radio = document.getElementById('radioFCV');
+            if (document.fullscreenElement) {
+                radio.src = "https://stm17.srvstm.com:6944/stream?" + new Date().getTime();
+                radio.load();
+                radio.play().catch(e => console.log(e));
+            }
+        }, 3600000);
 
-        function processarArquivo(evento) {
-            const arquivo = evento.target.files[0];
-            if (arquivo) {
-                arquivoSelecionado = arquivo;
-                const leitor = new FileReader();
-                leitor.onload = function(e) {
-                    fotoPreview.src = e.target.result;
-                    previewContainer.style.display = 'block';
+        document.getElementById('radioFCV').addEventListener('error', () => {
+            setTimeout(() => {
+                const radio = document.getElementById('radioFCV');
+                if (document.fullscreenElement) {
+                    radio.src = "https://stm17.srvstm.com:6944/stream?" + new Date().getTime();
+                    radio.load();
+                    radio.play().catch(e => console.log(e));
                 }
-                leitor.readAsDataURL(arquivo);
+            }, 5000);
+        });
+
+        function ajustarEscala() {
+            const scaleBox = document.getElementById('tvScaleBox');
+            const scaleX = window.innerWidth / 1920;
+            const scaleY = window.innerHeight / 1080;
+            scaleBox.style.transform = `translate(-50%, -50%) scale(${scaleX}, ${scaleY})`;
+        }
+        window.addEventListener('resize', ajustarEscala);
+        ajustarEscala(); 
+
+        function atualizarRelogio() {
+            const agora = new Date();
+            document.getElementById('relogioTV').innerText = agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        }
+        setInterval(atualizarRelogio, 1000);
+        atualizarRelogio();
+
+        let comunicadosAtivos = [];
+        let indexCom = -1;
+        let loopRodando = false;
+        let proximaAcao = 'CARDAPIO'; 
+        let linkCardapio = "http://fcvconnect/fcvnow/cardapio/semana";
+
+        let timerCarregamento = null;
+        let timerExibicao = null;
+        let dataUltimoRefresh = null;
+        let toggleImgLayer = 1;
+
+        setInterval(() => {
+            let agora = new Date();
+            if (agora.getDay() === 1 && agora.getHours() === 7 && agora.getMinutes() === 0) {
+                if (dataUltimoRefresh !== agora.toDateString()) {
+                    dataUltimoRefresh = agora.toDateString();
+                    const baseUrl = linkCardapio.split('?')[0];
+                    document.getElementById('iframeCardapio').src = baseUrl + "?v=" + agora.getTime();
+                }
+            }
+        }, 10000);
+
+        onSnapshot(doc(db, "controle_tv", "status_transicao"), (docSnap) => {
+            if(docSnap.exists() && docSnap.data().efeito) {
+                document.body.setAttribute('data-transicao', docSnap.data().efeito);
+            } else {
+                document.body.setAttribute('data-transicao', 'fade');
+            }
+        });
+
+        onSnapshot(doc(db, "controle_tv", "status_refeitorio"), (docSnap) => {
+            if(docSnap.exists() && docSnap.data().link_cardapio) {
+                linkCardapio = docSnap.data().link_cardapio;
+                document.getElementById('iframeCardapio').src = linkCardapio;
+            } else {
+                document.getElementById('iframeCardapio').src = linkCardapio;
+            }
+        });
+
+        const camadaCardapio = document.getElementById('camadaCardapio');
+        const camadaImagem1 = document.getElementById('camadaImagem1');
+        const camadaImagem2 = document.getElementById('camadaImagem2');
+        const camadaVideo = document.getElementById('camadaVideo');
+        const videoPainel = document.getElementById('videoPainel');
+        const camadaTexto = document.getElementById('camadaTexto');
+        const textoDoComunicado = document.getElementById('textoDoComunicado');
+        const aguardando = document.getElementById('aguardando');
+        const barraProgresso = document.getElementById('barraProgresso');
+
+        onSnapshot(collection(db, "comunicados_criancas"), (snapshot) => {
+            comunicadosAtivos = [];
+            const hojeISO = new Date().toLocaleDateString('en-CA'); 
+
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                if (data.ativo === false) return; 
+                if (data.exibir_refeitorio !== true) return; 
+                if (data.data_inicio && hojeISO < data.data_inicio) return; 
+                if (data.data_fim && hojeISO > data.data_fim) return;       
+                
+                comunicadosAtivos.push(data);
+            });
+
+            comunicadosAtivos.sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
+
+            if (!loopRodando) {
+                loopRodando = true;
+                decidirProximo();
+            }
+        });
+
+        function animarBarra(tempoMs) {
+            barraProgresso.style.transition = 'none';
+            barraProgresso.style.width = '0%';
+            setTimeout(() => {
+                barraProgresso.style.transition = `width ${tempoMs}ms linear`;
+                barraProgresso.style.width = '100%';
+            }, 50);
+        }
+
+        function transitarPara(novaCamada) {
+            const camadas = [camadaCardapio, camadaImagem1, camadaImagem2, camadaVideo, camadaTexto];
+            camadas.forEach(c => {
+                if (c === novaCamada) {
+                    c.classList.remove('escondido');
+                    c.classList.add('visivel');
+                    c.style.zIndex = "2";
+                } else {
+                    if (c.classList.contains('visivel')) {
+                        c.classList.remove('visivel');
+                        c.classList.add('escondido');
+                        c.style.zIndex = "1";
+                        if (c === camadaVideo) {
+                            setTimeout(() => { videoPainel.pause(); videoPainel.src = ""; }, 800);
+                        }
+                    }
+                }
+            });
+            aguardando.style.display = "none";
+        }
+
+        function decidirProximo() {
+            clearTimeout(timerCarregamento);
+            clearTimeout(timerExibicao);
+
+            let temComs = comunicadosAtivos.length > 0;
+            document.getElementById('barraProgressoContainer').style.display = temComs ? 'block' : 'none';
+
+            if (proximaAcao === 'CARDAPIO') {
+                renderizarCardapio();
+                proximaAcao = temComs ? 'COMS' : 'CARDAPIO';
+            } else if (proximaAcao === 'COMS') {
+                if (temComs) {
+                    renderizarComunicado();
+                    if (indexCom === comunicadosAtivos.length - 1) { 
+                        proximaAcao = 'CARDAPIO';
+                    } else {
+                        proximaAcao = 'COMS';
+                    }
+                } else {
+                    proximaAcao = 'CARDAPIO';
+                    decidirProximo();
+                }
             }
         }
 
-        inputGaleria.addEventListener('change', processarArquivo);
+        function renderizarCardapio() {
+            transitarPara(camadaCardapio);
+            animarBarra(25000); 
+            timerExibicao = setTimeout(decidirProximo, 25000); 
+        }
 
-        btnEnviar.addEventListener('click', async () => {
-            const nome = document.getElementById('nomeInput').value || "Anônimo";
-            const setor = document.getElementById('setorInput').value || "";
+        function obterTempoValido(tempoRaw) {
+            let t = parseInt(tempoRaw);
+            return (isNaN(t) || t < 5000 || t > 60000) ? 15000 : t;
+        }
 
-            if (!arquivoSelecionado) {
-                mensagem.innerText = "Por favor, escolha uma foto primeiro.";
-                mensagem.style.color = "red";
-                return;
+        function renderizarComunicado() {
+            indexCom = (indexCom + 1) >= comunicadosAtivos.length ? 0 : (indexCom + 1);
+            const com = comunicadosAtivos[indexCom];
+            
+            let tempoTextoArte = obterTempoValido(com.tempo_exibicao);
+
+            if (com.tipo === 'video' || com.url_video) {
+                videoPainel.src = com.url_video;
+                
+                videoPainel.onloadedmetadata = function() {
+                    let duracao = videoPainel.duration * 1000;
+                    if (!duracao || isNaN(duracao) || duracao === Infinity) duracao = 15000;
+                    
+                    transitarPara(camadaVideo);
+                    videoPainel.play().catch(e => console.log(e));
+                    
+                    animarBarra(duracao); 
+                    timerExibicao = setTimeout(() => { 
+                        decidirProximo(); 
+                    }, duracao);
+                };
+                
+                videoPainel.onerror = () => { setTimeout(decidirProximo, 1000); };
+                
+            } else if (com.tipo === 'imagem' || com.url_imagem) { 
+                toggleImgLayer = toggleImgLayer === 1 ? 2 : 1;
+                const camadaAtual = toggleImgLayer === 1 ? camadaImagem1 : camadaImagem2;
+                const imgAtual = document.getElementById('imgPainel' + toggleImgLayer);
+                
+                const imgPreload = new Image();
+                timerCarregamento = setTimeout(() => { decidirProximo(); }, 8000); 
+
+                imgPreload.onload = () => {
+                    clearTimeout(timerCarregamento);
+                    imgAtual.classList.add('modo-arte'); 
+                    imgAtual.src = com.url_imagem || com.url_thumb;
+                    
+                    transitarPara(camadaAtual);
+                    animarBarra(tempoTextoArte); 
+                    timerExibicao = setTimeout(() => { decidirProximo(); }, tempoTextoArte); 
+                };
+                imgPreload.onerror = () => { clearTimeout(timerCarregamento); setTimeout(decidirProximo, 1000); };
+                imgPreload.src = com.url_imagem || com.url_thumb;
+            } else { 
+                textoDoComunicado.innerText = com.texto;
+                transitarPara(camadaTexto);
+                animarBarra(tempoTextoArte); 
+                timerExibicao = setTimeout(decidirProximo, tempoTextoArte); 
             }
-
-            mensagem.innerText = "A enviar arquivo e gerar senha sequencial...";
-            mensagem.style.color = "orange";
-            btnEnviar.disabled = true;
-
-            const formData = new FormData();
-            formData.append("image", arquivoSelecionado);
-
-            try {
-                const respostaImgBB = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
-                    method: 'POST',
-                    body: formData
-                });
-               const dadosImgBB = await respostaImgBB.json();
-
-console.log("Resposta detalhada do ImgBB:", dadosImgBB); 
-                
-if (!dadosImgBB || !dadosImgBB.success) {
-    throw new Error(`Erro do ImgBB: ${dadosImgBB?.error?.message || 'Sem resposta de sucesso'}`);
-}
-
-                mensagem.innerText = "A gerar a sua senha sequencial...";
-
-                const querySnapshot = await getDocs(collection(db, "fotos_criancas"));
-                let maxFila = 0;
-                querySnapshot.forEach((doc) => {
-                    const dados = doc.data();
-                    const num = Number(dados.numeroFila);
-                    if (!isNaN(num) && num < 100000 && num > maxFila) {
-                        maxFila = num;
-                    }
-                });
-                const meuNumeroFila = maxFila + 1;
-                
-                await addDoc(collection(db, "fotos_criancas"), {
-                    nome: nome,
-                    setor: setor,
-                    numeroFila: meuNumeroFila,
-                    url_imagem: dadosImgBB.data.url,
-                    url_thumb: dadosImgBB.data.thumb.url,
-                    status: "pendente",
-                    timestamp: serverTimestamp()
-                });
-
-                mensagem.innerHTML = `✅ Sucesso! Foto enviada para moderação. Aguarde sua vez na TV:<br><span class="senha-destaque">Sua Foto é a Nº ${meuNumeroFila}</span>`;
-                mensagem.style.color = "green";
-                
-                document.getElementById('nomeInput').value = "";
-                document.getElementById('setorInput').value = "";
-                arquivoSelecionado = null;
-                previewContainer.style.display = 'none';
-
-            } catch (erro) {
-                console.error(erro);
-                mensagem.innerText = "Ocorreu um erro ao enviar. Tente novamente.";
-                mensagem.style.color = "red";
-            } finally {
-                btnEnviar.disabled = false;
-            }
-        });
+        }
     </script>
 </body>
 </html>
