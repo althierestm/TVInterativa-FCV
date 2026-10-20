@@ -409,22 +409,35 @@
             timerExibicao = setTimeout(decidirProximo, 15000); 
         }
 
+        function obterTempoValido(tempoRaw) {
+            let t = parseInt(tempoRaw);
+            return (isNaN(t) || t < 5000 || t > 60000) ? 15000 : t;
+        }
+
         function renderizarComunicado() {
             indexCom = (indexCom + 1) >= comunicadosAtivos.length ? 0 : (indexCom + 1);
             const com = comunicadosAtivos[indexCom];
-            let tempoTextoArte = com.tempo_exibicao ? parseInt(com.tempo_exibicao) : 15000;
+            
+            let tempoTextoArte = obterTempoValido(com.tempo_exibicao);
 
             if (com.tipo === 'video' || com.url_video) {
                 videoPainel.src = com.url_video;
+                
                 videoPainel.onloadedmetadata = function() {
                     let duracao = videoPainel.duration * 1000;
                     if (!duracao || isNaN(duracao) || duracao === Infinity) duracao = 15000;
+                    
                     transitarPara(camadaVideo);
                     videoPainel.play().catch(e => console.log(e));
+                    
                     animarBarra(duracao); 
-                    timerExibicao = setTimeout(() => { decidirProximo(); }, duracao);
+                    timerExibicao = setTimeout(() => { 
+                        decidirProximo(); 
+                    }, duracao);
                 };
+                
                 videoPainel.onerror = () => { setTimeout(decidirProximo, 1000); };
+                
             } else if (com.tipo === 'imagem' || com.url_imagem) { 
                 toggleImgLayer = toggleImgLayer === 1 ? 2 : 1;
                 const camadaAtual = toggleImgLayer === 1 ? camadaImagem1 : camadaImagem2;
