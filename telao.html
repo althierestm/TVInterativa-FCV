@@ -37,7 +37,23 @@
         #aguardando { font-size: 20px; color: #7f8c8d; font-weight: 600; z-index: 20; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: none; }
         #barraProgressoContainer { position: absolute; bottom: 0; left: 0; width: 100%; height: 10px; background: rgba(255,255,255,0.1); z-index: 20; }
         #barraProgresso { height: 100%; width: 0%; background: linear-gradient(to right, #2894f9, #002061); }
-        #bgClima { position: absolute; width: 100%; height: 100%; top: 0; left: 0; z-index: 1; background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); }
+        
+        #bgClima { position: absolute; width: 100%; height: 100%; top: 0; left: 0; z-index: 1; background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); overflow: hidden; transition: background 1s ease; }
+        .clima-sol { background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%) !important; }
+        .clima-sol::after { content: ""; position: absolute; top: -10%; left: -10%; width: 800px; height: 800px; background: radial-gradient(circle, rgba(241,196,15,0.15) 0%, transparent 60%); border-radius: 50%; animation: pulsarSol 6s ease-in-out infinite alternate; pointer-events: none; }
+        @keyframes pulsarSol { 0% { transform: scale(1); opacity: 0.5; } 100% { transform: scale(1.2) translate(30px, 30px); opacity: 1; } }
+        .clima-nublado { background: linear-gradient(135deg, #4b6cb7 0%, #182848 100%) !important; }
+        .clima-nublado::before { content: ""; position: absolute; width: 1200px; height: 600px; top: 5%; left: -200px; background: rgba(255,255,255,0.08); filter: blur(60px); border-radius: 50%; animation: moverNuvem1 20s ease-in-out infinite alternate; pointer-events: none; }
+        .clima-nublado::after { content: ""; position: absolute; width: 1000px; height: 500px; bottom: 10%; right: -200px; background: rgba(255,255,255,0.05); filter: blur(50px); border-radius: 50%; animation: moverNuvem2 25s ease-in-out infinite alternate; pointer-events: none; }
+        @keyframes moverNuvem1 { 0% { transform: translateX(0); } 100% { transform: translateX(300px); } }
+        @keyframes moverNuvem2 { 0% { transform: translateX(0); } 100% { transform: translateX(-300px); } }
+        .clima-chuva { background: linear-gradient(135deg, #373B44 0%, #2a5298 100%) !important; }
+        .clima-chuva::before { content: ""; position: absolute; width: 150%; height: 150%; top: -25%; left: -25%; background-image: linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,0.25) 50%, rgba(255,255,255,0) 100%); background-size: 4px 90px; animation: cairChuva 0.7s linear infinite; transform: rotate(10deg); pointer-events: none; }
+        @keyframes cairChuva { 0% { background-position: 0 -1000px; } 100% { background-position: 0 1080px; } }
+        .clima-tempestade { background: linear-gradient(135deg, #141e30 0%, #243b55 100%) !important; animation: trovao 10s infinite; }
+        .clima-tempestade::before { content: ""; position: absolute; width: 150%; height: 150%; top: -25%; left: -25%; background-image: linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,0.3) 50%, rgba(255,255,255,0) 100%); background-size: 3px 100px; animation: cairChuva 0.5s linear infinite; transform: rotate(12deg); pointer-events: none; }
+        @keyframes trovao { 0%, 94%, 98%, 100% { filter: brightness(1); } 95%, 97% { filter: brightness(2.5); } }
+
         .header-clima { position: absolute; top: 80px; left: 0; width: 100%; text-align: center; z-index: 2;}
         .cidade-clima { font-size: 45px; font-weight: 600; margin: 0; color: #fff; letter-spacing: 1px;}
         .sub-clima { font-size: 22px; font-weight: 300; color: #bdc3c7; margin-top: 5px; }
@@ -221,6 +237,20 @@
                     let cTarde = getClimaIcon(data.hourly.weathercode[idxTarde], false);
                     let tNoite = Math.round(data.hourly.temperature_2m[idxNoite]);
                     let cNoite = getClimaIcon(data.hourly.weathercode[idxNoite], true);
+
+                    if(i === 0) {
+                        const bgClima = document.getElementById('bgClima');
+                        bgClima.className = ''; 
+                        if (mainCode === 0) {
+                            bgClima.classList.add('clima-sol');
+                        } else if (mainCode >= 1 && mainCode <= 48) {
+                            bgClima.classList.add('clima-nublado');
+                        } else if (mainCode >= 51 && mainCode <= 82) {
+                            bgClima.classList.add('clima-chuva');
+                        } else if (mainCode >= 95) {
+                            bgClima.classList.add('clima-tempestade');
+                        }
+                    }
 
                     gridHtml += `<div class="card-dia"><div class="dia-titulo">${tituloDia}</div><div class="icone-principal">${iconeMain.i}</div><div class="temp-principal">${tempMedia}°</div><div class="desc-principal">${iconeMain.t}</div><div class="maxmin"><div class="t-max">↑ ${max}°</div><div class="t-min">↓ ${min}°</div></div><div class="turnos-container"><div class="turno"><div class="turno-nome">manhã</div><div class="turno-icone">${cManha.i}</div><div class="turno-temp">${tManha}°</div></div><div class="turno"><div class="turno-nome">tarde</div><div class="turno-icone">${cTarde.i}</div><div class="turno-temp">${tTarde}°</div></div><div class="turno"><div class="turno-nome">noite</div><div class="turno-icone">${cNoite.i}</div><div class="turno-temp">${tNoite}°</div></div></div></div>`;
                 }
