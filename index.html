@@ -7,55 +7,103 @@
     <link rel="icon" href="logo%20icon%20TV%20do%20Ponto%20FCV.png" type="image/png">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body { margin: 0; padding: 0; background-color: #000; color: white; font-family: 'Montserrat', sans-serif; overflow: hidden; }
-        #viewportWrapper { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; overflow: hidden; }
-        .tv-scale-box { width: 1920px; height: 1080px; position: absolute; top: 50%; left: 50%; transform-origin: center center; background-color: #000; }
-        #btnFullscreen { position: fixed; top: 20px; right: 20px; z-index: 99999; background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.5); padding: 10px 15px; border-radius: 8px; cursor: pointer; font-family: 'Montserrat', sans-serif; font-weight: 600; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); transition: 0.3s; }
+        body { 
+            margin: 0; padding: 0; background-color: #000; color: white; 
+            font-family: 'Montserrat', sans-serif; overflow: hidden;
+        }
+
+        #viewportWrapper {
+            position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
+            overflow: hidden;
+        }
+
+        .tv-scale-box {
+            width: 1920px; height: 1080px; 
+            position: absolute; top: 50%; left: 50%;
+            transform-origin: center center;
+            background-color: #000;
+        }
+        
+        #btnFullscreen {
+            position: fixed; top: 20px; right: 20px; z-index: 99999;
+            background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.5);
+            padding: 10px 15px; border-radius: 8px; cursor: pointer; font-family: 'Montserrat', sans-serif;
+            font-weight: 600; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); transition: 0.3s;
+        }
         #btnFullscreen:hover { background: rgba(255,255,255,0.4); }
-        .marca-dagua { position: absolute; top: 25px; right: 40px; width: 200px; opacity: 0.7; z-index: 9990; pointer-events: none; }
-        #relogioTV { position: absolute; bottom: 40px; right: 40px; background: rgba(255, 255, 255, 0.5); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.4); box-shadow: 0 4px 15px rgba(0,0,0,0.3); border-radius: 12px; color: #224387; padding: 10px 25px; text-align: center; font-size: 32px; font-weight: 700; letter-spacing: 2px; z-index: 9990; pointer-events: none; }
+
+        .marca-dagua {
+            position: absolute; top: 25px; right: 40px; width: 200px;
+            opacity: 0.7; z-index: 9990; pointer-events: none;
+        }
+
+        #relogioTV {
+            position: absolute; bottom: 40px; right: 40px;
+            background: rgba(255, 255, 255, 0.5); 
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            border-radius: 12px; color: #224387; 
+            padding: 10px 25px; text-align: center;
+            font-size: 32px; font-weight: 700; letter-spacing: 2px;
+            z-index: 9990; pointer-events: none;
+        }
+
         body[data-transicao="fade"] .container-master { transition: opacity 0.8s ease; }
         body[data-transicao="fade"] .escondido { opacity: 0; pointer-events: none; }
         body[data-transicao="fade"] .visivel { opacity: 1; pointer-events: auto; }
+
         body[data-transicao="slide"] .container-master { transition: transform 0.8s ease-in-out, opacity 0.8s ease-in-out; }
         body[data-transicao="slide"] .escondido { transform: translateX(100%); opacity: 0; pointer-events: none; }
         body[data-transicao="slide"] .visivel { transform: translateX(0); opacity: 1; pointer-events: auto; }
+
         body[data-transicao="zoom"] .container-master { transition: transform 0.8s ease-in-out, opacity 0.8s ease-in-out; }
         body[data-transicao="zoom"] .escondido { transform: scale(0.9); opacity: 0; pointer-events: none; }
         body[data-transicao="zoom"] .visivel { transform: scale(1); opacity: 1; pointer-events: auto; }
-        .container-master { width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; position: absolute; top:0; left:0; }
+
+        .container-master { 
+            width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; 
+            position: absolute; top:0; left:0; 
+        }
+
         .moldura-sobreposicao { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 5; pointer-events: none; }
-        #imgPainel1, #imgPainel2 { width: 100%; height: 100%; object-fit: contain; position: relative; z-index: 2; }
+
+        #imgPainel { width: 100%; height: 100%; object-fit: contain; position: relative; z-index: 2; }
         .modo-arte { object-fit: cover !important; }
-        .nome-rodape { position: absolute; bottom: 70px; left: 50%; transform: translateX(-50%); background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.3); box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2); border-radius: 30px; color: #ffffff; padding: 20px 55px; text-align: center; transition: opacity 1s ease-in-out; z-index: 10; }
+
+        .nome-rodape { 
+            position: absolute; bottom: 70px; left: 50%; transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.3); box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            border-radius: 30px; color: #ffffff; padding: 20px 55px; text-align: center;
+            transition: opacity 1s ease-in-out; z-index: 10;
+        }
         .nome-rodape .titular { font-size: 40px; font-weight: 700; letter-spacing: 1.5px; text-shadow: 0 2px 4px rgba(0, 32, 97, 0.4), 0 1px 2px rgba(0, 32, 97, 0.6); }
         .nome-rodape .setor { font-size: 24px; font-weight: 400; opacity: 0.9; margin-top: 5px; text-shadow: 0 2px 6px #002061, 0 0 4px #002061; }
+
         #numeroDiscreto { position: absolute; bottom: 30px; left: 40px; font-size: 35px; font-weight: 800; color: #224387; z-index: 15; text-shadow: 0 1px 2px rgba(255,255,255,0.8); transition: opacity 1s; }
-        #containerTexto { width: 80%; text-align: center; background: rgba(34, 67, 135, 0.85); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); padding: 80px; border-radius: 40px; border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
+
+        #containerTexto {
+            width: 80%; text-align: center; background: rgba(34, 67, 135, 0.85);
+            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            padding: 80px; border-radius: 40px; border: 1px solid rgba(255,255,255,0.2);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5); 
+        }
         #textoDoComunicado { font-size: 70px; font-weight: 700; line-height: 1.3; margin: 0; color: #fff; }
         .aviso-label { font-size: 30px; color: #ff9800; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 25px; display: block;}
+
         #aguardando { font-size: 20px; color: #7f8c8d; font-weight: 600; z-index: 20; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: none; }
+
         #barraProgressoContainer { position: absolute; bottom: 0; left: 0; width: 100%; height: 10px; background: rgba(255,255,255,0.1); z-index: 20; }
         #barraProgresso { height: 100%; width: 0%; background: linear-gradient(to right, #2894f9, #002061); }
-        
-        #bgClima { position: absolute; width: 100%; height: 100%; top: 0; left: 0; z-index: 1; background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); overflow: hidden; transition: background 1s ease; }
-        .clima-sol { background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%) !important; }
-        .clima-sol::after { content: ""; position: absolute; top: -10%; left: -10%; width: 800px; height: 800px; background: radial-gradient(circle, rgba(241,196,15,0.15) 0%, transparent 60%); border-radius: 50%; animation: pulsarSol 6s ease-in-out infinite alternate; pointer-events: none; }
-        @keyframes pulsarSol { 0% { transform: scale(1); opacity: 0.5; } 100% { transform: scale(1.2) translate(30px, 30px); opacity: 1; } }
-        .clima-nublado { background: linear-gradient(135deg, #4b6cb7 0%, #182848 100%) !important; }
-        .clima-nublado::before { content: ""; position: absolute; width: 1200px; height: 600px; top: 5%; left: -200px; background: rgba(255,255,255,0.08); filter: blur(60px); border-radius: 50%; animation: moverNuvem1 20s ease-in-out infinite alternate; pointer-events: none; }
-        .clima-nublado::after { content: ""; position: absolute; width: 1000px; height: 500px; bottom: 10%; right: -200px; background: rgba(255,255,255,0.05); filter: blur(50px); border-radius: 50%; animation: moverNuvem2 25s ease-in-out infinite alternate; pointer-events: none; }
-        @keyframes moverNuvem1 { 0% { transform: translateX(0); } 100% { transform: translateX(300px); } }
-        @keyframes moverNuvem2 { 0% { transform: translateX(0); } 100% { transform: translateX(-300px); } }
-        .clima-chuva { background: linear-gradient(135deg, #2b3b4e 0%, #1e2a38 100%) !important; }
-        .clima-tempestade { background: linear-gradient(135deg, #141e30 0%, #243b55 100%) !important; animation: trovao 8s infinite; }
-        @keyframes trovao { 0%, 94%, 98%, 100% { filter: brightness(1); } 95%, 97% { filter: brightness(1.3); } }
 
-        .header-clima { position: absolute; top: 80px; left: 0; width: 100%; text-align: center; z-index: 4;}
+        #bgClima { position: absolute; width: 100%; height: 100%; top: 0; left: 0; z-index: 1; background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); }
+        .header-clima { position: absolute; top: 80px; left: 0; width: 100%; text-align: center; z-index: 2;}
         .cidade-clima { font-size: 45px; font-weight: 600; margin: 0; color: #fff; letter-spacing: 1px;}
         .sub-clima { font-size: 22px; font-weight: 300; color: #bdc3c7; margin-top: 5px; }
-        .grid-clima { display: grid; grid-template-columns: repeat(7, 1fr); gap: 20px; width: 90%; max-width: 1750px; z-index: 4; margin-top: 90px; }
-        .card-dia { background: rgba(255, 255, 255, 0.07); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); border-radius: 24px; padding: 30px 15px; border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 15px 35px rgba(0,0,0,0.2); text-align: center; display: flex; flex-direction: column; align-items: center; position: relative;}
+        
+        .grid-clima { display: grid; grid-template-columns: repeat(7, 1fr); gap: 20px; width: 90%; max-width: 1750px; z-index: 2; margin-top: 90px; }
+        .card-dia { background: rgba(255, 255, 255, 0.07); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); border-radius: 24px; padding: 30px 15px; border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 15px 35px rgba(0,0,0,0.2); text-align: center; display: flex; flex-direction: column; align-items: center; }
         .dia-titulo { font-size: 32px; font-weight: 600; color: #fff; margin-bottom: 25px; }
         .dia-hoje { color: #3498db; }
         .icone-principal svg { width: 100px; height: 100px; margin-bottom: 20px;}
@@ -68,8 +116,6 @@
         .turno-nome { font-size: 14px; font-weight: 600; color: #bdc3c7; text-transform: uppercase; }
         .turno-icone svg { width: 35px; height: 35px; }
         .turno-temp { font-size: 18px; font-weight: 600; }
-        
-        #rainCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; pointer-events: none; display: none; }
     </style>
 </head>
 <body data-transicao="fade">
@@ -88,43 +134,36 @@
 
             <div class="container-master escondido" id="camadaClima">
                 <div id="bgClima"></div>
-                <canvas id="rainCanvas"></canvas>
                 <div class="header-clima">
                     <h1 class="cidade-clima">Previsão do Tempo - Muriaé, MG</h1>
                     <div class="sub-clima">Fonte: Satélite Open-Meteo</div>
                 </div>
                 <div class="grid-clima" id="gridClima"></div>
             </div>
-            
-            <div class="container-master escondido" id="camadaImagem1">
-                <img id="imgPainel1" src="" alt="Painel">
-                <img id="molduraFoto1" src="escaneie%20e%20mande%20a%20sua.png" class="moldura-sobreposicao" style="display:none;" alt="Moldura">
-                <div class="nome-rodape" id="nomePainel1" style="display:none;">
-                    <div class="titular" id="lblNome1"></div>
-                    <div class="setor" id="lblSetor1"></div>
-                </div>
-            </div>
 
-            <div class="container-master escondido" id="camadaImagem2">
-                <img id="imgPainel2" src="" alt="Painel">
-                <img id="molduraFoto2" src="escaneie%20e%20mande%20a%20sua.png" class="moldura-sobreposicao" style="display:none;" alt="Moldura">
-                <div class="nome-rodape" id="nomePainel2" style="display:none;">
-                    <div class="titular" id="lblNome2"></div>
-                    <div class="setor" id="lblSetor2"></div>
+            <div class="container-master escondido" id="camadaImagem">
+                <img id="imgPainel" src="" alt="Painel">
+                <img id="molduraFoto" src="escaneie%20e%20mande%20a%20sua.png" class="moldura-sobreposicao" style="display:none;" alt="Moldura">
+                <div class="nome-rodape" id="nomePainel" style="display:none;">
+                    <div class="titular" id="lblNome"></div>
+                    <div class="setor" id="lblSetor"></div>
                 </div>
             </div>
 
             <div class="container-master escondido" id="camadaVideo">
                 <video id="videoPainel" class="modo-arte" src="" playsinline muted></video>
             </div>
+
             <div class="container-master escondido" id="camadaTexto">
                 <div id="containerTexto">
                     <span class="aviso-label">Mural da Fundação</span>
                     <h1 id="textoDoComunicado"></h1>
                 </div>
             </div>
+
             <div id="numeroDiscreto" style="opacity: 0;"></div>
             <div id="barraProgressoContainer"><div id="barraProgresso"></div></div>
+
         </div>
     </div>
 
@@ -140,23 +179,19 @@
             messagingSenderId: "930815464098",
             appId: "1:930815464098:web:890c2300a6e1a79abd3dfb"
         };
+
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
         document.getElementById('btnFullscreen').addEventListener('click', () => {
             const radio = document.getElementById('radioFCV');
             radio.play().catch(e => console.log(e));
+            
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen().catch(err => console.log(err));
                 document.getElementById('btnFullscreen').style.display = 'none'; 
             }
         });
-
-        setInterval(() => {
-            let r = document.getElementById('radioFCV');
-            let h = new Date().getHours();
-            r.volume = (h >= 20 || h < 7) ? 0.3 : 1.0;
-        }, 30000);
 
         setInterval(() => {
             const radio = document.getElementById('radioFCV');
@@ -178,14 +213,11 @@
             }, 5000);
         });
 
-        const scaleBox = document.getElementById('tvScaleBox');
-        let currentScaleX = 1;
-        let currentScaleY = 1;
-        
         function ajustarEscala() {
-            currentScaleX = window.innerWidth / 1920;
-            currentScaleY = window.innerHeight / 1080;
-            scaleBox.style.transform = `translate(-50%, -50%) scale(${currentScaleX}, ${currentScaleY})`;
+            const scaleBox = document.getElementById('tvScaleBox');
+            const scaleX = window.innerWidth / 1920;
+            const scaleY = window.innerHeight / 1080;
+            scaleBox.style.transform = `translate(-50%, -50%) scale(${scaleX}, ${scaleY})`;
         }
         window.addEventListener('resize', ajustarEscala);
         ajustarEscala(); 
@@ -198,8 +230,7 @@
         atualizarRelogio();
 
         let dadosClimaProntos = false;
-        let isRaining = false;
-        
+
         const svgs = {
             sol: '<svg stroke="#f1c40f" viewBox="0 0 24 24" fill="none" stroke-width="1.5"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>',
             nuvem: '<svg stroke="#bdc3c7" viewBox="0 0 24 24" fill="none" stroke-width="1.5"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>',
@@ -224,40 +255,67 @@
                 const url = 'https://api.open-meteo.com/v1/forecast?latitude=-21.1306&longitude=-42.3664&daily=weathercode,temperature_2m_max,temperature_2m_min&hourly=temperature_2m,weathercode&timezone=America%2FSao_Paulo&forecast_days=7';
                 const resp = await fetch(url);
                 const data = await resp.json();
+
                 const diasNomes = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
                 let gridHtml = '';
 
                 for(let i = 0; i < 7; i++) {
                     let dObj = new Date(data.daily.time[i] + 'T00:00:00');
                     let tituloDia = (i === 0) ? '<span class="dia-hoje">Hoje</span>' : diasNomes[dObj.getDay()];
+
                     let mainCode = data.daily.weathercode[i];
                     let max = Math.round(data.daily.temperature_2m_max[i]);
                     let min = Math.round(data.daily.temperature_2m_min[i]);
                     let iconeMain = getClimaIcon(mainCode, false);
                     let tempMedia = Math.round((max + min) / 2);
+
                     let baseIdx = i * 24;
                     let idxManha = baseIdx + 9;  
                     let idxTarde = baseIdx + 15; 
                     let idxNoite = baseIdx + 20; 
+
                     let tManha = Math.round(data.hourly.temperature_2m[idxManha]);
                     let cManha = getClimaIcon(data.hourly.weathercode[idxManha], false);
+
                     let tTarde = Math.round(data.hourly.temperature_2m[idxTarde]);
                     let cTarde = getClimaIcon(data.hourly.weathercode[idxTarde], false);
+
                     let tNoite = Math.round(data.hourly.temperature_2m[idxNoite]);
                     let cNoite = getClimaIcon(data.hourly.weathercode[idxNoite], true);
 
-                    if (i === 0) {
-                        const bgClima = document.getElementById('bgClima');
-                        bgClima.className = ''; 
-                        isRaining = false;
-                        if (mainCode === 0) bgClima.classList.add('clima-sol');
-                        else if (mainCode >= 1 && mainCode <= 48) bgClima.classList.add('clima-nublado');
-                        else if (mainCode >= 51 && mainCode <= 82) { bgClima.classList.add('clima-chuva'); isRaining = true; }
-                        else if (mainCode >= 95) { bgClima.classList.add('clima-tempestade'); isRaining = true; }
-                    }
+                    gridHtml += `
+                        <div class="card-dia">
+                            <div class="dia-titulo">${tituloDia}</div>
+                            <div class="icone-principal">${iconeMain.i}</div>
+                            <div class="temp-principal">${tempMedia}°</div>
+                            <div class="desc-principal">${iconeMain.t}</div>
+                            
+                            <div class="maxmin">
+                                <div class="t-max">↑ ${max}°</div>
+                                <div class="t-min">↓ ${min}°</div>
+                            </div>
 
-                    gridHtml += `<div class="card-dia"><div class="dia-titulo">${tituloDia}</div><div class="icone-principal">${iconeMain.i}</div><div class="temp-principal">${tempMedia}°</div><div class="desc-principal">${iconeMain.t}</div><div class="maxmin"><div class="t-max">↑ ${max}°</div><div class="t-min">↓ ${min}°</div></div><div class="turnos-container"><div class="turno"><div class="turno-nome">manhã</div><div class="turno-icone">${cManha.i}</div><div class="turno-temp">${tManha}°</div></div><div class="turno"><div class="turno-nome">tarde</div><div class="turno-icone">${cTarde.i}</div><div class="turno-temp">${tTarde}°</div></div><div class="turno"><div class="turno-nome">noite</div><div class="turno-icone">${cNoite.i}</div><div class="turno-temp">${tNoite}°</div></div></div></div>`;
+                            <div class="turnos-container">
+                                <div class="turno">
+                                    <div class="turno-nome">manhã</div>
+                                    <div class="turno-icone">${cManha.i}</div>
+                                    <div class="turno-temp">${tManha}°</div>
+                                </div>
+                                <div class="turno">
+                                    <div class="turno-nome">tarde</div>
+                                    <div class="turno-icone">${cTarde.i}</div>
+                                    <div class="turno-temp">${tTarde}°</div>
+                                </div>
+                                <div class="turno">
+                                    <div class="turno-nome">noite</div>
+                                    <div class="turno-icone">${cNoite.i}</div>
+                                    <div class="turno-temp">${tNoite}°</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
                 }
+
                 document.getElementById('gridClima').innerHTML = gridHtml;
                 dadosClimaProntos = true;
             } catch (e) {
@@ -269,130 +327,64 @@
         processarClima();
         setInterval(processarClima, 1800000); 
 
-        const rainCanvas = document.getElementById('rainCanvas');
-        const ctx = rainCanvas.getContext('2d');
-        let drops = [];
-        let splashes = [];
-        let rainAnimId = null;
-        let rainActive = false;
-
-        function initRain() {
-            rainCanvas.width = 1920;
-            rainCanvas.height = 1080;
-            drops = [];
-            splashes = [];
-            for(let i=0; i<180; i++) {
-                drops.push({
-                    x: Math.random() * rainCanvas.width,
-                    y: Math.random() * rainCanvas.height,
-                    l: Math.random() * 20 + 10,
-                    v: Math.random() * 15 + 20,
-                    z: Math.random() 
-                });
-            }
-        }
-        initRain();
-
-        function drawRain() {
-            if(!rainActive) return;
-            ctx.clearRect(0, 0, rainCanvas.width, rainCanvas.height);
-            ctx.lineCap = 'round';
-
-            const cards = document.querySelectorAll('.card-dia');
-            const cardRects = Array.from(cards).map(c => {
-                const rect = c.getBoundingClientRect();
-                return {
-                    top: (rect.top - (window.innerHeight - 1080 * currentScaleY) / 2) / currentScaleY,
-                    left: (rect.left - (window.innerWidth - 1920 * currentScaleX) / 2) / currentScaleX,
-                    right: (rect.right - (window.innerWidth - 1920 * currentScaleX) / 2) / currentScaleX
-                };
-            });
-
-            for (let i = splashes.length - 1; i >= 0; i--) {
-                let s = splashes[i];
-                ctx.beginPath();
-                ctx.ellipse(s.x, s.y, s.r, s.r/3, 0, 0, Math.PI * 2);
-                ctx.strokeStyle = `rgba(255, 255, 255, ${s.a})`;
-                ctx.lineWidth = 1;
-                ctx.stroke();
-                s.r += 1.2;
-                s.a -= 0.08;
-                if (s.a <= 0) splashes.splice(i, 1);
-            }
-
-            for (let i = 0; i < drops.length; i++) {
-                let d = drops[i];
-                ctx.strokeStyle = `rgba(255, 255, 255, ${d.z * 0.4 + 0.1})`;
-                ctx.lineWidth = d.z * 1.5 + 0.5;
-                
-                ctx.beginPath();
-                ctx.moveTo(d.x, d.y);
-                ctx.lineTo(d.x, d.y + d.l);
-                ctx.stroke();
-
-                d.y += d.v;
-
-                let hit = false;
-                if(d.z > 0.4) { 
-                    for(let rect of cardRects) {
-                        if (d.x > rect.left && d.x < rect.right && d.y + d.l > rect.top && d.y - d.v <= rect.top) {
-                            hit = true;
-                            splashes.push({x: d.x, y: rect.top, r: 2, a: 0.6});
-                            break;
-                        }
-                    }
-                }
-
-                if (hit || d.y > rainCanvas.height) {
-                    d.y = -20;
-                    d.x = Math.random() * rainCanvas.width;
-                    d.v = Math.random() * 15 + 20;
-                }
-            }
-            rainAnimId = requestAnimationFrame(drawRain);
-        }
-
         let comunicadosAtivos = [];
         let fotosAprovadas = [];
         let indexCom = -1;
         let indexFoto = -1;
+        
         let loopRodando = false;
         let mostrarClimaNaTV = true; 
         let mostrarFotosNaTV = false;
         let proximaAcao = 'CLIMA'; 
+
         let fotosExibidasNoCiclo = parseInt(localStorage.getItem('fcv_ciclo')) || 0;
         let maiorNumeroExibido = parseInt(localStorage.getItem('fcv_maior')) || 0;
+
         let timerCarregamento = null;
         let timerExibicao = null;
-        let toggleImgLayer = 1;
 
-        onSnapshot(doc(db, "controle_tv", "status_clima"), (docSnap) => { if(docSnap.exists()) mostrarClimaNaTV = docSnap.data().mostrar_clima; });
-        onSnapshot(doc(db, "controle_tv", "status"), (docSnap) => { if(docSnap.exists()) mostrarFotosNaTV = docSnap.data().mostrar_fotos; });
+        onSnapshot(doc(db, "controle_tv", "status_clima"), (docSnap) => {
+            if(docSnap.exists()) mostrarClimaNaTV = docSnap.data().mostrar_clima;
+        });
+        onSnapshot(doc(db, "controle_tv", "status"), (docSnap) => {
+            if(docSnap.exists()) mostrarFotosNaTV = docSnap.data().mostrar_fotos;
+        });
         onSnapshot(doc(db, "controle_tv", "status_transicao"), (docSnap) => {
-            if(docSnap.exists() && docSnap.data().efeito) document.body.setAttribute('data-transicao', docSnap.data().efeito);
-            else document.body.setAttribute('data-transicao', 'fade');
+            if(docSnap.exists() && docSnap.data().efeito) {
+                document.body.setAttribute('data-transicao', docSnap.data().efeito);
+            } else {
+                document.body.setAttribute('data-transicao', 'fade');
+            }
         });
 
         const camadaClima = document.getElementById('camadaClima');
-        const camadaImagem1 = document.getElementById('camadaImagem1');
-        const camadaImagem2 = document.getElementById('camadaImagem2');
+        const camadaImagem = document.getElementById('camadaImagem');
         const camadaVideo = document.getElementById('camadaVideo');
         const videoPainel = document.getElementById('videoPainel');
+        const imgPainel = document.getElementById('imgPainel');
+        const molduraFoto = document.getElementById('molduraFoto'); 
+        const nomePainel = document.getElementById('nomePainel');
+        const lblNome = document.getElementById('lblNome');
+        const lblSetor = document.getElementById('lblSetor');
         const camadaTexto = document.getElementById('camadaTexto');
         const textoDoComunicado = document.getElementById('textoDoComunicado');
         const aguardando = document.getElementById('aguardando');
+        const numDiscreto = document.getElementById('numeroDiscreto');
         const barraProgresso = document.getElementById('barraProgresso');
 
         onSnapshot(query(collection(db, "fotos_criancas"), where("status", "==", "aprovado")), (snapshot) => {
             fotosAprovadas = [];
             snapshot.forEach(doc => fotosAprovadas.push(doc.data()));
             fotosAprovadas.sort((a, b) => (a.numeroFila || 0) - (b.numeroFila || 0));
+
             if (fotosAprovadas.length > 0) {
                 const ultimaFila = fotosAprovadas[fotosAprovadas.length - 1].numeroFila || 0;
                 if (ultimaFila > maiorNumeroExibido && maiorNumeroExibido > 0) {
                     clearTimeout(window.timerFuraFila);
                     window.timerFuraFila = setTimeout(() => {
-                        proximaAcao = 'FOTOS'; fotosExibidasNoCiclo = 0; localStorage.setItem('fcv_ciclo', 0);
+                        proximaAcao = 'FOTOS'; 
+                        fotosExibidasNoCiclo = 0; 
+                        localStorage.setItem('fcv_ciclo', 0);
                         if (loopRodando) decidirProximo();
                     }, 1000);
                 }
@@ -402,16 +394,22 @@
         onSnapshot(collection(db, "comunicados_criancas"), (snapshot) => {
             comunicadosAtivos = [];
             const hojeISO = new Date().toLocaleDateString('en-CA'); 
+
             snapshot.forEach(doc => {
                 const data = doc.data();
                 if (data.ativo === false) return; 
-                if (data.exibir_corredor === false) return;
                 if (data.data_inicio && hojeISO < data.data_inicio) return; 
                 if (data.data_fim && hojeISO > data.data_fim) return;       
+                
                 comunicadosAtivos.push(data);
             });
+
             comunicadosAtivos.sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
-            if (!loopRodando) { loopRodando = true; decidirProximo(); }
+
+            if (!loopRodando) {
+                loopRodando = true;
+                decidirProximo();
+            }
         });
 
         function animarBarra(tempoMs) {
@@ -424,7 +422,7 @@
         }
 
         function transitarPara(novaCamada) {
-            const camadas = [camadaClima, camadaImagem1, camadaImagem2, camadaVideo, camadaTexto];
+            const camadas = [camadaClima, camadaImagem, camadaVideo, camadaTexto];
             camadas.forEach(c => {
                 if (c === novaCamada) {
                     c.classList.remove('escondido');
@@ -435,22 +433,15 @@
                         c.classList.remove('visivel');
                         c.classList.add('escondido');
                         c.style.zIndex = "1";
-                        if (c === camadaVideo) { setTimeout(() => { videoPainel.pause(); videoPainel.src = ""; }, 800); }
+                        if (c === camadaVideo) {
+                            setTimeout(() => { videoPainel.pause(); videoPainel.src = ""; }, 800);
+                        }
                     }
                 }
             });
-
-            if (novaCamada === camadaClima && isRaining) {
-                rainCanvas.style.display = 'block';
-                rainActive = true;
-                drawRain();
-            } else {
-                rainActive = false;
-                cancelAnimationFrame(rainAnimId);
-                rainCanvas.style.display = 'none';
+            if (novaCamada !== camadaImagem) {
+                numDiscreto.style.opacity = 0;
             }
-
-            if (novaCamada !== camadaImagem1 && novaCamada !== camadaImagem2) { document.getElementById('numeroDiscreto').style.opacity = 0; }
             aguardando.style.display = "none";
         }
 
@@ -463,25 +454,46 @@
             let podeExibirClima = mostrarClimaNaTV && dadosClimaProntos;
 
             if (!podeExibirClima && !temComs && !temFotos) {
-                aguardando.style.display = "block"; transitarPara(null); setTimeout(decidirProximo, 2000); return;
+                aguardando.style.display = "block";
+                transitarPara(null);
+                setTimeout(decidirProximo, 2000); 
+                return;
             }
 
             if (proximaAcao === 'CLIMA') {
-                if (podeExibirClima) { proximaAcao = temComs ? 'COMS' : (temFotos ? 'FOTOS' : 'CLIMA'); renderizarClima(); } 
-                else { proximaAcao = temComs ? 'COMS' : 'FOTOS'; decidirProximo(); }
+                if (podeExibirClima) {
+                    proximaAcao = temComs ? 'COMS' : (temFotos ? 'FOTOS' : 'CLIMA');
+                    renderizarClima();
+                } else {
+                    proximaAcao = temComs ? 'COMS' : 'FOTOS';
+                    decidirProximo();
+                }
             } else if (proximaAcao === 'COMS') {
                 if (temComs) {
                     renderizarComunicado();
-                    if (indexCom === comunicadosAtivos.length - 1) { proximaAcao = temFotos ? 'FOTOS' : (podeExibirClima ? 'CLIMA' : 'COMS'); } 
-                    else { proximaAcao = 'COMS'; }
-                } else { proximaAcao = temFotos ? 'FOTOS' : 'CLIMA'; decidirProximo(); }
+                    if (indexCom === comunicadosAtivos.length - 1) { 
+                        proximaAcao = temFotos ? 'FOTOS' : (podeExibirClima ? 'CLIMA' : 'COMS');
+                    } else {
+                        proximaAcao = 'COMS';
+                    }
+                } else {
+                    proximaAcao = temFotos ? 'FOTOS' : 'CLIMA';
+                    decidirProximo();
+                }
             } else if (proximaAcao === 'FOTOS') {
                 if (temFotos) {
                     if (fotosExibidasNoCiclo >= 4) { 
-                        fotosExibidasNoCiclo = 0; localStorage.setItem('fcv_ciclo', 0);
-                        proximaAcao = podeExibirClima ? 'CLIMA' : (temComs ? 'COMS' : 'FOTOS'); decidirProximo();
-                    } else { renderizarFoto(); }
-                } else { proximaAcao = podeExibirClima ? 'CLIMA' : 'COMS'; decidirProximo(); }
+                        fotosExibidasNoCiclo = 0;
+                        localStorage.setItem('fcv_ciclo', 0);
+                        proximaAcao = podeExibirClima ? 'CLIMA' : (temComs ? 'COMS' : 'FOTOS');
+                        decidirProximo();
+                    } else {
+                        renderizarFoto();
+                    }
+                } else {
+                    proximaAcao = podeExibirClima ? 'CLIMA' : 'COMS';
+                    decidirProximo();
+                }
             }
         }
 
@@ -491,76 +503,75 @@
             timerExibicao = setTimeout(decidirProximo, 15000); 
         }
 
-        function obterTempoValido(tempoRaw) { let t = parseInt(tempoRaw); return (isNaN(t) || t < 5000 || t > 60000) ? 15000 : t; }
-
         function renderizarComunicado() {
             indexCom = (indexCom + 1) >= comunicadosAtivos.length ? 0 : (indexCom + 1);
             const com = comunicadosAtivos[indexCom];
-            let tempoTextoArte = obterTempoValido(com.tempo_exibicao);
 
             if (com.tipo === 'video' || com.url_video) {
                 videoPainel.src = com.url_video;
-                videoPainel.onloadedmetadata = function() {
-                    let duracao = videoPainel.duration * 1000;
-                    if (!duracao || isNaN(duracao) || duracao === Infinity) duracao = 15000;
-                    transitarPara(camadaVideo);
-                    videoPainel.play().catch(e => console.log(e));
-                    animarBarra(duracao); timerExibicao = setTimeout(() => { decidirProximo(); }, duracao);
-                };
-                videoPainel.onerror = () => { setTimeout(decidirProximo, 1000); };
+                videoPainel.play().catch(e => console.log(e));
+                transitarPara(camadaVideo);
+                animarBarra(15000); 
+                timerExibicao = setTimeout(() => { decidirProximo(); }, 15000); 
             } else if (com.tipo === 'imagem' || com.url_imagem) { 
-                toggleImgLayer = toggleImgLayer === 1 ? 2 : 1;
-                const camadaAtual = toggleImgLayer === 1 ? camadaImagem1 : camadaImagem2;
-                const imgAtual = document.getElementById('imgPainel' + toggleImgLayer);
-                const molduraAtual = document.getElementById('molduraFoto' + toggleImgLayer);
-                const nomePanelAtual = document.getElementById('nomePainel' + toggleImgLayer);
-                
                 const imgPreload = new Image();
                 timerCarregamento = setTimeout(() => { decidirProximo(); }, 8000); 
 
                 imgPreload.onload = () => {
                     clearTimeout(timerCarregamento);
-                    imgAtual.classList.add('modo-arte'); imgAtual.src = com.url_imagem || com.url_thumb;
-                    molduraAtual.style.display = 'none'; nomePanelAtual.style.display = 'none'; document.getElementById('numeroDiscreto').style.opacity = 0;
-                    transitarPara(camadaAtual);
-                    animarBarra(tempoTextoArte); timerExibicao = setTimeout(() => { decidirProximo(); }, tempoTextoArte); 
+                    imgPainel.classList.add('modo-arte'); 
+                    imgPainel.src = com.url_imagem || com.url_thumb;
+                    molduraFoto.style.display = 'none';
+                    nomePainel.style.display = 'none';
+                    numDiscreto.style.opacity = 0;
+                    transitarPara(camadaImagem);
+                    animarBarra(15000); 
+                    timerExibicao = setTimeout(() => { decidirProximo(); }, 15000); 
                 };
                 imgPreload.onerror = () => { clearTimeout(timerCarregamento); setTimeout(decidirProximo, 1000); };
                 imgPreload.src = com.url_imagem || com.url_thumb;
             } else { 
-                textoDoComunicado.innerText = com.texto; transitarPara(camadaTexto);
-                animarBarra(tempoTextoArte); timerExibicao = setTimeout(decidirProximo, tempoTextoArte); 
+                textoDoComunicado.innerText = com.texto;
+                transitarPara(camadaTexto);
+                animarBarra(15000); 
+                timerExibicao = setTimeout(decidirProximo, 15000); 
             }
         }
 
         function renderizarFoto() {
             indexFoto = (indexFoto + 1) >= fotosAprovadas.length ? 0 : (indexFoto + 1); 
             const fotoDaVez = fotosAprovadas[indexFoto];
+            
             localStorage.setItem('fcv_ultimo', fotoDaVez.numeroFila);
-            if ((fotoDaVez.numeroFila || 0) > maiorNumeroExibido) { maiorNumeroExibido = fotoDaVez.numeroFila; localStorage.setItem('fcv_maior', maiorNumeroExibido); }
-
-            toggleImgLayer = toggleImgLayer === 1 ? 2 : 1;
-            const camadaAtual = toggleImgLayer === 1 ? camadaImagem1 : camadaImagem2;
-            const imgAtual = document.getElementById('imgPainel' + toggleImgLayer);
-            const molduraAtual = document.getElementById('molduraFoto' + toggleImgLayer);
-            const nomePanelAtual = document.getElementById('nomePainel' + toggleImgLayer);
-            const lblNomeAtual = document.getElementById('lblNome' + toggleImgLayer);
-            const lblSetorAtual = document.getElementById('lblSetor' + toggleImgLayer);
+            if ((fotoDaVez.numeroFila || 0) > maiorNumeroExibido) { 
+                maiorNumeroExibido = fotoDaVez.numeroFila; localStorage.setItem('fcv_maior', maiorNumeroExibido);
+            }
 
             const imgPreload = new Image();
             timerCarregamento = setTimeout(() => { decidirProximo(); }, 8000); 
             
             imgPreload.onload = () => {
-                clearTimeout(timerCarregamento); fotosExibidasNoCiclo++; localStorage.setItem('fcv_ciclo', fotosExibidasNoCiclo);
-                imgAtual.classList.remove('modo-arte'); imgAtual.src = fotoDaVez.url_imagem || fotoDaVez.url_thumb;
-                document.getElementById('numeroDiscreto').innerText = fotoDaVez.numeroFila ? `#${fotoDaVez.numeroFila}` : "";
-                document.getElementById('numeroDiscreto').style.opacity = 1; molduraAtual.style.display = 'block';
+                clearTimeout(timerCarregamento); 
+                fotosExibidasNoCiclo++; localStorage.setItem('fcv_ciclo', fotosExibidasNoCiclo);
 
-                if(fotoDaVez.nome === "Não Informado" && !fotoDaVez.setor) { nomePanelAtual.style.display = 'none'; } 
-                else { nomePanelAtual.style.display = 'block'; lblNomeAtual.innerText = fotoDaVez.nome; lblSetorAtual.innerText = fotoDaVez.setor ? fotoDaVez.setor : ""; }
+                imgPainel.classList.remove('modo-arte'); 
+                imgPainel.src = fotoDaVez.url_imagem || fotoDaVez.url_thumb;
+                
+                numDiscreto.innerText = fotoDaVez.numeroFila ? `#${fotoDaVez.numeroFila}` : "";
+                numDiscreto.style.opacity = 1;
+                molduraFoto.style.display = 'block';
 
-                transitarPara(camadaAtual);
-                animarBarra(7000); timerExibicao = setTimeout(() => { decidirProximo(); }, 7000);
+                if(fotoDaVez.nome === "Não Informado" && !fotoDaVez.setor) {
+                    nomePainel.style.display = 'none';
+                } else {
+                    nomePainel.style.display = 'block';
+                    lblNome.innerText = fotoDaVez.nome;
+                    lblSetor.innerText = fotoDaVez.setor ? fotoDaVez.setor : "";
+                }
+
+                transitarPara(camadaImagem);
+                animarBarra(7000); 
+                timerExibicao = setTimeout(() => { decidirProximo(); }, 7000);
             };
             imgPreload.onerror = () => { clearTimeout(timerCarregamento); setTimeout(decidirProximo, 1000); };
             imgPreload.src = fotoDaVez.url_imagem || fotoDaVez.url_thumb;
