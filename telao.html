@@ -398,6 +398,7 @@
             snapshot.forEach(doc => {
                 const data = doc.data();
                 if (data.ativo === false) return; 
+                if (data.exibir_corredor === false) return;
                 if (data.data_inicio && hojeISO < data.data_inicio) return; 
                 if (data.data_fim && hojeISO > data.data_fim) return;       
                 
