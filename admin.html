@@ -87,7 +87,7 @@
         .config-box { background: #34495e; padding: 30px; border-radius: 12px; width: 320px; max-width: 90%; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         .config-box h3 { color: #f1c40f; margin-top: 0; border-bottom: 1px solid #7f8c8d; padding-bottom: 10px; margin-bottom: 20px; font-size: 18px; }
         .config-box label { font-size: 12px; color: #bdc3c7; display: block; text-align: left; margin-bottom: 5px; font-weight: bold; }
-        .config-box input { width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 6px; border: 1px solid #7f8c8d; background: #2c3e50; color: white; font-family: 'Montserrat', sans-serif; box-sizing: border-box; font-size: 13px; }
+        .config-box input, .config-box select { width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 6px; border: 1px solid #7f8c8d; background: #2c3e50; color: white; font-family: 'Montserrat', sans-serif; box-sizing: border-box; font-size: 13px; outline: none; }
         .btn-salvar-config { width: 100%; padding: 12px; background: #2ecc71; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-family: 'Montserrat', sans-serif; font-size: 14px; margin-bottom: 10px; }
         .btn-cancelar-config { width: 100%; padding: 10px; background: #7f8c8d; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-family: 'Montserrat', sans-serif; font-size: 13px; }
         #modalVerFoto { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.95); align-items: center; justify-content: center; }
@@ -159,6 +159,15 @@
             <input type="date" id="confInicio">
             <label>Exibir até dia (Opcional):</label>
             <input type="date" id="confFim">
+            <div id="linhaTempo">
+                <label>Tempo de Exibição na TV:</label>
+                <select id="confTempo">
+                    <option value="5000">5 segundos</option>
+                    <option value="10000">10 segundos</option>
+                    <option value="15000" selected>15 segundos</option>
+                    <option value="20000">20 segundos</option>
+                </select>
+            </div>
             <button class="btn-salvar-config" id="btnSalvarConfig">Salvar e Concluir</button>
             <button class="btn-cancelar-config" onclick="fecharModalConfig()">Cancelar</button>
         </div>
@@ -427,6 +436,8 @@
             if(!txt) return alert("Digite um recado primeiro.");
             document.getElementById('confNome').value = txt.substring(0, 20) + "..."; 
             document.getElementById('confInicio').value = ""; document.getElementById('confFim').value = "";
+            document.getElementById('linhaTempo').style.display = 'block';
+            document.getElementById('confTempo').value = "15000";
             acaoUpload = { tipo: 'texto', texto: txt };
             document.getElementById('modalConfigCom').style.display = 'flex';
         });
@@ -435,6 +446,12 @@
             if(!arteSelecionada) return;
             document.getElementById('confNome').value = arteSelecionada.name; 
             document.getElementById('confInicio').value = ""; document.getElementById('confFim').value = "";
+            if (arteSelecionada.type.startsWith('video/')) {
+                document.getElementById('linhaTempo').style.display = 'none';
+            } else {
+                document.getElementById('linhaTempo').style.display = 'block';
+                document.getElementById('confTempo').value = "15000";
+            }
             acaoUpload = { tipo: 'midia', file: arteSelecionada };
             document.getElementById('modalConfigCom').style.display = 'flex';
         });
@@ -444,6 +461,7 @@
             const nome = document.getElementById('confNome').value.trim() || "Comunicado sem título";
             const data_inicio = document.getElementById('confInicio').value; 
             const data_fim = document.getElementById('confFim').value;
+            const tempo_exibicao = parseInt(document.getElementById('confTempo').value) || 15000;
             const timestamp = Date.now(); 
 
             btn.innerText = "A processar..."; btn.disabled = true;
@@ -451,11 +469,11 @@
             try {
                 if(acaoUpload.tipo === 'editar') {
                     await updateDoc(doc(db, "comunicados_criancas", acaoUpload.id), {
-                        nome: nome, data_inicio: data_inicio, data_fim: data_fim
+                        nome: nome, data_inicio: data_inicio, data_fim: data_fim, tempo_exibicao: tempo_exibicao
                     });
                 } else if(acaoUpload.tipo === 'texto') {
                     await addDoc(collection(db, "comunicados_criancas"), {
-                        tipo: 'texto', texto: acaoUpload.texto, nome: nome, data_inicio: data_inicio, data_fim: data_fim,
+                        tipo: 'texto', texto: acaoUpload.texto, nome: nome, data_inicio: data_inicio, data_fim: data_fim, tempo_exibicao: tempo_exibicao,
                         ativo: true, ordem: timestamp, timestamp: serverTimestamp()
                     });
                     document.getElementById('inputComunicadoTxt').value = "";
@@ -470,7 +488,7 @@
                         if (!dados.secure_url) throw new Error("Falha no upload do vídeo");
 
                         await addDoc(collection(db, "comunicados_criancas"), {
-                            tipo: 'video', url_video: dados.secure_url, nome: nome, data_inicio: data_inicio, data_fim: data_fim,
+                            tipo: 'video', url_video: dados.secure_url, nome: nome, data_inicio: data_inicio, data_fim: data_fim, tempo_exibicao: tempo_exibicao,
                             ativo: true, ordem: timestamp, timestamp: serverTimestamp()
                         });
                     } else {
@@ -479,7 +497,7 @@
                         const dados = await res.json();
                         
                         await addDoc(collection(db, "comunicados_criancas"), {
-                            tipo: 'imagem', url_imagem: dados.data.url, url_thumb: dados.data.thumb.url, nome: nome, data_inicio: data_inicio, data_fim: data_fim,
+                            tipo: 'imagem', url_imagem: dados.data.url, url_thumb: dados.data.thumb.url, nome: nome, data_inicio: data_inicio, data_fim: data_fim, tempo_exibicao: tempo_exibicao,
                             ativo: true, ordem: timestamp, timestamp: serverTimestamp()
                         });
                     }
@@ -538,7 +556,7 @@
                             <input type="checkbox" onchange="alterarAtivoCom('${dados.id}', this.checked)" ${ativoChecked}>
                             <span class="slider"></span>
                         </label>
-                        <button class="btn-editar-com" onclick="editarComunicado('${dados.id}', '${dados.nome || ''}', '${dados.data_inicio || ''}', '${dados.data_fim || ''}')">Editar</button>
+                        <button class="btn-editar-com" onclick="editarComunicado('${dados.id}', '${dados.nome || ''}', '${dados.data_inicio || ''}', '${dados.data_fim || ''}', '${dados.tempo_exibicao || 15000}', '${dados.tipo || ''}')">Editar</button>
                         <button class="btn-remover-com" onclick="excluirComunicado('${dados.id}')">Excluir</button>
                     </div>
                 `;
@@ -562,10 +580,18 @@
 
         window.alterarAtivoCom = async (id, estado) => { await updateDoc(doc(db, "comunicados_criancas", id), { ativo: estado }); };
 
-        window.editarComunicado = (id, nome, inicio, fim) => {
+        window.editarComunicado = (id, nome, inicio, fim, tempo, tipo) => {
             document.getElementById('confNome').value = nome !== 'undefined' ? nome : '';
             document.getElementById('confInicio').value = inicio !== 'undefined' ? inicio : '';
             document.getElementById('confFim').value = fim !== 'undefined' ? fim : '';
+            
+            if (tipo === 'video') {
+                document.getElementById('linhaTempo').style.display = 'none';
+            } else {
+                document.getElementById('linhaTempo').style.display = 'block';
+                document.getElementById('confTempo').value = tempo !== 'undefined' ? tempo : '15000';
+            }
+            
             acaoUpload = { tipo: 'editar', id: id };
             document.getElementById('modalConfigCom').style.display = 'flex';
         };
