@@ -25,7 +25,7 @@
         body[data-transicao="zoom"] .visivel { transform: scale(1); opacity: 1; pointer-events: auto; }
         .container-master { width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; position: absolute; top:0; left:0; }
         .moldura-sobreposicao { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 5; pointer-events: none; }
-        #imgPainel { width: 100%; height: 100%; object-fit: contain; position: relative; z-index: 2; }
+        #imgPainel1, #imgPainel2 { width: 100%; height: 100%; object-fit: contain; position: relative; z-index: 2; }
         .modo-arte { object-fit: cover !important; }
         .nome-rodape { position: absolute; bottom: 70px; left: 50%; transform: translateX(-50%); background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.3); box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2); border-radius: 30px; color: #ffffff; padding: 20px 55px; text-align: center; transition: opacity 1s ease-in-out; z-index: 10; }
         .nome-rodape .titular { font-size: 40px; font-weight: 700; letter-spacing: 1.5px; text-shadow: 0 2px 4px rgba(0, 32, 97, 0.4), 0 1px 2px rgba(0, 32, 97, 0.6); }
@@ -76,14 +76,25 @@
                 </div>
                 <div class="grid-clima" id="gridClima"></div>
             </div>
-            <div class="container-master escondido" id="camadaImagem">
-                <img id="imgPainel" src="" alt="Painel">
-                <img id="molduraFoto" src="escaneie%20e%20mande%20a%20sua.png" class="moldura-sobreposicao" style="display:none;" alt="Moldura">
-                <div class="nome-rodape" id="nomePainel" style="display:none;">
-                    <div class="titular" id="lblNome"></div>
-                    <div class="setor" id="lblSetor"></div>
+            
+            <div class="container-master escondido" id="camadaImagem1">
+                <img id="imgPainel1" src="" alt="Painel">
+                <img id="molduraFoto1" src="escaneie%20e%20mande%20a%20sua.png" class="moldura-sobreposicao" style="display:none;" alt="Moldura">
+                <div class="nome-rodape" id="nomePainel1" style="display:none;">
+                    <div class="titular" id="lblNome1"></div>
+                    <div class="setor" id="lblSetor1"></div>
                 </div>
             </div>
+
+            <div class="container-master escondido" id="camadaImagem2">
+                <img id="imgPainel2" src="" alt="Painel">
+                <img id="molduraFoto2" src="escaneie%20e%20mande%20a%20sua.png" class="moldura-sobreposicao" style="display:none;" alt="Moldura">
+                <div class="nome-rodape" id="nomePainel2" style="display:none;">
+                    <div class="titular" id="lblNome2"></div>
+                    <div class="setor" id="lblSetor2"></div>
+                </div>
+            </div>
+
             <div class="container-master escondido" id="camadaVideo">
                 <video id="videoPainel" class="modo-arte" src="" playsinline muted></video>
             </div>
@@ -239,6 +250,7 @@
 
         let timerCarregamento = null;
         let timerExibicao = null;
+        let toggleImgLayer = 1;
 
         onSnapshot(doc(db, "controle_tv", "status_clima"), (docSnap) => {
             if(docSnap.exists()) mostrarClimaNaTV = docSnap.data().mostrar_clima;
@@ -255,14 +267,10 @@
         });
 
         const camadaClima = document.getElementById('camadaClima');
-        const camadaImagem = document.getElementById('camadaImagem');
+        const camadaImagem1 = document.getElementById('camadaImagem1');
+        const camadaImagem2 = document.getElementById('camadaImagem2');
         const camadaVideo = document.getElementById('camadaVideo');
         const videoPainel = document.getElementById('videoPainel');
-        const imgPainel = document.getElementById('imgPainel');
-        const molduraFoto = document.getElementById('molduraFoto'); 
-        const nomePainel = document.getElementById('nomePainel');
-        const lblNome = document.getElementById('lblNome');
-        const lblSetor = document.getElementById('lblSetor');
         const camadaTexto = document.getElementById('camadaTexto');
         const textoDoComunicado = document.getElementById('textoDoComunicado');
         const aguardando = document.getElementById('aguardando');
@@ -320,7 +328,7 @@
         }
 
         function transitarPara(novaCamada) {
-            const camadas = [camadaClima, camadaImagem, camadaVideo, camadaTexto];
+            const camadas = [camadaClima, camadaImagem1, camadaImagem2, camadaVideo, camadaTexto];
             camadas.forEach(c => {
                 if (c === novaCamada) {
                     c.classList.remove('escondido');
@@ -337,7 +345,7 @@
                     }
                 }
             });
-            if (novaCamada !== camadaImagem) {
+            if (novaCamada !== camadaImagem1 && novaCamada !== camadaImagem2) {
                 numDiscreto.style.opacity = 0;
             }
             aguardando.style.display = "none";
@@ -404,40 +412,38 @@
         function renderizarComunicado() {
             indexCom = (indexCom + 1) >= comunicadosAtivos.length ? 0 : (indexCom + 1);
             const com = comunicadosAtivos[indexCom];
-            
             let tempoTextoArte = com.tempo_exibicao ? parseInt(com.tempo_exibicao) : 15000;
 
             if (com.tipo === 'video' || com.url_video) {
                 videoPainel.src = com.url_video;
-                
                 videoPainel.onloadedmetadata = function() {
                     let duracao = videoPainel.duration * 1000;
                     if (!duracao || isNaN(duracao) || duracao === Infinity) duracao = 15000;
-                    
                     transitarPara(camadaVideo);
                     videoPainel.play().catch(e => console.log(e));
-                    
                     animarBarra(duracao); 
-                    timerExibicao = setTimeout(() => { 
-                        decidirProximo(); 
-                    }, duracao);
+                    timerExibicao = setTimeout(() => { decidirProximo(); }, duracao);
                 };
-                
                 videoPainel.onerror = () => { setTimeout(decidirProximo, 1000); };
-                
             } else if (com.tipo === 'imagem' || com.url_imagem) { 
+                toggleImgLayer = toggleImgLayer === 1 ? 2 : 1;
+                const camadaAtual = toggleImgLayer === 1 ? camadaImagem1 : camadaImagem2;
+                const imgAtual = document.getElementById('imgPainel' + toggleImgLayer);
+                const molduraAtual = document.getElementById('molduraFoto' + toggleImgLayer);
+                const nomePanelAtual = document.getElementById('nomePainel' + toggleImgLayer);
+                
                 const imgPreload = new Image();
                 timerCarregamento = setTimeout(() => { decidirProximo(); }, 8000); 
 
                 imgPreload.onload = () => {
                     clearTimeout(timerCarregamento);
-                    imgPainel.classList.add('modo-arte'); 
-                    imgPainel.src = com.url_imagem || com.url_thumb;
-                    molduraFoto.style.display = 'none';
-                    nomePainel.style.display = 'none';
+                    imgAtual.classList.add('modo-arte'); 
+                    imgAtual.src = com.url_imagem || com.url_thumb;
+                    molduraAtual.style.display = 'none';
+                    nomePanelAtual.style.display = 'none';
                     numDiscreto.style.opacity = 0;
-                    transitarPara(camadaImagem);
                     
+                    transitarPara(camadaAtual);
                     animarBarra(tempoTextoArte); 
                     timerExibicao = setTimeout(() => { decidirProximo(); }, tempoTextoArte); 
                 };
@@ -446,7 +452,6 @@
             } else { 
                 textoDoComunicado.innerText = com.texto;
                 transitarPara(camadaTexto);
-                
                 animarBarra(tempoTextoArte); 
                 timerExibicao = setTimeout(decidirProximo, tempoTextoArte); 
             }
@@ -461,6 +466,14 @@
                 maiorNumeroExibido = fotoDaVez.numeroFila; localStorage.setItem('fcv_maior', maiorNumeroExibido);
             }
 
+            toggleImgLayer = toggleImgLayer === 1 ? 2 : 1;
+            const camadaAtual = toggleImgLayer === 1 ? camadaImagem1 : camadaImagem2;
+            const imgAtual = document.getElementById('imgPainel' + toggleImgLayer);
+            const molduraAtual = document.getElementById('molduraFoto' + toggleImgLayer);
+            const nomePanelAtual = document.getElementById('nomePainel' + toggleImgLayer);
+            const lblNomeAtual = document.getElementById('lblNome' + toggleImgLayer);
+            const lblSetorAtual = document.getElementById('lblSetor' + toggleImgLayer);
+
             const imgPreload = new Image();
             timerCarregamento = setTimeout(() => { decidirProximo(); }, 8000); 
             
@@ -468,22 +481,22 @@
                 clearTimeout(timerCarregamento); 
                 fotosExibidasNoCiclo++; localStorage.setItem('fcv_ciclo', fotosExibidasNoCiclo);
 
-                imgPainel.classList.remove('modo-arte'); 
-                imgPainel.src = fotoDaVez.url_imagem || fotoDaVez.url_thumb;
+                imgAtual.classList.remove('modo-arte'); 
+                imgAtual.src = fotoDaVez.url_imagem || fotoDaVez.url_thumb;
                 
                 numDiscreto.innerText = fotoDaVez.numeroFila ? `#${fotoDaVez.numeroFila}` : "";
                 numDiscreto.style.opacity = 1;
-                molduraFoto.style.display = 'block';
+                molduraAtual.style.display = 'block';
 
                 if(fotoDaVez.nome === "Não Informado" && !fotoDaVez.setor) {
-                    nomePainel.style.display = 'none';
+                    nomePanelAtual.style.display = 'none';
                 } else {
-                    nomePainel.style.display = 'block';
-                    lblNome.innerText = fotoDaVez.nome;
-                    lblSetor.innerText = fotoDaVez.setor ? fotoDaVez.setor : "";
+                    nomePanelAtual.style.display = 'block';
+                    lblNomeAtual.innerText = fotoDaVez.nome;
+                    lblSetorAtual.innerText = fotoDaVez.setor ? fotoDaVez.setor : "";
                 }
 
-                transitarPara(camadaImagem);
+                transitarPara(camadaAtual);
                 animarBarra(7000); 
                 timerExibicao = setTimeout(() => { decidirProximo(); }, 7000);
             };
