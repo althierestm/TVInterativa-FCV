@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TV Refeitório - FCV</title>
+    <link rel="icon" href="logo%20icon%20TV%20do%20Ponto%20FCV.png" type="image/png">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            margin: 0; padding: 0; background-color: #000; color: white; 
+            font-family: 'Montserrat', sans-serif; overflow: hidden;
+        }
+
+        #viewportWrapper {
+            position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
+            overflow: hidden;
+        }
+
+        .tv-scale-box {
+            width: 1920px; height: 1080px; 
+            position: absolute; top: 50%; left: 50%;
+            transform-origin: center center;
+            background-color: #000;
+        }
+        
+        #btnFullscreen {
+            position: fixed; top: 20px; right: 20px; z-index: 99999;
+            background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.5);
+            padding: 10px 15px; border-radius: 8px; cursor: pointer; font-family: 'Montserrat', sans-serif;
+            font-weight: 600; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); transition: 0.3s;
+        }
+        #btnFullscreen:hover { background: rgba(255,255,255,0.4); }
+
+        .marca-dagua {
+            position: absolute; top: 25px; right: 40px; width: 200px;
+            opacity: 0.7; z-index: 9990; pointer-events: none;
+        }
+
+        #relogioTV {
+            position: absolute; bottom: 40px; right: 40px;
+            background: rgba(255, 255, 255, 0.5); 
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            border-radius: 12px; color: #224387; 
+            padding: 10px 25px; text-align: center;
+            font-size: 32px; font-weight: 700; letter-spacing: 2px;
+            z-index: 9990; pointer-events: none;
+        }
+
+        body[data-transicao="fade"] .container-master { transition: opacity 0.8s ease; }
+        body[data-transicao="fade"] .escondido { opacity: 0; pointer-events: none; }
+        body[data-transicao="fade"] .visivel { opacity: 1; pointer-events: auto; }
+
+        body[data-transicao="slide"] .container-master { transition: transform 0.8s ease-in-out, opacity 0.8s ease-in-out; }
+        body[data-transicao="slide"] .escondido { transform: translateX(100%); opacity: 0; pointer-events: none; }
+        body[data-transicao="slide"] .visivel { transform: translateX(0); opacity: 1; pointer-events: auto; }
+
+        body[data-transicao="zoom"] .container-master { transition: transform 0.8s ease-in-out, opacity 0.8s ease-in-out; }
+        body[data-transicao="zoom"] .escondido { transform: scale(0.9); opacity: 0; pointer-events: none; }
+        body[data-transicao="zoom"] .visivel { transform: scale(1); opacity: 1; pointer-events: auto; }
+
+        .container-master { 
+            width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; 
+            position: absolute; top:0; left:0; 
+        }
+
+        #imgPainel { width: 100%; height: 100%; object-fit: contain; position: relative; z-index: 2; }
+        .modo-arte { object-fit: cover !important; }
+
+        #containerTexto {
+            width: 80%; text-align: center; background: rgba(34, 67, 135, 0.85);
+            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            padding: 80px; border-radius: 40px; border: 1px solid rgba(255,255,255,0.2);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5); 
+        }
+        #textoDoComunicado { font-size: 70px; font-weight: 700; line-height: 1.3; margin: 0; color: #fff; }
+        .aviso-label { font-size: 30px; color: #ff9800; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 25px; display: block;}
+
+        #aguardando { font-size: 20px; color: #7f8c8d; font-weight: 600; z-index: 20; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: none; }
+
+        #barraProgressoContainer { position: absolute; bottom: 0; left: 0; width: 100%; height: 10px; background: rgba(255,255,255,0.1); z-index: 20; }
+        #barraProgresso { height: 100%; width: 0%; background: linear-gradient(to right, #2894f9, #002061); }
+
+        #iframeCardapio { width: 100%; height: 100%; border: none; background: #fff; }
+    </style>
+</head>
+<body data-transicao="fade">
+
+    <button id="btnFullscreen">Tela Cheia</button>
+
+    <div id="viewportWrapper">
+        <div class="tv-scale-box" id="tvScaleBox">
+            
+            <img src="MKTFCV.png" class="marca-dagua" alt="MKT FCV">
+            <div id="relogioTV">--:--</div>
+
+            <div id="aguardando">Aguardando informações da rede...</div>
+
+            <div class="container-master escondido" id="camadaCardapio">
+                <iframe id="iframeCardapio" src="about:blank"></iframe>
+            </div>
+
+            <div class="container-master escondido" id="camadaImagem">
+                <img id="imgPainel" src="" alt="Painel">
+            </div>
+
+            <div class="container-master escondido" id="camadaVideo">
+                <video id="videoPainel" class="modo-arte" src="" playsinline muted></video>
+            </div>
+
+            <div class="container-master escondido" id="camadaTexto">
+                <div id="containerTexto">
+                    <span class="aviso-label">Mural da Fundação</span>
+                    <h1 id="textoDoComunicado"></h1>
+                </div>
+            </div>
+
+            <div id="barraProgressoContainer"><div id="barraProgresso"></div></div>
+
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+        import { getFirestore, collection, query, where, onSnapshot, doc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyB8ZK0jSY-1E9y90TLfznxi9PI8mf_bJuc",
+            authDomain: "festadafirmafcv.firebaseapp.com",
+            projectId: "festadafirmafcv",
+            storageBucket: "festadafirmafcv.firebasestorage.app",
+            messagingSenderId: "930815464098",
+            appId: "1:930815464098:web:890c2300a6e1a79abd3dfb"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        document.getElementById('btnFullscreen').addEventListener('click', () => {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => console.log(err));
+                document.getElementById('btnFullscreen').style.display = 'none'; 
+            }
+        });
+
+        setInterval(() => {
+            const now = new Date();
+            if (now.getDay() === 1 && now.getHours() === 7 && now.getMinutes() === 0) {
+                if (!window.reloadedToday) {
+                    window.reloadedToday = true;
+                    location.reload(true); 
+                }
+            } else {
+                window.reloadedToday = false;
+            }
+        }, 30000);
+
+        function ajustarEscala() {
+            const scaleBox = document.getElementById('tvScaleBox');
+            const scaleX = window.innerWidth / 1920;
+            const scaleY = window.innerHeight / 1080;
+            scaleBox.style.transform = `translate(-50%, -50%) scale(${scaleX}, ${scaleY})`;
+        }
+        window.addEventListener('resize', ajustarEscala);
+        ajustarEscala(); 
+
+        function atualizarRelogio() {
+            const agora = new Date();
+            document.getElementById('relogioTV').innerText = agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        }
+        setInterval(atualizarRelogio, 1000);
+        atualizarRelogio();
+
+        let comunicadosAtivos = [];
+        let indexCom = -1;
+        let loopRodando = false;
+        let proximaAcao = 'CARDAPIO'; 
+        let linkCardapio = "http://fcvconnect/fcvnow/cardapio/semana";
+
+        let timerCarregamento = null;
+        let timerExibicao = null;
+
+        onSnapshot(doc(db, "controle_tv", "status_transicao"), (docSnap) => {
+            if(docSnap.exists() && docSnap.data().efeito) {
+                document.body.setAttribute('data-transicao', docSnap.data().efeito);
+            } else {
+                document.body.setAttribute('data-transicao', 'fade');
+            }
+        });
+
+        onSnapshot(doc(db, "controle_tv", "status_refeitorio"), (docSnap) => {
+            if(docSnap.exists() && docSnap.data().link_cardapio) {
+                linkCardapio = docSnap.data().link_cardapio;
+                document.getElementById('iframeCardapio').src = linkCardapio;
+            } else {
+                document.getElementById('iframeCardapio').src = linkCardapio;
+            }
+        });
+
+        const camadaCardapio = document.getElementById('camadaCardapio');
+        const camadaImagem = document.getElementById('camadaImagem');
+        const camadaVideo = document.getElementById('camadaVideo');
+        const videoPainel = document.getElementById('videoPainel');
+        const imgPainel = document.getElementById('imgPainel');
+        const camadaTexto = document.getElementById('camadaTexto');
+        const textoDoComunicado = document.getElementById('textoDoComunicado');
+        const aguardando = document.getElementById('aguardando');
+        const barraProgresso = document.getElementById('barraProgresso');
+
+        onSnapshot(collection(db, "comunicados_criancas"), (snapshot) => {
+            comunicadosAtivos = [];
+            const hojeISO = new Date().toLocaleDateString('en-CA'); 
+
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                if (data.ativo === false) return; 
+                if (data.exibir_refeitorio !== true) return; 
+                if (data.data_inicio && hojeISO < data.data_inicio) return; 
+                if (data.data_fim && hojeISO > data.data_fim) return;       
+                
+                comunicadosAtivos.push(data);
+            });
+
+            comunicadosAtivos.sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
+
+            if (!loopRodando) {
+                loopRodando = true;
+                decidirProximo();
+            }
+        });
+
+        function animarBarra(tempoMs) {
+            barraProgresso.style.transition = 'none';
+            barraProgresso.style.width = '0%';
+            setTimeout(() => {
+                barraProgresso.style.transition = `width ${tempoMs}ms linear`;
+                barraProgresso.style.width = '100%';
+            }, 50);
+        }
+
+        function transitarPara(novaCamada) {
+            const camadas = [camadaCardapio, camadaImagem, camadaVideo, camadaTexto];
+            camadas.forEach(c => {
+                if (c === novaCamada) {
+                    c.classList.remove('escondido');
+                    c.classList.add('visivel');
+                    c.style.zIndex = "2";
+                } else {
+                    if (c.classList.contains('visivel')) {
+                        c.classList.remove('visivel');
+                        c.classList.add('escondido');
+                        c.style.zIndex = "1";
+                        if (c === camadaVideo) {
+                            setTimeout(() => { videoPainel.pause(); videoPainel.src = ""; }, 800);
+                        }
+                    }
+                }
+            });
+            aguardando.style.display = "none";
+        }
+
+        function decidirProximo() {
+            clearTimeout(timerCarregamento);
+            clearTimeout(timerExibicao);
+
+            let temComs = comunicadosAtivos.length > 0;
+
+            if (proximaAcao === 'CARDAPIO') {
+                renderizarCardapio();
+                proximaAcao = temComs ? 'COMS' : 'CARDAPIO';
+            } else if (proximaAcao === 'COMS') {
+                if (temComs) {
+                    renderizarComunicado();
+                    if (indexCom === comunicadosAtivos.length - 1) { 
+                        proximaAcao = 'CARDAPIO';
+                    } else {
+                        proximaAcao = 'COMS';
+                    }
+                } else {
+                    proximaAcao = 'CARDAPIO';
+                    decidirProximo();
+                }
+            }
+        }
+
+        function renderizarCardapio() {
+            transitarPara(camadaCardapio);
+            animarBarra(25000); 
+            timerExibicao = setTimeout(decidirProximo, 25000); 
+        }
+
+        function renderizarComunicado() {
+            indexCom = (indexCom + 1) >= comunicadosAtivos.length ? 0 : (indexCom + 1);
+            const com = comunicadosAtivos[indexCom];
+            
+            let tempoTextoArte = com.tempo_exibicao ? parseInt(com.tempo_exibicao) : 15000;
+
+            if (com.tipo === 'video' || com.url_video) {
+                videoPainel.src = com.url_video;
+                
+                videoPainel.onloadedmetadata = function() {
+                    let duracao = videoPainel.duration * 1000;
+                    if (!duracao || isNaN(duracao) || duracao === Infinity) duracao = 15000;
+                    
+                    transitarPara(camadaVideo);
+                    videoPainel.play().catch(e => console.log(e));
+                    
+                    animarBarra(duracao); 
+                    timerExibicao = setTimeout(() => { 
+                        decidirProximo(); 
+                    }, duracao);
+                };
+                
+                videoPainel.onerror = () => { setTimeout(decidirProximo, 1000); };
+                
+            } else if (com.tipo === 'imagem' || com.url_imagem) { 
+                const imgPreload = new Image();
+                timerCarregamento = setTimeout(() => { decidirProximo(); }, 8000); 
+
+                imgPreload.onload = () => {
+                    clearTimeout(timerCarregamento);
+                    imgPainel.classList.add('modo-arte'); 
+                    imgPainel.src = com.url_imagem || com.url_thumb;
+                    transitarPara(camadaImagem);
+                    
+                    animarBarra(tempoTextoArte); 
+                    timerExibicao = setTimeout(() => { decidirProximo(); }, tempoTextoArte); 
+                };
+                imgPreload.onerror = () => { clearTimeout(timerCarregamento); setTimeout(decidirProximo, 1000); };
+                imgPreload.src = com.url_imagem || com.url_thumb;
+            } else { 
+                textoDoComunicado.innerText = com.texto;
+                transitarPara(camadaTexto);
+                
+                animarBarra(tempoTextoArte); 
+                timerExibicao = setTimeout(decidirProximo, tempoTextoArte); 
+            }
+        }
+    </script>
+</body>
+</html>
