@@ -506,13 +506,27 @@
         function renderizarComunicado() {
             indexCom = (indexCom + 1) >= comunicadosAtivos.length ? 0 : (indexCom + 1);
             const com = comunicadosAtivos[indexCom];
+            
+            let tempoTextoArte = com.tempo_exibicao ? parseInt(com.tempo_exibicao) : 15000;
 
             if (com.tipo === 'video' || com.url_video) {
                 videoPainel.src = com.url_video;
-                videoPainel.play().catch(e => console.log(e));
-                transitarPara(camadaVideo);
-                animarBarra(15000); 
-                timerExibicao = setTimeout(() => { decidirProximo(); }, 15000); 
+                
+                videoPainel.onloadedmetadata = function() {
+                    let duracao = videoPainel.duration * 1000;
+                    if (!duracao || isNaN(duracao) || duracao === Infinity) duracao = 15000;
+                    
+                    transitarPara(camadaVideo);
+                    videoPainel.play().catch(e => console.log(e));
+                    
+                    animarBarra(duracao); 
+                    timerExibicao = setTimeout(() => { 
+                        decidirProximo(); 
+                    }, duracao);
+                };
+                
+                videoPainel.onerror = () => { setTimeout(decidirProximo, 1000); };
+                
             } else if (com.tipo === 'imagem' || com.url_imagem) { 
                 const imgPreload = new Image();
                 timerCarregamento = setTimeout(() => { decidirProximo(); }, 8000); 
@@ -525,16 +539,18 @@
                     nomePainel.style.display = 'none';
                     numDiscreto.style.opacity = 0;
                     transitarPara(camadaImagem);
-                    animarBarra(15000); 
-                    timerExibicao = setTimeout(() => { decidirProximo(); }, 15000); 
+                    
+                    animarBarra(tempoTextoArte); 
+                    timerExibicao = setTimeout(() => { decidirProximo(); }, tempoTextoArte); 
                 };
                 imgPreload.onerror = () => { clearTimeout(timerCarregamento); setTimeout(decidirProximo, 1000); };
                 imgPreload.src = com.url_imagem || com.url_thumb;
             } else { 
                 textoDoComunicado.innerText = com.texto;
                 transitarPara(camadaTexto);
-                animarBarra(15000); 
-                timerExibicao = setTimeout(decidirProximo, 15000); 
+                
+                animarBarra(tempoTextoArte); 
+                timerExibicao = setTimeout(decidirProximo, tempoTextoArte); 
             }
         }
 
