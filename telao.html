@@ -47,11 +47,9 @@
         .clima-nublado::after { content: ""; position: absolute; width: 1000px; height: 500px; bottom: 10%; right: -200px; background: rgba(255,255,255,0.05); filter: blur(50px); border-radius: 50%; animation: moverNuvem2 25s ease-in-out infinite alternate; pointer-events: none; }
         @keyframes moverNuvem1 { 0% { transform: translateX(0); } 100% { transform: translateX(300px); } }
         @keyframes moverNuvem2 { 0% { transform: translateX(0); } 100% { transform: translateX(-300px); } }
-        
         .clima-chuva { background: linear-gradient(135deg, #2b3b4e 0%, #1e2a38 100%) !important; }
-        .clima-tempestade { background: linear-gradient(135deg, #141e30 0%, #243b55 100%) !important; }
-        .clima-tempestade::after { content: ""; position: absolute; top:0; left:0; width:100%; height:100%; background: #fff; opacity: 0; animation: trovao 6s infinite; pointer-events: none; z-index: 3;}
-        @keyframes trovao { 0%, 93%, 96%, 100% { opacity: 0; } 94% { opacity: 0.5; } 95% { opacity: 0.2; } }
+        .clima-tempestade { background: linear-gradient(135deg, #141e30 0%, #243b55 100%) !important; animation: trovao 8s infinite; }
+        @keyframes trovao { 0%, 94%, 98%, 100% { filter: brightness(1); } 95%, 97% { filter: brightness(1.3); } }
 
         .header-clima { position: absolute; top: 80px; left: 0; width: 100%; text-align: center; z-index: 4;}
         .cidade-clima { font-size: 45px; font-weight: 600; margin: 0; color: #fff; letter-spacing: 1px;}
@@ -71,7 +69,7 @@
         .turno-icone svg { width: 35px; height: 35px; }
         .turno-temp { font-size: 18px; font-weight: 600; }
         
-        #rainCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; display: none; }
+        #rainCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; pointer-events: none; display: none; }
     </style>
 </head>
 <body data-transicao="fade">
@@ -273,22 +271,23 @@
 
         const rainCanvas = document.getElementById('rainCanvas');
         const ctx = rainCanvas.getContext('2d');
-        let glassDrops = [];
+        let drops = [];
+        let splashes = [];
         let rainAnimId = null;
         let rainActive = false;
 
         function initRain() {
             rainCanvas.width = 1920;
             rainCanvas.height = 1080;
-            glassDrops = [];
-            for(let i=0; i<80; i++) {
-                glassDrops.push({
-                    x: Math.random() * 1920,
-                    y: Math.random() * 1080,
-                    r: Math.random() * 3 + 1,
-                    speed: Math.random() * 3 + 2,
-                    slide: Math.random() > 0.8,
-                    trailLen: 0
+            drops = [];
+            splashes = [];
+            for(let i=0; i<180; i++) {
+                drops.push({
+                    x: Math.random() * rainCanvas.width,
+                    y: Math.random() * rainCanvas.height,
+                    l: Math.random() * 20 + 10,
+                    v: Math.random() * 15 + 20,
+                    z: Math.random() 
                 });
             }
         }
@@ -297,51 +296,57 @@
         function drawRain() {
             if(!rainActive) return;
             ctx.clearRect(0, 0, rainCanvas.width, rainCanvas.height);
+            ctx.lineCap = 'round';
 
-            for (let i = 0; i < glassDrops.length; i++) {
-                let d = glassDrops[i];
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+            const cards = document.querySelectorAll('.card-dia');
+            const cardRects = Array.from(cards).map(c => {
+                const rect = c.getBoundingClientRect();
+                return {
+                    top: (rect.top - (window.innerHeight - 1080 * currentScaleY) / 2) / currentScaleY,
+                    left: (rect.left - (window.innerWidth - 1920 * currentScaleX) / 2) / currentScaleX,
+                    right: (rect.right - (window.innerWidth - 1920 * currentScaleX) / 2) / currentScaleX
+                };
+            });
+
+            for (let i = splashes.length - 1; i >= 0; i--) {
+                let s = splashes[i];
                 ctx.beginPath();
-                ctx.arc(d.x, d.y, d.r, 0, Math.PI*2);
-                ctx.fill();
-
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
-                ctx.beginPath();
-                ctx.arc(d.x - d.r*0.3, d.y - d.r*0.3, d.r*0.3, 0, Math.PI*2);
-                ctx.fill();
-
-                ctx.strokeStyle = 'rgba(0, 0, 0, 0.2)';
+                ctx.ellipse(s.x, s.y, s.r, s.r/3, 0, 0, Math.PI * 2);
+                ctx.strokeStyle = `rgba(255, 255, 255, ${s.a})`;
                 ctx.lineWidth = 1;
+                ctx.stroke();
+                s.r += 1.2;
+                s.a -= 0.08;
+                if (s.a <= 0) splashes.splice(i, 1);
+            }
+
+            for (let i = 0; i < drops.length; i++) {
+                let d = drops[i];
+                ctx.strokeStyle = `rgba(255, 255, 255, ${d.z * 0.4 + 0.1})`;
+                ctx.lineWidth = d.z * 1.5 + 0.5;
+                
                 ctx.beginPath();
-                ctx.arc(d.x, d.y, d.r, 0, Math.PI*2);
+                ctx.moveTo(d.x, d.y);
+                ctx.lineTo(d.x, d.y + d.l);
                 ctx.stroke();
 
-                if (d.slide) {
-                    ctx.beginPath();
-                    ctx.moveTo(d.x, d.y - d.r);
-                    ctx.lineTo(d.x, d.y - d.r - d.trailLen);
-                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
-                    ctx.lineWidth = d.r;
-                    ctx.lineCap = 'round';
-                    ctx.stroke();
+                d.y += d.v;
 
-                    d.y += d.speed;
-                    d.x += (Math.random() - 0.5) * 0.5; 
-                    d.trailLen = Math.min(d.trailLen + d.speed, 35); 
+                let hit = false;
+                if(d.z > 0.4) { 
+                    for(let rect of cardRects) {
+                        if (d.x > rect.left && d.x < rect.right && d.y + d.l > rect.top && d.y - d.v <= rect.top) {
+                            hit = true;
+                            splashes.push({x: d.x, y: rect.top, r: 2, a: 0.6});
+                            break;
+                        }
+                    }
+                }
 
-                    if (d.y > rainCanvas.height + 50) {
-                        d.y = -20;
-                        d.x = Math.random() * rainCanvas.width;
-                        d.slide = false;
-                        d.trailLen = 0;
-                        d.r = Math.random() * 3 + 1;
-                    }
-                } else {
-                    d.r += 0.005; 
-                    if (d.r > 5 || Math.random() < 0.002) {
-                        d.slide = true;
-                        d.speed = Math.random() * 3 + 3;
-                    }
+                if (hit || d.y > rainCanvas.height) {
+                    d.y = -20;
+                    d.x = Math.random() * rainCanvas.width;
+                    d.v = Math.random() * 15 + 20;
                 }
             }
             rainAnimId = requestAnimationFrame(drawRain);
