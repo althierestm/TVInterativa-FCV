@@ -48,17 +48,14 @@
         @keyframes moverNuvem1 { 0% { transform: translateX(0); } 100% { transform: translateX(300px); } }
         @keyframes moverNuvem2 { 0% { transform: translateX(0); } 100% { transform: translateX(-300px); } }
         .clima-chuva { background: linear-gradient(135deg, #2b3b4e 0%, #1e2a38 100%) !important; }
-        .clima-chuva::before { content: ""; position: absolute; width: 100%; height: 100%; top: 0; left: 0; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='50' height='100'%3E%3Crect x='25' y='0' width='1.5' height='25' fill='rgba(255,255,255,0.08)'/%3E%3C/svg%3E"); background-position: 0 0; animation: cairChuva 1s linear infinite; pointer-events: none; }
-        @keyframes cairChuva { 0% { background-position: 0 0; } 100% { background-position: 15px 100px; } }
         .clima-tempestade { background: linear-gradient(135deg, #141e30 0%, #243b55 100%) !important; animation: trovao 8s infinite; }
-        .clima-tempestade::before { content: ""; position: absolute; width: 100%; height: 100%; top: 0; left: 0; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='120'%3E%3Crect x='30' y='0' width='2' height='35' fill='rgba(255,255,255,0.12)'/%3E%3C/svg%3E"); background-position: 0 0; animation: cairChuva 0.7s linear infinite; pointer-events: none; }
         @keyframes trovao { 0%, 94%, 98%, 100% { filter: brightness(1); } 95%, 97% { filter: brightness(1.3); } }
 
-        .header-clima { position: absolute; top: 80px; left: 0; width: 100%; text-align: center; z-index: 2;}
+        .header-clima { position: absolute; top: 80px; left: 0; width: 100%; text-align: center; z-index: 4;}
         .cidade-clima { font-size: 45px; font-weight: 600; margin: 0; color: #fff; letter-spacing: 1px;}
         .sub-clima { font-size: 22px; font-weight: 300; color: #bdc3c7; margin-top: 5px; }
-        .grid-clima { display: grid; grid-template-columns: repeat(7, 1fr); gap: 20px; width: 90%; max-width: 1750px; z-index: 2; margin-top: 90px; }
-        .card-dia { background: rgba(255, 255, 255, 0.07); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); border-radius: 24px; padding: 30px 15px; border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 15px 35px rgba(0,0,0,0.2); text-align: center; display: flex; flex-direction: column; align-items: center; }
+        .grid-clima { display: grid; grid-template-columns: repeat(7, 1fr); gap: 20px; width: 90%; max-width: 1750px; z-index: 4; margin-top: 90px; }
+        .card-dia { background: rgba(255, 255, 255, 0.07); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); border-radius: 24px; padding: 30px 15px; border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 15px 35px rgba(0,0,0,0.2); text-align: center; display: flex; flex-direction: column; align-items: center; position: relative;}
         .dia-titulo { font-size: 32px; font-weight: 600; color: #fff; margin-bottom: 25px; }
         .dia-hoje { color: #3498db; }
         .icone-principal svg { width: 100px; height: 100px; margin-bottom: 20px;}
@@ -71,6 +68,8 @@
         .turno-nome { font-size: 14px; font-weight: 600; color: #bdc3c7; text-transform: uppercase; }
         .turno-icone svg { width: 35px; height: 35px; }
         .turno-temp { font-size: 18px; font-weight: 600; }
+        
+        #rainCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; pointer-events: none; display: none; }
     </style>
 </head>
 <body data-transicao="fade">
@@ -89,6 +88,7 @@
 
             <div class="container-master escondido" id="camadaClima">
                 <div id="bgClima"></div>
+                <canvas id="rainCanvas"></canvas>
                 <div class="header-clima">
                     <h1 class="cidade-clima">Previsão do Tempo - Muriaé, MG</h1>
                     <div class="sub-clima">Fonte: Satélite Open-Meteo</div>
@@ -178,11 +178,14 @@
             }, 5000);
         });
 
+        const scaleBox = document.getElementById('tvScaleBox');
+        let currentScaleX = 1;
+        let currentScaleY = 1;
+        
         function ajustarEscala() {
-            const scaleBox = document.getElementById('tvScaleBox');
-            const scaleX = window.innerWidth / 1920;
-            const scaleY = window.innerHeight / 1080;
-            scaleBox.style.transform = `translate(-50%, -50%) scale(${scaleX}, ${scaleY})`;
+            currentScaleX = window.innerWidth / 1920;
+            currentScaleY = window.innerHeight / 1080;
+            scaleBox.style.transform = `translate(-50%, -50%) scale(${currentScaleX}, ${currentScaleY})`;
         }
         window.addEventListener('resize', ajustarEscala);
         ajustarEscala(); 
@@ -195,6 +198,8 @@
         atualizarRelogio();
 
         let dadosClimaProntos = false;
+        let isRaining = false;
+        
         const svgs = {
             sol: '<svg stroke="#f1c40f" viewBox="0 0 24 24" fill="none" stroke-width="1.5"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>',
             nuvem: '<svg stroke="#bdc3c7" viewBox="0 0 24 24" fill="none" stroke-width="1.5"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>',
@@ -244,10 +249,11 @@
                     if (i === 0) {
                         const bgClima = document.getElementById('bgClima');
                         bgClima.className = ''; 
+                        isRaining = false;
                         if (mainCode === 0) bgClima.classList.add('clima-sol');
                         else if (mainCode >= 1 && mainCode <= 48) bgClima.classList.add('clima-nublado');
-                        else if (mainCode >= 51 && mainCode <= 82) bgClima.classList.add('clima-chuva');
-                        else if (mainCode >= 95) bgClima.classList.add('clima-tempestade');
+                        else if (mainCode >= 51 && mainCode <= 82) { bgClima.classList.add('clima-chuva'); isRaining = true; }
+                        else if (mainCode >= 95) { bgClima.classList.add('clima-tempestade'); isRaining = true; }
                     }
 
                     gridHtml += `<div class="card-dia"><div class="dia-titulo">${tituloDia}</div><div class="icone-principal">${iconeMain.i}</div><div class="temp-principal">${tempMedia}°</div><div class="desc-principal">${iconeMain.t}</div><div class="maxmin"><div class="t-max">↑ ${max}°</div><div class="t-min">↓ ${min}°</div></div><div class="turnos-container"><div class="turno"><div class="turno-nome">manhã</div><div class="turno-icone">${cManha.i}</div><div class="turno-temp">${tManha}°</div></div><div class="turno"><div class="turno-nome">tarde</div><div class="turno-icone">${cTarde.i}</div><div class="turno-temp">${tTarde}°</div></div><div class="turno"><div class="turno-nome">noite</div><div class="turno-icone">${cNoite.i}</div><div class="turno-temp">${tNoite}°</div></div></div></div>`;
@@ -263,35 +269,108 @@
         processarClima();
         setInterval(processarClima, 1800000); 
 
+        const rainCanvas = document.getElementById('rainCanvas');
+        const ctx = rainCanvas.getContext('2d');
+        let drops = [];
+        let splashes = [];
+        let rainAnimId = null;
+        let rainActive = false;
+
+        function initRain() {
+            rainCanvas.width = 1920;
+            rainCanvas.height = 1080;
+            drops = [];
+            splashes = [];
+            for(let i=0; i<180; i++) {
+                drops.push({
+                    x: Math.random() * rainCanvas.width,
+                    y: Math.random() * rainCanvas.height,
+                    l: Math.random() * 20 + 10,
+                    v: Math.random() * 15 + 20,
+                    z: Math.random() 
+                });
+            }
+        }
+        initRain();
+
+        function drawRain() {
+            if(!rainActive) return;
+            ctx.clearRect(0, 0, rainCanvas.width, rainCanvas.height);
+            ctx.lineCap = 'round';
+
+            const cards = document.querySelectorAll('.card-dia');
+            const cardRects = Array.from(cards).map(c => {
+                const rect = c.getBoundingClientRect();
+                return {
+                    top: (rect.top - (window.innerHeight - 1080 * currentScaleY) / 2) / currentScaleY,
+                    left: (rect.left - (window.innerWidth - 1920 * currentScaleX) / 2) / currentScaleX,
+                    right: (rect.right - (window.innerWidth - 1920 * currentScaleX) / 2) / currentScaleX
+                };
+            });
+
+            for (let i = splashes.length - 1; i >= 0; i--) {
+                let s = splashes[i];
+                ctx.beginPath();
+                ctx.ellipse(s.x, s.y, s.r, s.r/3, 0, 0, Math.PI * 2);
+                ctx.strokeStyle = `rgba(255, 255, 255, ${s.a})`;
+                ctx.lineWidth = 1;
+                ctx.stroke();
+                s.r += 1.2;
+                s.a -= 0.08;
+                if (s.a <= 0) splashes.splice(i, 1);
+            }
+
+            for (let i = 0; i < drops.length; i++) {
+                let d = drops[i];
+                ctx.strokeStyle = `rgba(255, 255, 255, ${d.z * 0.4 + 0.1})`;
+                ctx.lineWidth = d.z * 1.5 + 0.5;
+                
+                ctx.beginPath();
+                ctx.moveTo(d.x, d.y);
+                ctx.lineTo(d.x, d.y + d.l);
+                ctx.stroke();
+
+                d.y += d.v;
+
+                let hit = false;
+                if(d.z > 0.4) { 
+                    for(let rect of cardRects) {
+                        if (d.x > rect.left && d.x < rect.right && d.y + d.l > rect.top && d.y - d.v <= rect.top) {
+                            hit = true;
+                            splashes.push({x: d.x, y: rect.top, r: 2, a: 0.6});
+                            break;
+                        }
+                    }
+                }
+
+                if (hit || d.y > rainCanvas.height) {
+                    d.y = -20;
+                    d.x = Math.random() * rainCanvas.width;
+                    d.v = Math.random() * 15 + 20;
+                }
+            }
+            rainAnimId = requestAnimationFrame(drawRain);
+        }
+
         let comunicadosAtivos = [];
         let fotosAprovadas = [];
         let indexCom = -1;
         let indexFoto = -1;
-        
         let loopRodando = false;
         let mostrarClimaNaTV = true; 
         let mostrarFotosNaTV = false;
         let proximaAcao = 'CLIMA'; 
-
         let fotosExibidasNoCiclo = parseInt(localStorage.getItem('fcv_ciclo')) || 0;
         let maiorNumeroExibido = parseInt(localStorage.getItem('fcv_maior')) || 0;
-
         let timerCarregamento = null;
         let timerExibicao = null;
         let toggleImgLayer = 1;
 
-        onSnapshot(doc(db, "controle_tv", "status_clima"), (docSnap) => {
-            if(docSnap.exists()) mostrarClimaNaTV = docSnap.data().mostrar_clima;
-        });
-        onSnapshot(doc(db, "controle_tv", "status"), (docSnap) => {
-            if(docSnap.exists()) mostrarFotosNaTV = docSnap.data().mostrar_fotos;
-        });
+        onSnapshot(doc(db, "controle_tv", "status_clima"), (docSnap) => { if(docSnap.exists()) mostrarClimaNaTV = docSnap.data().mostrar_clima; });
+        onSnapshot(doc(db, "controle_tv", "status"), (docSnap) => { if(docSnap.exists()) mostrarFotosNaTV = docSnap.data().mostrar_fotos; });
         onSnapshot(doc(db, "controle_tv", "status_transicao"), (docSnap) => {
-            if(docSnap.exists() && docSnap.data().efeito) {
-                document.body.setAttribute('data-transicao', docSnap.data().efeito);
-            } else {
-                document.body.setAttribute('data-transicao', 'fade');
-            }
+            if(docSnap.exists() && docSnap.data().efeito) document.body.setAttribute('data-transicao', docSnap.data().efeito);
+            else document.body.setAttribute('data-transicao', 'fade');
         });
 
         const camadaClima = document.getElementById('camadaClima');
@@ -302,22 +381,18 @@
         const camadaTexto = document.getElementById('camadaTexto');
         const textoDoComunicado = document.getElementById('textoDoComunicado');
         const aguardando = document.getElementById('aguardando');
-        const numDiscreto = document.getElementById('numeroDiscreto');
         const barraProgresso = document.getElementById('barraProgresso');
 
         onSnapshot(query(collection(db, "fotos_criancas"), where("status", "==", "aprovado")), (snapshot) => {
             fotosAprovadas = [];
             snapshot.forEach(doc => fotosAprovadas.push(doc.data()));
             fotosAprovadas.sort((a, b) => (a.numeroFila || 0) - (b.numeroFila || 0));
-
             if (fotosAprovadas.length > 0) {
                 const ultimaFila = fotosAprovadas[fotosAprovadas.length - 1].numeroFila || 0;
                 if (ultimaFila > maiorNumeroExibido && maiorNumeroExibido > 0) {
                     clearTimeout(window.timerFuraFila);
                     window.timerFuraFila = setTimeout(() => {
-                        proximaAcao = 'FOTOS'; 
-                        fotosExibidasNoCiclo = 0; 
-                        localStorage.setItem('fcv_ciclo', 0);
+                        proximaAcao = 'FOTOS'; fotosExibidasNoCiclo = 0; localStorage.setItem('fcv_ciclo', 0);
                         if (loopRodando) decidirProximo();
                     }, 1000);
                 }
@@ -327,23 +402,16 @@
         onSnapshot(collection(db, "comunicados_criancas"), (snapshot) => {
             comunicadosAtivos = [];
             const hojeISO = new Date().toLocaleDateString('en-CA'); 
-
             snapshot.forEach(doc => {
                 const data = doc.data();
                 if (data.ativo === false) return; 
                 if (data.exibir_corredor === false) return;
                 if (data.data_inicio && hojeISO < data.data_inicio) return; 
                 if (data.data_fim && hojeISO > data.data_fim) return;       
-                
                 comunicadosAtivos.push(data);
             });
-
             comunicadosAtivos.sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
-
-            if (!loopRodando) {
-                loopRodando = true;
-                decidirProximo();
-            }
+            if (!loopRodando) { loopRodando = true; decidirProximo(); }
         });
 
         function animarBarra(tempoMs) {
@@ -367,15 +435,22 @@
                         c.classList.remove('visivel');
                         c.classList.add('escondido');
                         c.style.zIndex = "1";
-                        if (c === camadaVideo) {
-                            setTimeout(() => { videoPainel.pause(); videoPainel.src = ""; }, 800);
-                        }
+                        if (c === camadaVideo) { setTimeout(() => { videoPainel.pause(); videoPainel.src = ""; }, 800); }
                     }
                 }
             });
-            if (novaCamada !== camadaImagem1 && novaCamada !== camadaImagem2) {
-                numDiscreto.style.opacity = 0;
+
+            if (novaCamada === camadaClima && isRaining) {
+                rainCanvas.style.display = 'block';
+                rainActive = true;
+                drawRain();
+            } else {
+                rainActive = false;
+                cancelAnimationFrame(rainAnimId);
+                rainCanvas.style.display = 'none';
             }
+
+            if (novaCamada !== camadaImagem1 && novaCamada !== camadaImagem2) { document.getElementById('numeroDiscreto').style.opacity = 0; }
             aguardando.style.display = "none";
         }
 
@@ -388,46 +463,25 @@
             let podeExibirClima = mostrarClimaNaTV && dadosClimaProntos;
 
             if (!podeExibirClima && !temComs && !temFotos) {
-                aguardando.style.display = "block";
-                transitarPara(null);
-                setTimeout(decidirProximo, 2000); 
-                return;
+                aguardando.style.display = "block"; transitarPara(null); setTimeout(decidirProximo, 2000); return;
             }
 
             if (proximaAcao === 'CLIMA') {
-                if (podeExibirClima) {
-                    proximaAcao = temComs ? 'COMS' : (temFotos ? 'FOTOS' : 'CLIMA');
-                    renderizarClima();
-                } else {
-                    proximaAcao = temComs ? 'COMS' : 'FOTOS';
-                    decidirProximo();
-                }
+                if (podeExibirClima) { proximaAcao = temComs ? 'COMS' : (temFotos ? 'FOTOS' : 'CLIMA'); renderizarClima(); } 
+                else { proximaAcao = temComs ? 'COMS' : 'FOTOS'; decidirProximo(); }
             } else if (proximaAcao === 'COMS') {
                 if (temComs) {
                     renderizarComunicado();
-                    if (indexCom === comunicadosAtivos.length - 1) { 
-                        proximaAcao = temFotos ? 'FOTOS' : (podeExibirClima ? 'CLIMA' : 'COMS');
-                    } else {
-                        proximaAcao = 'COMS';
-                    }
-                } else {
-                    proximaAcao = temFotos ? 'FOTOS' : 'CLIMA';
-                    decidirProximo();
-                }
+                    if (indexCom === comunicadosAtivos.length - 1) { proximaAcao = temFotos ? 'FOTOS' : (podeExibirClima ? 'CLIMA' : 'COMS'); } 
+                    else { proximaAcao = 'COMS'; }
+                } else { proximaAcao = temFotos ? 'FOTOS' : 'CLIMA'; decidirProximo(); }
             } else if (proximaAcao === 'FOTOS') {
                 if (temFotos) {
                     if (fotosExibidasNoCiclo >= 4) { 
-                        fotosExibidasNoCiclo = 0;
-                        localStorage.setItem('fcv_ciclo', 0);
-                        proximaAcao = podeExibirClima ? 'CLIMA' : (temComs ? 'COMS' : 'FOTOS');
-                        decidirProximo();
-                    } else {
-                        renderizarFoto();
-                    }
-                } else {
-                    proximaAcao = podeExibirClima ? 'CLIMA' : 'COMS';
-                    decidirProximo();
-                }
+                        fotosExibidasNoCiclo = 0; localStorage.setItem('fcv_ciclo', 0);
+                        proximaAcao = podeExibirClima ? 'CLIMA' : (temComs ? 'COMS' : 'FOTOS'); decidirProximo();
+                    } else { renderizarFoto(); }
+                } else { proximaAcao = podeExibirClima ? 'CLIMA' : 'COMS'; decidirProximo(); }
             }
         }
 
@@ -437,35 +491,23 @@
             timerExibicao = setTimeout(decidirProximo, 15000); 
         }
 
-        function obterTempoValido(tempoRaw) {
-            let t = parseInt(tempoRaw);
-            return (isNaN(t) || t < 5000 || t > 60000) ? 15000 : t;
-        }
+        function obterTempoValido(tempoRaw) { let t = parseInt(tempoRaw); return (isNaN(t) || t < 5000 || t > 60000) ? 15000 : t; }
 
         function renderizarComunicado() {
             indexCom = (indexCom + 1) >= comunicadosAtivos.length ? 0 : (indexCom + 1);
             const com = comunicadosAtivos[indexCom];
-            
             let tempoTextoArte = obterTempoValido(com.tempo_exibicao);
 
             if (com.tipo === 'video' || com.url_video) {
                 videoPainel.src = com.url_video;
-                
                 videoPainel.onloadedmetadata = function() {
                     let duracao = videoPainel.duration * 1000;
                     if (!duracao || isNaN(duracao) || duracao === Infinity) duracao = 15000;
-                    
                     transitarPara(camadaVideo);
                     videoPainel.play().catch(e => console.log(e));
-                    
-                    animarBarra(duracao); 
-                    timerExibicao = setTimeout(() => { 
-                        decidirProximo(); 
-                    }, duracao);
+                    animarBarra(duracao); timerExibicao = setTimeout(() => { decidirProximo(); }, duracao);
                 };
-                
                 videoPainel.onerror = () => { setTimeout(decidirProximo, 1000); };
-                
             } else if (com.tipo === 'imagem' || com.url_imagem) { 
                 toggleImgLayer = toggleImgLayer === 1 ? 2 : 1;
                 const camadaAtual = toggleImgLayer === 1 ? camadaImagem1 : camadaImagem2;
@@ -478,34 +520,24 @@
 
                 imgPreload.onload = () => {
                     clearTimeout(timerCarregamento);
-                    imgAtual.classList.add('modo-arte'); 
-                    imgAtual.src = com.url_imagem || com.url_thumb;
-                    molduraAtual.style.display = 'none';
-                    nomePanelAtual.style.display = 'none';
-                    numDiscreto.style.opacity = 0;
-                    
+                    imgAtual.classList.add('modo-arte'); imgAtual.src = com.url_imagem || com.url_thumb;
+                    molduraAtual.style.display = 'none'; nomePanelAtual.style.display = 'none'; document.getElementById('numeroDiscreto').style.opacity = 0;
                     transitarPara(camadaAtual);
-                    animarBarra(tempoTextoArte); 
-                    timerExibicao = setTimeout(() => { decidirProximo(); }, tempoTextoArte); 
+                    animarBarra(tempoTextoArte); timerExibicao = setTimeout(() => { decidirProximo(); }, tempoTextoArte); 
                 };
                 imgPreload.onerror = () => { clearTimeout(timerCarregamento); setTimeout(decidirProximo, 1000); };
                 imgPreload.src = com.url_imagem || com.url_thumb;
             } else { 
-                textoDoComunicado.innerText = com.texto;
-                transitarPara(camadaTexto);
-                animarBarra(tempoTextoArte); 
-                timerExibicao = setTimeout(decidirProximo, tempoTextoArte); 
+                textoDoComunicado.innerText = com.texto; transitarPara(camadaTexto);
+                animarBarra(tempoTextoArte); timerExibicao = setTimeout(decidirProximo, tempoTextoArte); 
             }
         }
 
         function renderizarFoto() {
             indexFoto = (indexFoto + 1) >= fotosAprovadas.length ? 0 : (indexFoto + 1); 
             const fotoDaVez = fotosAprovadas[indexFoto];
-            
             localStorage.setItem('fcv_ultimo', fotoDaVez.numeroFila);
-            if ((fotoDaVez.numeroFila || 0) > maiorNumeroExibido) { 
-                maiorNumeroExibido = fotoDaVez.numeroFila; localStorage.setItem('fcv_maior', maiorNumeroExibido);
-            }
+            if ((fotoDaVez.numeroFila || 0) > maiorNumeroExibido) { maiorNumeroExibido = fotoDaVez.numeroFila; localStorage.setItem('fcv_maior', maiorNumeroExibido); }
 
             toggleImgLayer = toggleImgLayer === 1 ? 2 : 1;
             const camadaAtual = toggleImgLayer === 1 ? camadaImagem1 : camadaImagem2;
@@ -519,27 +551,16 @@
             timerCarregamento = setTimeout(() => { decidirProximo(); }, 8000); 
             
             imgPreload.onload = () => {
-                clearTimeout(timerCarregamento); 
-                fotosExibidasNoCiclo++; localStorage.setItem('fcv_ciclo', fotosExibidasNoCiclo);
+                clearTimeout(timerCarregamento); fotosExibidasNoCiclo++; localStorage.setItem('fcv_ciclo', fotosExibidasNoCiclo);
+                imgAtual.classList.remove('modo-arte'); imgAtual.src = fotoDaVez.url_imagem || fotoDaVez.url_thumb;
+                document.getElementById('numeroDiscreto').innerText = fotoDaVez.numeroFila ? `#${fotoDaVez.numeroFila}` : "";
+                document.getElementById('numeroDiscreto').style.opacity = 1; molduraAtual.style.display = 'block';
 
-                imgAtual.classList.remove('modo-arte'); 
-                imgAtual.src = fotoDaVez.url_imagem || fotoDaVez.url_thumb;
-                
-                numDiscreto.innerText = fotoDaVez.numeroFila ? `#${fotoDaVez.numeroFila}` : "";
-                numDiscreto.style.opacity = 1;
-                molduraAtual.style.display = 'block';
-
-                if(fotoDaVez.nome === "Não Informado" && !fotoDaVez.setor) {
-                    nomePanelAtual.style.display = 'none';
-                } else {
-                    nomePanelAtual.style.display = 'block';
-                    lblNomeAtual.innerText = fotoDaVez.nome;
-                    lblSetorAtual.innerText = fotoDaVez.setor ? fotoDaVez.setor : "";
-                }
+                if(fotoDaVez.nome === "Não Informado" && !fotoDaVez.setor) { nomePanelAtual.style.display = 'none'; } 
+                else { nomePanelAtual.style.display = 'block'; lblNomeAtual.innerText = fotoDaVez.nome; lblSetorAtual.innerText = fotoDaVez.setor ? fotoDaVez.setor : ""; }
 
                 transitarPara(camadaAtual);
-                animarBarra(7000); 
-                timerExibicao = setTimeout(() => { decidirProximo(); }, 7000);
+                animarBarra(7000); timerExibicao = setTimeout(() => { decidirProximo(); }, 7000);
             };
             imgPreload.onerror = () => { clearTimeout(timerCarregamento); setTimeout(decidirProximo, 1000); };
             imgPreload.src = fotoDaVez.url_imagem || fotoDaVez.url_thumb;
