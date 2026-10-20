@@ -32,36 +32,45 @@
         #aguardando { font-size: 20px; color: #7f8c8d; font-weight: 600; z-index: 20; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: none; }
         #barraProgressoContainer { position: absolute; bottom: 0; left: 0; width: 100%; height: 10px; background: rgba(255,255,255,0.1); z-index: 20; }
         #barraProgresso { height: 100%; width: 0%; background: linear-gradient(to right, #2894f9, #002061); }
-        #iframeCardapio { width: 100%; height: 100%; border: none; background: transparent; }
+        
+        #iframeCardapio { width: 100%; height: 100%; border: none; background: #ffffff; }
     </style>
 </head>
 <body data-transicao="fade">
 
     <audio id="radioFCV" src="https://stm17.srvstm.com:6944/stream" preload="none" crossorigin="anonymous"></audio>
 
-    <button id="btnFullscreen">Tela Cheia</button>
+    <button id="btnFullscreen">Tela Cheia (Iniciar Rádio)</button>
 
     <div id="viewportWrapper">
         <div class="tv-scale-box" id="tvScaleBox">
+            
             <img src="MKTFCV.png" class="marca-dagua" alt="MKT FCV">
             <div id="relogioTV">--:--</div>
+
             <div id="aguardando">Aguardando informações da rede...</div>
+
             <div class="container-master escondido" id="camadaCardapio">
                 <iframe id="iframeCardapio" src="about:blank"></iframe>
             </div>
+
             <div class="container-master escondido" id="camadaImagem">
                 <img id="imgPainel" src="" alt="Painel">
             </div>
+
             <div class="container-master escondido" id="camadaVideo">
                 <video id="videoPainel" class="modo-arte" src="" playsinline muted></video>
             </div>
+
             <div class="container-master escondido" id="camadaTexto">
                 <div id="containerTexto">
                     <span class="aviso-label">Mural da Fundação</span>
                     <h1 id="textoDoComunicado"></h1>
                 </div>
             </div>
+
             <div id="barraProgressoContainer"><div id="barraProgresso"></div></div>
+
         </div>
     </div>
 
