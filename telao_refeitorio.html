@@ -275,11 +275,16 @@
             timerExibicao = setTimeout(decidirProximo, 25000); 
         }
 
+        function obterTempoValido(tempoRaw) {
+            let t = parseInt(tempoRaw);
+            return (isNaN(t) || t < 5000 || t > 60000) ? 15000 : t;
+        }
+
         function renderizarComunicado() {
             indexCom = (indexCom + 1) >= comunicadosAtivos.length ? 0 : (indexCom + 1);
             const com = comunicadosAtivos[indexCom];
             
-            let tempoTextoArte = com.tempo_exibicao ? parseInt(com.tempo_exibicao) : 15000;
+            let tempoTextoArte = obterTempoValido(com.tempo_exibicao);
 
             if (com.tipo === 'video' || com.url_video) {
                 videoPainel.src = com.url_video;
