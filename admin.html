@@ -153,12 +153,26 @@
     <div id="modalConfigCom">
         <div class="config-box">
             <h3 id="tituloModalConfig">Configurar Comunicado</h3>
+            
+            <label style="margin-top: 10px; font-size: 13px; color: #f1c40f;">ONDE EXIBIR?</label>
+            <div style="display: flex; gap: 15px; margin-bottom: 20px; align-items: center;">
+                <label style="display: flex; align-items: center; gap: 5px; cursor: pointer; color: white;">
+                    <input type="checkbox" id="chkCorredor" checked style="width: auto; margin: 0;"> TV Corredor
+                </label>
+                <label style="display: flex; align-items: center; gap: 5px; cursor: pointer; color: white;">
+                    <input type="checkbox" id="chkRefeitorio" style="width: auto; margin: 0;"> TV Refeitório
+                </label>
+            </div>
+
             <label>Nome / Título:</label>
             <input type="text" id="confNome" placeholder="Ex: Aviso Feriado (Interno)">
+            
             <label>Exibir a partir de (Opcional):</label>
             <input type="date" id="confInicio">
+            
             <label>Exibir até dia (Opcional):</label>
             <input type="date" id="confFim">
+            
             <div id="linhaTempo">
                 <label>Tempo de Exibição na TV:</label>
                 <select id="confTempo">
@@ -203,7 +217,16 @@
 
         <div class="glass-panel">
             <div class="text-left">
-                <h3>Previsão do Tempo</h3>
+                <h3>Link do Cardápio (TV Refeitório)</h3>
+                <p>O que aparece como padrão no refeitório.</p>
+                <input type="text" id="inputLinkCardapio" placeholder="http://fcvconnect/fcvnow/cardapio/semana" style="width: 100%; padding: 8px; margin-top: 8px; border-radius: 6px; border: 1px solid #7f8c8d; background: #2c3e50; color: white; box-sizing: border-box;">
+                <button id="btnSalvarCardapio" style="background: #2ecc71; color: white; border: none; padding: 8px 15px; border-radius: 4px; margin-top: 5px; font-weight: bold; cursor: pointer; font-size: 11px;">Atualizar Link</button>
+            </div>
+        </div>
+
+        <div class="glass-panel">
+            <div class="text-left">
+                <h3>Previsão do Tempo (Corredor)</h3>
             </div>
             <label class="ios-switch">
                 <input type="checkbox" id="toggleClima" checked>
@@ -214,7 +237,7 @@
         <div class="glass-panel">
             <div class="text-left">
                 <h3>Ação Dia das Crianças</h3>
-                <p>Retomar as fotos no ciclo da TV.</p>
+                <p>Retomar as fotos no ciclo (Corredor).</p>
             </div>
             <label class="ios-switch">
                 <input type="checkbox" id="toggleFotos">
@@ -311,6 +334,18 @@
             } else {
                 selectTransicao.value = 'fade';
             }
+        });
+
+        onSnapshot(doc(db, "controle_tv", "status_refeitorio"), (docSnap) => {
+            if(docSnap.exists() && docSnap.data().link_cardapio) {
+                document.getElementById('inputLinkCardapio').value = docSnap.data().link_cardapio;
+            }
+        });
+
+        document.getElementById('btnSalvarCardapio').addEventListener('click', async () => {
+            const link = document.getElementById('inputLinkCardapio').value;
+            await setDoc(doc(db, "controle_tv", "status_refeitorio"), { link_cardapio: link }, { merge: true });
+            alert("Link do cardápio atualizado na TV Refeitório!");
         });
 
         toggleClima.addEventListener('change', async (e) => {
@@ -421,6 +456,7 @@
 
         let arteSelecionada = null;
         let acaoUpload = null; 
+        let comunicados_memoria = [];
 
         document.getElementById('btnSelectComImg').addEventListener('click', () => { document.getElementById('inputComunicadoImg').click(); });
         document.getElementById('inputComunicadoImg').addEventListener('change', (e) => {
@@ -436,6 +472,8 @@
             if(!txt) return alert("Digite um recado primeiro.");
             document.getElementById('confNome').value = txt.substring(0, 20) + "..."; 
             document.getElementById('confInicio').value = ""; document.getElementById('confFim').value = "";
+            document.getElementById('chkCorredor').checked = true;
+            document.getElementById('chkRefeitorio').checked = false;
             document.getElementById('linhaTempo').style.display = 'block';
             document.getElementById('confTempo').value = "15000";
             acaoUpload = { tipo: 'texto', texto: txt };
@@ -446,6 +484,8 @@
             if(!arteSelecionada) return;
             document.getElementById('confNome').value = arteSelecionada.name; 
             document.getElementById('confInicio').value = ""; document.getElementById('confFim').value = "";
+            document.getElementById('chkCorredor').checked = true;
+            document.getElementById('chkRefeitorio').checked = false;
             if (arteSelecionada.type.startsWith('video/')) {
                 document.getElementById('linhaTempo').style.display = 'none';
             } else {
@@ -462,6 +502,8 @@
             const data_inicio = document.getElementById('confInicio').value; 
             const data_fim = document.getElementById('confFim').value;
             const tempo_exibicao = parseInt(document.getElementById('confTempo').value) || 15000;
+            const ex_corr = document.getElementById('chkCorredor').checked;
+            const ex_ref = document.getElementById('chkRefeitorio').checked;
             const timestamp = Date.now(); 
 
             btn.innerText = "A processar..."; btn.disabled = true;
@@ -469,12 +511,13 @@
             try {
                 if(acaoUpload.tipo === 'editar') {
                     await updateDoc(doc(db, "comunicados_criancas", acaoUpload.id), {
-                        nome: nome, data_inicio: data_inicio, data_fim: data_fim, tempo_exibicao: tempo_exibicao
+                        nome: nome, data_inicio: data_inicio, data_fim: data_fim, tempo_exibicao: tempo_exibicao,
+                        exibir_corredor: ex_corr, exibir_refeitorio: ex_ref
                     });
                 } else if(acaoUpload.tipo === 'texto') {
                     await addDoc(collection(db, "comunicados_criancas"), {
                         tipo: 'texto', texto: acaoUpload.texto, nome: nome, data_inicio: data_inicio, data_fim: data_fim, tempo_exibicao: tempo_exibicao,
-                        ativo: true, ordem: timestamp, timestamp: serverTimestamp()
+                        ativo: true, ordem: timestamp, timestamp: serverTimestamp(), exibir_corredor: ex_corr, exibir_refeitorio: ex_ref
                     });
                     document.getElementById('inputComunicadoTxt').value = "";
                 } else if(acaoUpload.tipo === 'midia') {
@@ -489,7 +532,7 @@
 
                         await addDoc(collection(db, "comunicados_criancas"), {
                             tipo: 'video', url_video: dados.secure_url, nome: nome, data_inicio: data_inicio, data_fim: data_fim, tempo_exibicao: tempo_exibicao,
-                            ativo: true, ordem: timestamp, timestamp: serverTimestamp()
+                            ativo: true, ordem: timestamp, timestamp: serverTimestamp(), exibir_corredor: ex_corr, exibir_refeitorio: ex_ref
                         });
                     } else {
                         const formData = new FormData(); formData.append("image", acaoUpload.file);
@@ -498,7 +541,7 @@
                         
                         await addDoc(collection(db, "comunicados_criancas"), {
                             tipo: 'imagem', url_imagem: dados.data.url, url_thumb: dados.data.thumb.url, nome: nome, data_inicio: data_inicio, data_fim: data_fim, tempo_exibicao: tempo_exibicao,
-                            ativo: true, ordem: timestamp, timestamp: serverTimestamp()
+                            ativo: true, ordem: timestamp, timestamp: serverTimestamp(), exibir_corredor: ex_corr, exibir_refeitorio: ex_ref
                         });
                     }
                     document.getElementById('btnSelectComImg').innerText = "Escolher Arquivo";
@@ -515,13 +558,13 @@
 
         onSnapshot(collection(db, "comunicados_criancas"), (snapshot) => {
             listaComunicados.innerHTML = "";
-            let arrayComs = [];
-            snapshot.forEach(docSnap => arrayComs.push({ id: docSnap.id, ...docSnap.data() }));
-            arrayComs.sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
+            comunicados_memoria = [];
+            snapshot.forEach(docSnap => comunicados_memoria.push({ id: docSnap.id, ...docSnap.data() }));
+            comunicados_memoria.sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
 
-            if(arrayComs.length === 0) return listaComunicados.innerHTML = "<p class='vazio' style='text-align:center;'>Nenhum comunicado ativo.</p>";
+            if(comunicados_memoria.length === 0) return listaComunicados.innerHTML = "<p class='vazio' style='text-align:center;'>Nenhum comunicado ativo.</p>";
             
-            arrayComs.forEach(dados => {
+            comunicados_memoria.forEach(dados => {
                 const div = document.createElement('div'); 
                 div.className = 'item-comunicado';
                 div.setAttribute('data-id', dados.id);
@@ -536,9 +579,13 @@
                 }
 
                 let periodo = "Sempre visível";
-                if(dados.data_inicio && dados.data_fim) periodo = `${dados.data_inicio.split('-').reverse().join('/')} até ${dados.data_fim.split('-').reverse().join('/')}`;
+                if(dados.data_inicio && dados.data_fim) periodo = `${dados.data_inicio.split('-').reverse().join('/')} a ${dados.data_fim.split('-').reverse().join('/')}`;
                 else if(dados.data_inicio) periodo = `A partir de ${dados.data_inicio.split('-').reverse().join('/')}`;
                 else if(dados.data_fim) periodo = `Até ${dados.data_fim.split('-').reverse().join('/')}`;
+
+                let badgesLocais = "";
+                if(dados.exibir_corredor !== false) badgesLocais += '<span style="background:#2980b9; color:white; padding:2px 6px; border-radius:4px; font-size:9px; margin-right:4px;">Corredor</span>';
+                if(dados.exibir_refeitorio === true) badgesLocais += '<span style="background:#8e44ad; color:white; padding:2px 6px; border-radius:4px; font-size:9px;">Refeitório</span>';
 
                 const ativoChecked = dados.ativo !== false ? 'checked' : ''; 
 
@@ -548,7 +595,7 @@
                         ${midiaHtml}
                         <div class="info-com">
                             <strong>${dados.nome || 'Comunicado Antigo'}</strong>
-                            <span>📅 ${periodo}</span>
+                            <div style="margin-top:2px;">${badgesLocais}<span>📅 ${periodo}</span></div>
                         </div>
                     </div>
                     <div class="acoes-com">
@@ -556,7 +603,7 @@
                             <input type="checkbox" onchange="alterarAtivoCom('${dados.id}', this.checked)" ${ativoChecked}>
                             <span class="slider"></span>
                         </label>
-                        <button class="btn-editar-com" onclick="editarComunicado('${dados.id}', '${dados.nome || ''}', '${dados.data_inicio || ''}', '${dados.data_fim || ''}', '${dados.tempo_exibicao || 15000}', '${dados.tipo || ''}')">Editar</button>
+                        <button class="btn-editar-com" onclick="prepararEdicao('${dados.id}')">Editar</button>
                         <button class="btn-remover-com" onclick="excluirComunicado('${dados.id}')">Excluir</button>
                     </div>
                 `;
@@ -580,16 +627,20 @@
 
         window.alterarAtivoCom = async (id, estado) => { await updateDoc(doc(db, "comunicados_criancas", id), { ativo: estado }); };
 
-        window.editarComunicado = (id, nome, inicio, fim, tempo, tipo) => {
-            document.getElementById('confNome').value = nome !== 'undefined' ? nome : '';
-            document.getElementById('confInicio').value = inicio !== 'undefined' ? inicio : '';
-            document.getElementById('confFim').value = fim !== 'undefined' ? fim : '';
+        window.prepararEdicao = (id) => {
+            const com = comunicados_memoria.find(c => c.id === id);
+            if(!com) return;
+            document.getElementById('confNome').value = com.nome || '';
+            document.getElementById('confInicio').value = com.data_inicio || '';
+            document.getElementById('confFim').value = com.data_fim || '';
+            document.getElementById('chkCorredor').checked = com.exibir_corredor !== false;
+            document.getElementById('chkRefeitorio').checked = com.exibir_refeitorio === true;
             
-            if (tipo === 'video') {
+            if (com.tipo === 'video') {
                 document.getElementById('linhaTempo').style.display = 'none';
             } else {
                 document.getElementById('linhaTempo').style.display = 'block';
-                document.getElementById('confTempo').value = tempo !== 'undefined' ? tempo : '15000';
+                document.getElementById('confTempo').value = com.tempo_exibicao ? com.tempo_exibicao : '15000';
             }
             
             acaoUpload = { tipo: 'editar', id: id };
