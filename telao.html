@@ -118,7 +118,7 @@
             <img src="MKTFCV.png" class="marca-dagua" alt="MKT FCV">
             <div id="relogioTV">--:--</div>
 
-            <div id="aguardando">Aguardando informações de rede...</div>
+            <div id="aguardando">Aguardando informações da rede...</div>
 
             <div class="container-master escondido" id="camadaClima">
                 <div id="bgClima">
@@ -245,6 +245,8 @@
         let isRaining = false;
         let isStorm = false;
         let isSunny = false;
+        let climaAutomatico = 'sol';
+        let modoClima = 'auto';
         
         const svgs = {
             sol: '<svg stroke="#f1c40f" viewBox="0 0 24 24" fill="none" stroke-width="1.5"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>',
@@ -263,6 +265,15 @@
             if(code >= 80 && code <= 82) return { t: 'Pancadas', i: svgs.chuva };
             if(code >= 95) return { t: 'Tempestade', i: svgs.tempestade };
             return { t: 'Nublado', i: svgs.nuvem };
+        }
+
+        function mapearCodigoParaTema(code) {
+            if(code === 0) return 'sol';
+            if(code >= 1 && code <= 3) return 'parc_nublado';
+            if(code >= 45 && code <= 48) return 'nublado';
+            if((code >= 51 && code <= 67) || (code >= 80 && code <= 82)) return 'chuva';
+            if(code >= 95) return 'tempestade';
+            return 'nublado';
         }
 
         async function processarClima() {
@@ -291,6 +302,13 @@
                     let cTarde = getClimaIcon(data.hourly.weathercode[idxTarde], false);
                     let tNoite = Math.round(data.hourly.temperature_2m[idxNoite]);
                     let cNoite = getClimaIcon(data.hourly.weathercode[idxNoite], true);
+
+                    if (i === 0) {
+                        climaAutomatico = mapearCodigoParaTema(mainCode);
+                        if (modoClima === 'auto') {
+                            aplicarClimaFundo(climaAutomatico);
+                        }
+                    }
 
                     gridHtml += `<div class="card-dia"><div class="dia-titulo">${tituloDia}</div><div class="icone-principal">${iconeMain.i}</div><div class="temp-principal">${tempMedia}°</div><div class="desc-principal">${iconeMain.t}</div><div class="maxmin"><div class="t-max">↑ ${max}°</div><div class="t-min">↓ ${min}°</div></div><div class="turnos-container"><div class="turno"><div class="turno-nome">manhã</div><div class="turno-icone">${cManha.i}</div><div class="turno-temp">${tManha}°</div></div><div class="turno"><div class="turno-nome">tarde</div><div class="turno-icone">${cTarde.i}</div><div class="turno-temp">${tTarde}°</div></div><div class="turno"><div class="turno-nome">noite</div><div class="turno-icone">${cNoite.i}</div><div class="turno-temp">${tNoite}°</div></div></div></div>`;
                 }
@@ -719,12 +737,12 @@
         onSnapshot(doc(db, "controle_tv", "status_clima"), (docSnap) => { 
             if(docSnap.exists()) {
                 mostrarClimaNaTV = docSnap.data().mostrar_clima !== false;
-                let climaManual = docSnap.data().clima_manual || 'sol';
-                aplicarClimaFundo(climaManual);
+                modoClima = docSnap.data().modo_clima || 'auto';
             } else {
                 mostrarClimaNaTV = true;
-                aplicarClimaFundo('sol');
+                modoClima = 'auto';
             }
+            aplicarClimaFundo(modoClima === 'auto' ? climaAutomatico : modoClima);
         });
 
         onSnapshot(doc(db, "controle_tv", "status"), (docSnap) => { if(docSnap.exists()) mostrarFotosNaTV = docSnap.data().mostrar_fotos; });
