@@ -68,21 +68,17 @@
         .nuvem-ios { position: absolute; border-radius: 100px; filter: blur(12px); transition: background 0.1s ease; }
         .nuvem-ios::before, .nuvem-ios::after { content: ''; position: absolute; background: inherit; border-radius: 50%; }
         
-        .nuvem-ios.n1 { width: 420px; height: 130px; top: 30px; left: -550px; animation: passaNuvem 32s linear infinite; background: rgba(45, 65, 85, 0.4); }
+        .nuvem-ios.n1 { width: 420px; height: 130px; top: 30px; left: -550px; animation: passaNuvem 50s linear infinite; background: rgba(45, 65, 85, 0.35); }
         .nuvem-ios.n1::before { width: 190px; height: 190px; top: -80px; left: 50px; }
         .nuvem-ios.n1::after { width: 130px; height: 130px; top: -60px; right: 60px; }
         
-        .nuvem-ios.n2 { width: 520px; height: 150px; top: 100px; left: -700px; animation: passaNuvem 42s linear infinite 8s; background: rgba(30, 45, 60, 0.5); }
+        .nuvem-ios.n2 { width: 520px; height: 150px; top: 100px; left: -700px; animation: passaNuvem 68s linear infinite 12s; background: rgba(30, 45, 60, 0.45); }
         .nuvem-ios.n2::before { width: 220px; height: 220px; top: -100px; left: 70px; }
         .nuvem-ios.n2::after { width: 160px; height: 160px; top: -70px; right: 70px; }
         
-        .nuvem-ios.n3 { width: 380px; height: 120px; top: 70px; left: -500px; animation: passaNuvem 25s linear infinite 3s; background: rgba(60, 80, 105, 0.35); }
-        .nuvem-ios.n3::before { width: 160px; height: 160px; top: -70px; left: 45px; }
-        .nuvem-ios.n3::after { width: 110px; height: 110px; top: -50px; right: 45px; }
-
-        .nuvem-ios.n4 { width: 460px; height: 140px; top: 140px; left: -600px; animation: passaNuvem 36s linear infinite 16s; background: rgba(255, 255, 255, 0.15); }
-        .nuvem-ios.n4::before { width: 200px; height: 200px; top: -90px; left: 60px; }
-        .nuvem-ios.n4::after { width: 140px; height: 140px; top: -60px; right: 60px; }
+        .nuvem-ios.n3 { width: 340px; height: 110px; top: 160px; left: -450px; animation: passaNuvem 40s linear infinite 4s; background: rgba(255, 255, 255, 0.12); }
+        .nuvem-ios.n3::before { width: 150px; height: 150px; top: -70px; left: 40px; }
+        .nuvem-ios.n3::after { width: 100px; height: 100px; top: -45px; right: 40px; }
 
         .trovao-ativo .nuvem-ios { background: rgba(210, 230, 255, 0.28) !important; }
         
@@ -132,7 +128,6 @@
                         <div class="nuvem-ios n1"></div>
                         <div class="nuvem-ios n2"></div>
                         <div class="nuvem-ios n3"></div>
-                        <div class="nuvem-ios n4"></div>
                     </div>
 
                     <div id="flashTempestade"></div>
@@ -324,18 +319,42 @@
             sunRays = [];
             sunParticles = [];
 
-            for (let i = 0; i < 12; i++) {
+            for (let i = 0; i < 16; i++) {
                 sunRays.push({
-                    baseAngle: (i / 12) * (Math.PI * 0.7) - 0.1,
-                    spread: 0.03 + Math.random() * 0.05,
-                    length: 1200 + Math.random() * 500,
-                    alpha: 0.012 + Math.random() * 0.018, // Bem suave
-                    speed: (Math.random() * 0.0003 + 0.0001) * (i % 2 === 0 ? 1 : -1),
+                    baseAngle: (i / 16) * (Math.PI * 0.75) - 0.15,
+                    spread: 0.04 + Math.random() * 0.07,
+                    length: 1500 + Math.random() * 700,
+                    alpha: 0.025 + Math.random() * 0.035, 
+                    speed: (Math.random() * 0.0004 + 0.0001) * (i % 2 === 0 ? 1 : -1),
+                    phase: Math.random() * Math.PI * 2
+                });
+            }
+
+            for (let i = 0; i < 20; i++) {
+                sunParticles.push({
+                    x: Math.random() * 1920,
+                    y: Math.random() * 1080,
+                    r: Math.random() * 3 + 1,
+                    vx: Math.random() * 0.3 + 0.1,
+                    vy: (Math.random() - 0.5) * 0.2,
+                    alpha: Math.random() * 0.25 + 0.05,
                     phase: Math.random() * Math.PI * 2
                 });
             }
         }
         initSun();
+
+        function drawPolygonHex(ctx, x, y, radius, rotation) {
+            ctx.beginPath();
+            for (let i = 0; i < 6; i++) {
+                const a = rotation + (i * Math.PI) / 3;
+                const px = x + Math.cos(a) * radius;
+                const py = y + Math.sin(a) * radius;
+                if (i === 0) ctx.moveTo(px, py);
+                else ctx.lineTo(px, py);
+            }
+            ctx.closePath();
+        }
 
         function drawSun() {
             if (!sunActive) return;
@@ -348,20 +367,22 @@
             sunCtx.save();
             sunCtx.globalCompositeOperation = 'lighter';
 
-            const ambGrad = sunCtx.createRadialGradient(sunX, sunY, 10, sunX, sunY, 550);
-            ambGrad.addColorStop(0, 'rgba(255, 235, 170, 0.25)');
-            ambGrad.addColorStop(0.4, 'rgba(255, 180, 80, 0.08)');
+            const pulse = Math.sin(sunTime) * 30;
+            const ambGrad = sunCtx.createRadialGradient(sunX, sunY, 10, sunX, sunY, 800 + pulse);
+            ambGrad.addColorStop(0, 'rgba(255, 245, 200, 0.45)');
+            ambGrad.addColorStop(0.2, 'rgba(255, 195, 80, 0.2)');
+            ambGrad.addColorStop(0.5, 'rgba(255, 140, 30, 0.05)');
             ambGrad.addColorStop(1, 'rgba(255, 100, 0, 0)');
             sunCtx.fillStyle = ambGrad;
             sunCtx.fillRect(0, 0, sunCanvas.width, sunCanvas.height);
 
             sunRays.forEach(ray => {
-                const currentAngle = ray.baseAngle + Math.sin(sunTime * 0.5 + ray.phase) * 0.03;
-                const currentAlpha = ray.alpha * (0.7 + 0.3 * Math.sin(sunTime * 1.0 + ray.phase));
+                const currentAngle = ray.baseAngle + Math.sin(sunTime * 0.6 + ray.phase) * 0.05;
+                const currentAlpha = ray.alpha * (0.7 + 0.3 * Math.sin(sunTime * 1.1 + ray.phase));
 
-                const rayGrad = sunCtx.createRadialGradient(sunX, sunY, 15, sunX, sunY, ray.length);
-                rayGrad.addColorStop(0, `rgba(255, 230, 150, ${currentAlpha})`);
-                rayGrad.addColorStop(0.5, `rgba(255, 190, 90, ${currentAlpha * 0.5})`);
+                const rayGrad = sunCtx.createRadialGradient(sunX, sunY, 20, sunX, sunY, ray.length);
+                rayGrad.addColorStop(0, `rgba(255, 240, 180, ${currentAlpha * 1.4})`);
+                rayGrad.addColorStop(0.4, `rgba(255, 210, 110, ${currentAlpha})`);
                 rayGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
 
                 sunCtx.fillStyle = rayGrad;
@@ -372,14 +393,29 @@
                 sunCtx.fill();
             });
 
-            const coreGrad = sunCtx.createRadialGradient(sunX, sunY, 5, sunX, sunY, 150);
-            coreGrad.addColorStop(0, 'rgba(255, 250, 210, 0.75)');
-            coreGrad.addColorStop(0.4, 'rgba(255, 190, 90, 0.25)');
-            coreGrad.addColorStop(1, 'rgba(255, 140, 20, 0)');
+            const coreGrad = sunCtx.createRadialGradient(sunX, sunY, 5, sunX, sunY, 220);
+            coreGrad.addColorStop(0, 'rgba(255, 255, 255, 0.95)');
+            coreGrad.addColorStop(0.25, 'rgba(255, 240, 190, 0.8)');
+            coreGrad.addColorStop(0.55, 'rgba(255, 190, 80, 0.3)');
+            coreGrad.addColorStop(1, 'rgba(255, 150, 30, 0)');
             sunCtx.fillStyle = coreGrad;
             sunCtx.beginPath();
-            sunCtx.arc(sunX, sunY, 150, 0, Math.PI * 2);
+            sunCtx.arc(sunX, sunY, 220, 0, Math.PI * 2);
             sunCtx.fill();
+
+            sunParticles.forEach(p => {
+                p.x += p.vx;
+                p.y += p.vy;
+                if (p.x > 1920) p.x = -10;
+                if (p.y < 0) p.y = 1080;
+                if (p.y > 1080) p.y = 0;
+
+                const pa = p.alpha * (0.5 + 0.5 * Math.sin(sunTime * 2 + p.phase));
+                sunCtx.fillStyle = `rgba(255, 240, 180, ${pa})`;
+                sunCtx.beginPath();
+                sunCtx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+                sunCtx.fill();
+            });
 
             sunCtx.restore();
             sunAnimId = requestAnimationFrame(drawSun);
@@ -648,7 +684,7 @@
             isSunny = false;
             
             if (tipo === 'sol') { bgClima.classList.add('clima-sol'); isSunny = true; }
-            else if (tipo === 'parc_nublado') { bgClima.classList.add('clima-parc-nublado'); isSunny = true; } // Sol ativo porém suave
+            else if (tipo === 'parc_nublado') { bgClima.classList.add('clima-parc-nublado'); isSunny = true; }
             else if (tipo === 'nublado') bgClima.classList.add('clima-nublado');
             else if (tipo === 'chuva') { bgClima.classList.add('clima-chuva'); isRaining = true; }
             else if (tipo === 'tempestade') { bgClima.classList.add('clima-tempestade'); isRaining = true; isStorm = true; }
