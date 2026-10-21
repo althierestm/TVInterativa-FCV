@@ -231,6 +231,22 @@
                 <span class="slider"></span>
             </label>
         </div>
+        
+        <!-- NOVO PAINEL DE CONTROLE MANUAL DO CLIMA AQUI -->
+        <div class="glass-panel">
+            <div class="text-left">
+                <h3>Fundo Animado (Manual)</h3>
+                <p>Forçar cena do clima para testes.</p>
+            </div>
+            <select id="selectClimaManual" style="padding: 8px; border-radius: 6px; background: #2c3e50; color: white; border: 1px solid #7f8c8d; font-family: 'Montserrat', sans-serif; cursor: pointer; outline: none;">
+                <option value="sol">Sol</option>
+                <option value="parc_nublado">Parcialmente Nublado</option>
+                <option value="nublado">Nublado</option>
+                <option value="chuva">Chuva</option>
+                <option value="tempestade">Tempestade</option>
+            </select>
+        </div>
+
         <div class="glass-panel">
             <div class="text-left">
                 <h3>Ação Dia das Crianças</h3>
@@ -314,10 +330,20 @@
         const toggleClima = document.getElementById('toggleClima');
         const toggleFotos = document.getElementById('toggleFotos');
         const selectTransicao = document.getElementById('selectTransicao');
+        const selectClimaManual = document.getElementById('selectClimaManual'); // Novo
 
         onSnapshot(doc(db, "controle_tv", "status_clima"), (docSnap) => {
-            if(docSnap.exists()) toggleClima.checked = docSnap.data().mostrar_clima;
-            else toggleClima.checked = true;
+            if(docSnap.exists()) {
+                toggleClima.checked = docSnap.data().mostrar_clima !== false;
+                if(docSnap.data().clima_manual) selectClimaManual.value = docSnap.data().clima_manual;
+            } else {
+                toggleClima.checked = true;
+            }
+        });
+
+        // Evento que salva o clima manual escolhido lá no banco de dados
+        selectClimaManual.addEventListener('change', async (e) => {
+            await setDoc(doc(db, "controle_tv", "status_clima"), { clima_manual: e.target.value }, { merge: true });
         });
 
         onSnapshot(doc(db, "controle_tv", "status"), (docSnap) => {
