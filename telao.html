@@ -42,43 +42,23 @@
         
         #bgClima { position: absolute; width: 100%; height: 100%; top: 0; left: 0; z-index: 1; overflow: hidden; transition: background 1.5s ease; }
         
-        /* CLASSES DE CORES BASE DOS CLIMAS */
-        .clima-sol { background: linear-gradient(135deg, #56CCF2 0%, #2F80ED 100%) !important; }
-        .clima-parc-nublado { background: linear-gradient(135deg, #4A90E2 0%, #003366 100%) !important; }
+        .clima-sol { background: linear-gradient(135deg, #2575fc 0%, #1a4d8c 55%, #0f2c59 100%) !important; }
+        .clima-parc-nublado { background: linear-gradient(135deg, #2b5876 0%, #1e3c72 100%) !important; }
         .clima-nublado { background: linear-gradient(135deg, #37474F 0%, #1c262b 100%) !important; }
         .clima-chuva { background: linear-gradient(135deg, #2b3b4e 0%, #11171f 100%) !important; }
         .clima-tempestade { background: linear-gradient(135deg, #0d131d 0%, #05070b 100%) !important; }
         
-        /* CAMADA DE CLARÃO PREMIUM DA TEMPESTADE */
         #flashTempestade {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             pointer-events: none; z-index: 4; opacity: 0;
             transition: opacity 0.04s ease-out;
         }
-        
-        /* SOL PREMIUM */
-        .sol-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2; overflow: hidden; display: none; }
-        .clima-sol .sol-container, .clima-parc-nublado .sol-container { display: block; }
 
-        .sol-nucleo { 
-            position: absolute; top: -200px; left: -200px; width: 1000px; height: 1000px; 
-            background: radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(255,250,200,0.7) 15%, rgba(255,220,100,0.2) 35%, transparent 60%); 
-            border-radius: 50%; 
-            animation: brilhoSol 5s infinite alternate ease-in-out; 
+        #sunCanvas {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 2; pointer-events: none; display: none;
         }
 
-        .raio { position: absolute; top: 0; left: 0; width: 150%; height: 200px; background: linear-gradient(90deg, rgba(255,255,255,0.15) 0%, transparent 60%); transform-origin: top left; }
-        .raio.r1 { transform: rotate(15deg); animation: oscilaRaio 6s infinite alternate; }
-        .raio.r2 { transform: rotate(40deg); height: 350px; background: linear-gradient(90deg, rgba(255,255,255,0.1) 0%, transparent 70%); animation: oscilaRaio 8s infinite alternate-reverse; }
-        .raio.r3 { transform: rotate(65deg); height: 150px; animation: oscilaRaio 7s infinite alternate; }
-
-        .lens-flare { position: absolute; border-radius: 50%; pointer-events: none; animation: brilhoSol 6s infinite alternate ease-in-out; }
-        .flare1 { width: 250px; height: 250px; top: 20%; left: 20%; background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%); border: 1px solid rgba(255,255,255,0.05); }
-        .flare2 { width: 80px; height: 80px; top: 40%; left: 40%; background: radial-gradient(circle, rgba(100,200,255,0.2) 0%, transparent 70%); border: 1px solid rgba(100,200,255,0.1); }
-        .flare3 { width: 400px; height: 400px; top: 55%; left: 55%; background: radial-gradient(circle, rgba(255,150,200,0.06) 0%, transparent 60%); filter: blur(10px); }
-        .flare4 { width: 50px; height: 50px; top: 80%; left: 80%; background: rgba(255,255,255,0.15); box-shadow: 0 0 15px rgba(255,255,255,0.3); }
-
-        /* NUVENS PREMIUM */
         .nuvens-container { position: absolute; top: 0; left: 0; width: 100%; height: 600px; pointer-events: none; z-index: 3; overflow: hidden; display: none; }
         .clima-nublado .nuvens-container, .clima-parc-nublado .nuvens-container, .clima-chuva .nuvens-container, .clima-tempestade .nuvens-container { display: block; }
         
@@ -100,11 +80,8 @@
         .nuvem-ios.n3::before { width: 130px; height: 130px; top: -60px; left: 30px; }
         .nuvem-ios.n3::after { width: 90px; height: 90px; top: -40px; right: 30px; }
 
-        /* Quando um trovão dispara, as nuvens ganham um contorno mais dramático */
         .trovao-ativo .nuvem-ios { background: rgba(210, 230, 255, 0.28) !important; }
         
-        @keyframes brilhoSol { 0% { transform: scale(0.95); opacity: 0.8; } 100% { transform: scale(1.05); opacity: 1; } }
-        @keyframes oscilaRaio { 0% { opacity: 0.5; transform: rotate(15deg) scaleY(0.9); } 100% { opacity: 1; transform: rotate(15deg) scaleY(1.1); } }
         @keyframes passaNuvem { 0% { transform: translateX(-10%); } 100% { transform: translateX(2500px); } }
         @keyframes moverNuvem { 0% { transform: translateX(0); } 100% { transform: translateX(300px); } }
 
@@ -145,17 +122,7 @@
 
             <div class="container-master escondido" id="camadaClima">
                 <div id="bgClima">
-                    
-                    <div class="sol-container">
-                        <div class="raio r1"></div>
-                        <div class="raio r2"></div>
-                        <div class="raio r3"></div>
-                        <div class="sol-nucleo"></div>
-                        <div class="lens-flare flare1"></div>
-                        <div class="lens-flare flare2"></div>
-                        <div class="lens-flare flare3"></div>
-                        <div class="lens-flare flare4"></div>
-                    </div>
+                    <canvas id="sunCanvas"></canvas>
                     
                     <div class="nuvens-container">
                         <div class="nuvem-ios n1"></div>
@@ -163,7 +130,6 @@
                         <div class="nuvem-ios n3"></div>
                     </div>
 
-                    <!-- Camada de Clarão de Trovão -->
                     <div id="flashTempestade"></div>
                 </div>
                 <canvas id="rainCanvas"></canvas>
@@ -278,6 +244,7 @@
         let dadosClimaProntos = false;
         let isRaining = false;
         let isStorm = false;
+        let isSunny = false;
         
         const svgs = {
             sol: '<svg stroke="#f1c40f" viewBox="0 0 24 24" fill="none" stroke-width="1.5"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>',
@@ -338,6 +305,166 @@
         processarClima();
         setInterval(processarClima, 1800000); 
 
+        const sunCanvas = document.getElementById('sunCanvas');
+        const sunCtx = sunCanvas.getContext('2d');
+        let sunAnimId = null;
+        let sunActive = false;
+        let sunTime = 0;
+        let sunRays = [];
+        let sunParticles = [];
+
+        function initSun() {
+            sunCanvas.width = 1920;
+            sunCanvas.height = 1080;
+            sunRays = [];
+            sunParticles = [];
+
+            for (let i = 0; i < 16; i++) {
+                sunRays.push({
+                    baseAngle: (i / 16) * (Math.PI * 0.75) - 0.15,
+                    spread: 0.04 + Math.random() * 0.07,
+                    length: 1500 + Math.random() * 700,
+                    alpha: 0.035 + Math.random() * 0.055,
+                    speed: (Math.random() * 0.0004 + 0.0001) * (i % 2 === 0 ? 1 : -1),
+                    phase: Math.random() * Math.PI * 2
+                });
+            }
+
+            for (let i = 0; i < 35; i++) {
+                sunParticles.push({
+                    x: Math.random() * 1920,
+                    y: Math.random() * 1080,
+                    r: Math.random() * 3.5 + 1,
+                    vx: Math.random() * 0.35 + 0.1,
+                    vy: (Math.random() - 0.5) * 0.25,
+                    alpha: Math.random() * 0.35 + 0.1,
+                    phase: Math.random() * Math.PI * 2
+                });
+            }
+        }
+        initSun();
+
+        function drawPolygonHex(ctx, x, y, radius, rotation) {
+            ctx.beginPath();
+            for (let i = 0; i < 6; i++) {
+                const a = rotation + (i * Math.PI) / 3;
+                const px = x + Math.cos(a) * radius;
+                const py = y + Math.sin(a) * radius;
+                if (i === 0) ctx.moveTo(px, py);
+                else ctx.lineTo(px, py);
+            }
+            ctx.closePath();
+        }
+
+        function drawSun() {
+            if (!sunActive) return;
+            sunCtx.clearRect(0, 0, sunCanvas.width, sunCanvas.height);
+            sunTime += 0.015;
+
+            const sunX = 110;
+            const sunY = 75;
+
+            sunCtx.save();
+            sunCtx.globalCompositeOperation = 'lighter';
+
+            const pulse = Math.sin(sunTime) * 35;
+            const ambGrad = sunCtx.createRadialGradient(sunX, sunY, 10, sunX, sunY, 950 + pulse);
+            ambGrad.addColorStop(0, 'rgba(255, 250, 220, 0.55)');
+            ambGrad.addColorStop(0.18, 'rgba(255, 210, 105, 0.28)');
+            ambGrad.addColorStop(0.45, 'rgba(255, 165, 50, 0.08)');
+            ambGrad.addColorStop(1, 'rgba(255, 140, 0, 0)');
+            sunCtx.fillStyle = ambGrad;
+            sunCtx.fillRect(0, 0, sunCanvas.width, sunCanvas.height);
+
+            sunRays.forEach(ray => {
+                const currentAngle = ray.baseAngle + Math.sin(sunTime * 0.6 + ray.phase) * 0.05;
+                const currentAlpha = ray.alpha * (0.7 + 0.3 * Math.sin(sunTime * 1.1 + ray.phase));
+
+                const rayGrad = sunCtx.createRadialGradient(sunX, sunY, 20, sunX, sunY, ray.length);
+                rayGrad.addColorStop(0, `rgba(255, 248, 205, ${currentAlpha * 1.6})`);
+                rayGrad.addColorStop(0.35, `rgba(255, 225, 140, ${currentAlpha})`);
+                rayGrad.addColorStop(0.75, `rgba(255, 200, 100, ${currentAlpha * 0.3})`);
+                rayGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+
+                sunCtx.fillStyle = rayGrad;
+                sunCtx.beginPath();
+                sunCtx.moveTo(sunX, sunY);
+                sunCtx.arc(sunX, sunY, ray.length, currentAngle - ray.spread, currentAngle + ray.spread);
+                sunCtx.closePath();
+                sunCtx.fill();
+            });
+
+            const coreGrad = sunCtx.createRadialGradient(sunX, sunY, 5, sunX, sunY, 260);
+            coreGrad.addColorStop(0, 'rgba(255, 255, 255, 1)');
+            coreGrad.addColorStop(0.22, 'rgba(255, 252, 225, 0.92)');
+            coreGrad.addColorStop(0.5, 'rgba(255, 215, 110, 0.4)');
+            coreGrad.addColorStop(1, 'rgba(255, 180, 50, 0)');
+            sunCtx.fillStyle = coreGrad;
+            sunCtx.beginPath();
+            sunCtx.arc(sunX, sunY, 260, 0, Math.PI * 2);
+            sunCtx.fill();
+
+            const endX = 1650;
+            const endY = 920;
+            const flares = [
+                { t: 0.23, r: 55, c1: 'rgba(255, 215, 110, 0.14)', c2: 'rgba(255, 215, 110, 0)', hex: true },
+                { t: 0.36, r: 24, c1: 'rgba(130, 220, 255, 0.20)', c2: 'rgba(130, 220, 255, 0)' },
+                { t: 0.44, r: 95, c1: 'rgba(255, 180, 120, 0.08)', c2: 'rgba(255, 180, 120, 0)', ring: 'rgba(255, 225, 160, 0.12)' },
+                { t: 0.58, r: 18, c1: 'rgba(160, 255, 200, 0.22)', c2: 'rgba(160, 255, 200, 0)' },
+                { t: 0.72, r: 155, c1: 'rgba(120, 190, 255, 0.07)', c2: 'rgba(255, 140, 200, 0)', ring: 'rgba(190, 225, 255, 0.09)' },
+                { t: 0.86, r: 42, c1: 'rgba(255, 235, 160, 0.16)', c2: 'rgba(255, 235, 160, 0)', hex: true },
+                { t: 0.95, r: 12, c1: 'rgba(255, 255, 255, 0.28)', c2: 'rgba(255, 255, 255, 0)' }
+            ];
+
+            const flareBreath = 0.85 + 0.15 * Math.sin(sunTime * 1.4);
+
+            flares.forEach((f, idx) => {
+                const fx = sunX + (endX - sunX) * f.t + Math.sin(sunTime + idx) * 6;
+                const fy = sunY + (endY - sunY) * f.t + Math.cos(sunTime + idx) * 6;
+                const rad = f.r * flareBreath;
+
+                const fg = sunCtx.createRadialGradient(fx, fy, 1, fx, fy, rad);
+                fg.addColorStop(0, f.c1);
+                fg.addColorStop(0.7, f.c1);
+                fg.addColorStop(1, f.c2);
+
+                sunCtx.fillStyle = fg;
+                if (f.hex) {
+                    drawPolygonHex(sunCtx, fx, fy, rad, sunTime * 0.15 + idx);
+                    sunCtx.fill();
+                } else {
+                    sunCtx.beginPath();
+                    sunCtx.arc(fx, fy, rad, 0, Math.PI * 2);
+                    sunCtx.fill();
+                }
+
+                if (f.ring) {
+                    sunCtx.strokeStyle = f.ring;
+                    sunCtx.lineWidth = 1.8;
+                    sunCtx.beginPath();
+                    sunCtx.arc(fx, fy, rad * 0.85, 0, Math.PI * 2);
+                    sunCtx.stroke();
+                }
+            });
+
+            sunParticles.forEach(p => {
+                p.x += p.vx;
+                p.y += p.vy;
+                if (p.x > 1920) p.x = -10;
+                if (p.y < 0) p.y = 1080;
+                if (p.y > 1080) p.y = 0;
+
+                const pa = p.alpha * (0.5 + 0.5 * Math.sin(sunTime * 2 + p.phase));
+                sunCtx.fillStyle = `rgba(255, 245, 200, ${pa})`;
+                sunCtx.beginPath();
+                sunCtx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+                sunCtx.fill();
+            });
+
+            sunCtx.restore();
+            sunAnimId = requestAnimationFrame(drawSun);
+        }
+
         const rainCanvas = document.getElementById('rainCanvas');
         const ctx = rainCanvas.getContext('2d');
         const flashTempestade = document.getElementById('flashTempestade');
@@ -348,7 +475,6 @@
         let rainAnimId = null;
         let rainActive = false;
 
-        // Variáveis para o motor de Tempestade / Trovões Premium
         let lightningTimer = null;
         let activeBolt = null;
 
@@ -369,7 +495,6 @@
         }
         initRain();
 
-        // Gerador geométrico de raio ramificado no topo do céu
         function criarRaioGeometrico(startX) {
             let main = [];
             let branches = [];
@@ -398,12 +523,11 @@
             return { main, branches, alpha: 0.95 };
         }
 
-        // Dispara uma sequência de piscões aleatórios (Flicker)
         function dispararTrovao() {
             if (!isStorm || !camadaClima.classList.contains('visivel')) return;
 
-            const posX = Math.floor(Math.random() * 76) + 12; // Posição X entre 12% e 88%
-            const posY = Math.floor(Math.random() * 20) + 5;  // Posição Y no topo (5% a 25%)
+            const posX = Math.floor(Math.random() * 76) + 12;
+            const posY = Math.floor(Math.random() * 20) + 5;
 
             flashTempestade.style.background = `
                 radial-gradient(circle at ${posX}% ${posY}%, 
@@ -413,12 +537,10 @@
                 rgba(255, 255, 255, 0.04) 100%)
             `;
 
-            // 75% de chance de desenhar o raio ramificado junto com o clarão
             if (Math.random() < 0.75) {
                 activeBolt = criarRaioGeometrico((posX / 100) * 1920);
             }
 
-            // Padrões de piscões múltiplos realistas
             const padroes = [
                 [0.95, 0.1, 0.45, 0, 0.8, 0],
                 [0.7, 0.05, 1.0, 0.25, 0, 0.35, 0],
@@ -443,7 +565,7 @@
                         bgClimaEl.classList.remove('trovao-ativo');
                     }
                 }, delayAcumulado);
-                delayAcumulado += Math.floor(Math.random() * 55) + 35; // Entre 35ms e 90ms por pulso
+                delayAcumulado += Math.floor(Math.random() * 55) + 35;
             });
         }
 
@@ -451,7 +573,6 @@
             clearTimeout(lightningTimer);
             if (!isStorm || !camadaClima.classList.contains('visivel')) return;
 
-            // Piscões aleatórios a cada ~3 segundos (varia entre 2.3s e 3.7s para naturalidade)
             const intervalo = 2300 + Math.random() * 1400;
             lightningTimer = setTimeout(() => {
                 dispararTrovao();
@@ -472,7 +593,6 @@
             ctx.clearRect(0, 0, rainCanvas.width, rainCanvas.height);
             ctx.lineCap = 'round';
 
-            // Desenha o raio ramificado se houver um ativo no momento do trovão
             if (isStorm && activeBolt && activeBolt.alpha > 0.02) {
                 ctx.save();
                 ctx.strokeStyle = `rgba(235, 245, 255, ${activeBolt.alpha})`;
@@ -555,19 +675,20 @@
             rainAnimId = requestAnimationFrame(drawRain);
         }
 
-        function aplicarClimaFundo(tipo) {
-            const bgClima = document.getElementById('bgClima');
-            bgClima.className = ''; 
-            isRaining = false;
-            isStorm = false;
-            
-            if (tipo === 'sol') bgClima.classList.add('clima-sol');
-            else if (tipo === 'parc_nublado') bgClima.classList.add('clima-parc-nublado');
-            else if (tipo === 'nublado') bgClima.classList.add('clima-nublado');
-            else if (tipo === 'chuva') { bgClima.classList.add('clima-chuva'); isRaining = true; }
-            else if (tipo === 'tempestade') { bgClima.classList.add('clima-tempestade'); isRaining = true; isStorm = true; }
-            
+        function atualizarMotoresClima() {
             if (camadaClima.classList.contains('visivel')) {
+                if (isSunny) {
+                    sunCanvas.style.display = 'block';
+                    if (!sunActive) {
+                        sunActive = true;
+                        drawSun();
+                    }
+                } else {
+                    sunActive = false;
+                    cancelAnimationFrame(sunAnimId);
+                    sunCanvas.style.display = 'none';
+                }
+
                 if (isRaining) {
                     rainCanvas.style.display = 'block';
                     if (!rainActive) {
@@ -581,14 +702,38 @@
                 }
 
                 if (isStorm) {
-                    dispararTrovao(); // Dispara um trovão imediato ao selecionar Tempestade
+                    dispararTrovao();
                     agendarProximoTrovao();
                 } else {
                     pararTrovoes();
                 }
             } else {
+                sunActive = false;
+                cancelAnimationFrame(sunAnimId);
+                sunCanvas.style.display = 'none';
+
+                rainActive = false;
+                cancelAnimationFrame(rainAnimId);
+                rainCanvas.style.display = 'none';
+
                 pararTrovoes();
             }
+        }
+
+        function aplicarClimaFundo(tipo) {
+            const bgClima = document.getElementById('bgClima');
+            bgClima.className = ''; 
+            isRaining = false;
+            isStorm = false;
+            isSunny = false;
+            
+            if (tipo === 'sol') { bgClima.classList.add('clima-sol'); isSunny = true; }
+            else if (tipo === 'parc_nublado') { bgClima.classList.add('clima-parc-nublado'); isSunny = true; }
+            else if (tipo === 'nublado') bgClima.classList.add('clima-nublado');
+            else if (tipo === 'chuva') { bgClima.classList.add('clima-chuva'); isRaining = true; }
+            else if (tipo === 'tempestade') { bgClima.classList.add('clima-tempestade'); isRaining = true; isStorm = true; }
+            
+            atualizarMotoresClima();
         }
 
         let comunicadosAtivos = [];
@@ -689,23 +834,7 @@
                 }
             });
 
-            if (novaCamada === camadaClima && isRaining) {
-                rainCanvas.style.display = 'block';
-                if (!rainActive) {
-                    rainActive = true;
-                    drawRain();
-                }
-                if (isStorm) {
-                    agendarProximoTrovao();
-                } else {
-                    pararTrovoes();
-                }
-            } else {
-                rainActive = false;
-                cancelAnimationFrame(rainAnimId);
-                rainCanvas.style.display = 'none';
-                pararTrovoes();
-            }
+            atualizarMotoresClima();
 
             if (novaCamada !== camadaImagem1 && novaCamada !== camadaImagem2) { document.getElementById('numeroDiscreto').style.opacity = 0; }
             aguardando.style.display = "none";
