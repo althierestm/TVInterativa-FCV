@@ -40,85 +40,86 @@
         #barraProgressoContainer { position: absolute; bottom: 0; left: 0; width: 100%; height: 10px; background: rgba(255,255,255,0.1); z-index: 20; }
         #barraProgresso { height: 100%; width: 0%; background: linear-gradient(to right, #2894f9, #002061); }
         
-        #bgClima { position: absolute; width: 100%; height: 100%; top: 0; left: 0; z-index: 1; background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); overflow: hidden; transition: background 1s ease; }
+        #bgClima { position: absolute; width: 100%; height: 100%; top: 0; left: 0; z-index: 1; overflow: hidden; transition: background 1.5s ease; }
         
-        /* CLASSES DE CORES BASE DOS CLIMAS */
-        .clima-sol { background: linear-gradient(135deg, #1e3c72 0%, #3a6ba8 100%) !important; }
-        .clima-parc-nublado { background: linear-gradient(135deg, #2a5298 0%, #1e3c72 100%) !important; }
-        .clima-nublado { background: linear-gradient(135deg, #4b6cb7 0%, #182848 100%) !important; }
-        .clima-chuva { background: linear-gradient(135deg, #2b3b4e 0%, #1e2a38 100%) !important; }
-        .clima-tempestade { background: linear-gradient(135deg, #141e30 0%, #243b55 100%) !important; animation: trovao 8s infinite; }
+        /* NOVAS CLASSES DE CORES BASE DOS CLIMAS (Claridade Gradativa) */
         
-        /* SOL PREMIUM E EFEITOS DE LENTE CINEMATOGRÁFICOS */
-        .sol-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; overflow: hidden; display: none; }
+        /* Sol: Azul claro e bem iluminado */
+        .clima-sol { background: linear-gradient(135deg, #56CCF2 0%, #2F80ED 100%) !important; }
+        
+        /* Parc Nublado: Azul médio */
+        .clima-parc-nublado { background: linear-gradient(135deg, #4A90E2 0%, #003366 100%) !important; }
+        
+        /* Nublado: Azul acinzentado escuro */
+        .clima-nublado { background: linear-gradient(135deg, #37474F 0%, #1c262b 100%) !important; }
+        
+        /* Chuva: Cinza escuro (Tempo fechado) */
+        .clima-chuva { background: linear-gradient(135deg, #2b3b4e 0%, #11171f 100%) !important; }
+        
+        /* Tempestade: Quase preto com animação de raio */
+        .clima-tempestade { background: linear-gradient(135deg, #0f1722 0%, #05080c 100%) !important; animation: trovao 8s infinite; }
+        
+        
+        /* --- SOL PREMIUM (Compatível com TVBox, sem blend modes complexos) --- */
+        .sol-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2; overflow: hidden; display: none; }
         .clima-sol .sol-container, .clima-parc-nublado .sol-container { display: block; }
 
-        /* Núcleo do Sol - Brilho difuso gigante (sem bordas duras) */
+        /* Núcleo do Sol - Brilho forte no canto esquerdo */
         .sol-nucleo { 
-            position: absolute; top: -400px; left: -400px; width: 1200px; height: 1200px; 
-            background: radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(255,245,180,0.6) 15%, rgba(255,200,100,0.15) 35%, transparent 60%); 
-            border-radius: 50%; filter: blur(40px); mix-blend-mode: screen; 
-            animation: brilhoSol 8s infinite alternate ease-in-out; 
+            position: absolute; top: -200px; left: -200px; width: 1000px; height: 1000px; 
+            background: radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(255,250,200,0.7) 15%, rgba(255,220,100,0.2) 35%, transparent 60%); 
+            border-radius: 50%; 
+            animation: brilhoSol 5s infinite alternate ease-in-out; 
         }
 
-        /* God Rays (Raios Volumétricos) - Suaves e giratórios */
-        .raios-solares {
-            position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
-            background: repeating-conic-gradient(from 0deg at 25% 25%, 
-                transparent 0deg, 
-                rgba(255, 255, 255, 0.05) 15deg, 
-                transparent 30deg, 
-                rgba(255, 255, 255, 0.03) 45deg, 
-                transparent 60deg);
-            mix-blend-mode: screen; filter: blur(15px);
-            animation: giraRaios 150s linear infinite;
-            transform-origin: 25% 25%;
-        }
+        /* Raios de luz transversais */
+        .raio { position: absolute; top: 0; left: 0; width: 150%; height: 200px; background: linear-gradient(90deg, rgba(255,255,255,0.15) 0%, transparent 60%); transform-origin: top left; }
+        .raio.r1 { transform: rotate(15deg); animation: oscilaRaio 6s infinite alternate; }
+        .raio.r2 { transform: rotate(40deg); height: 350px; background: linear-gradient(90deg, rgba(255,255,255,0.1) 0%, transparent 70%); animation: oscilaRaio 8s infinite alternate-reverse; }
+        .raio.r3 { transform: rotate(65deg); height: 150px; animation: oscilaRaio 7s infinite alternate; }
 
-        /* Reflexos da Lente (Prismas e Orbs) - Efeito de câmera cara */
-        .lens-flare { position: absolute; border-radius: 50%; mix-blend-mode: screen; pointer-events: none; animation: brilhoSol 6s infinite alternate ease-in-out; }
-        .flare1 { width: 200px; height: 200px; top: 15%; left: 15%; background: radial-gradient(circle, rgba(255,220,100,0.08) 0%, transparent 60%); }
-        .flare2 { width: 80px; height: 80px; top: 35%; left: 35%; background: radial-gradient(circle, rgba(100,200,255,0.1) 0%, transparent 60%); border: 1px solid rgba(100,200,255,0.05); box-shadow: inset 0 0 15px rgba(100,200,255,0.1); }
-        .flare3 { width: 500px; height: 500px; top: 55%; left: 55%; background: radial-gradient(circle, rgba(255,100,150,0.03) 0%, transparent 60%); filter: blur(15px); }
-        .flare4 { width: 40px; height: 40px; top: 82%; left: 82%; background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 60%); }
+        /* Lens Flares (Círculos de reflexo de lente na diagonal) */
+        .lens-flare { position: absolute; border-radius: 50%; pointer-events: none; animation: brilhoSol 6s infinite alternate ease-in-out; }
+        .flare1 { width: 250px; height: 250px; top: 20%; left: 20%; background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%); border: 1px solid rgba(255,255,255,0.05); }
+        .flare2 { width: 80px; height: 80px; top: 40%; left: 40%; background: radial-gradient(circle, rgba(100,200,255,0.2) 0%, transparent 70%); border: 1px solid rgba(100,200,255,0.1); }
+        .flare3 { width: 400px; height: 400px; top: 55%; left: 55%; background: radial-gradient(circle, rgba(255,150,200,0.06) 0%, transparent 60%); filter: blur(10px); }
+        .flare4 { width: 50px; height: 50px; top: 80%; left: 80%; background: rgba(255,255,255,0.15); box-shadow: 0 0 15px rgba(255,255,255,0.3); }
 
-        /* NUVENS PREMIUM (Translúcidas e suaves) */
-        .nuvens-container { position: absolute; top: 0; left: 0; width: 100%; height: 600px; pointer-events: none; z-index: 2; overflow: hidden; display: none; }
-        .clima-nublado .nuvens-container,
-        .clima-parc-nublado .nuvens-container,
-        .clima-chuva .nuvens-container,
-        .clima-tempestade .nuvens-container { display: block; }
+        /* --- NUVENS PREMIUM --- */
+        .nuvens-container { position: absolute; top: 0; left: 0; width: 100%; height: 600px; pointer-events: none; z-index: 3; overflow: hidden; display: none; }
+        .clima-nublado .nuvens-container, .clima-parc-nublado .nuvens-container, .clima-chuva .nuvens-container, .clima-tempestade .nuvens-container { display: block; }
         
-        .clima-nublado::before, .clima-chuva::before, .clima-tempestade::before { content: ""; position: absolute; width: 1200px; height: 600px; top: 5%; left: -200px; background: rgba(255,255,255,0.05); filter: blur(60px); border-radius: 50%; animation: moverNuvem 20s ease-in-out infinite alternate; pointer-events: none; z-index: 1;}
-        .clima-nublado::after, .clima-chuva::after, .clima-tempestade::after { content: ""; position: absolute; width: 1000px; height: 500px; bottom: 10%; right: -200px; background: rgba(255,255,255,0.03); filter: blur(50px); border-radius: 50%; animation: moverNuvem 25s ease-in-out infinite alternate-reverse; pointer-events: none; z-index: 1;}
+        /* Névoa de fundo para climas fechados */
+        .clima-nublado::before, .clima-chuva::before, .clima-tempestade::before { content: ""; position: absolute; width: 1200px; height: 600px; top: 5%; left: -200px; background: rgba(255,255,255,0.06); filter: blur(60px); border-radius: 50%; animation: moverNuvem 20s ease-in-out infinite alternate; pointer-events: none; z-index: 2;}
+        .clima-nublado::after, .clima-chuva::after, .clima-tempestade::after { content: ""; position: absolute; width: 1000px; height: 500px; bottom: 10%; right: -200px; background: rgba(255,255,255,0.04); filter: blur(50px); border-radius: 50%; animation: moverNuvem 25s ease-in-out infinite alternate-reverse; pointer-events: none; z-index: 2;}
 
-        /* Nuvens estilo iOS com aspecto de vidro/névoa */
-        .nuvem-ios { position: absolute; border-radius: 100px; filter: blur(12px); mix-blend-mode: screen; }
+        /* Nuvens estilo iOS (Brancas translúcidas) */
+        .nuvem-ios { position: absolute; border-radius: 100px; filter: blur(10px); }
         .nuvem-ios::before, .nuvem-ios::after { content: ''; position: absolute; background: inherit; border-radius: 50%; }
         
-        .nuvem-ios.n1 { width: 350px; height: 110px; top: 40px; left: -500px; animation: passaNuvem 55s linear infinite; background: rgba(255, 255, 255, 0.08); }
+        .nuvem-ios.n1 { width: 350px; height: 110px; top: 40px; left: -500px; animation: passaNuvem 55s linear infinite; background: rgba(255, 255, 255, 0.12); }
         .nuvem-ios.n1::before { width: 160px; height: 160px; top: -70px; left: 40px; }
         .nuvem-ios.n1::after { width: 110px; height: 110px; top: -50px; right: 50px; }
         
-        .nuvem-ios.n2 { width: 450px; height: 130px; top: 120px; left: -600px; animation: passaNuvem 75s linear infinite 15s; background: rgba(255, 255, 255, 0.05); }
+        .nuvem-ios.n2 { width: 450px; height: 130px; top: 120px; left: -600px; animation: passaNuvem 75s linear infinite 15s; background: rgba(255, 255, 255, 0.08); }
         .nuvem-ios.n2::before { width: 190px; height: 190px; top: -90px; left: 60px; }
         .nuvem-ios.n2::after { width: 140px; height: 140px; top: -60px; right: 60px; }
         
-        .nuvem-ios.n3 { width: 280px; height: 90px; top: 180px; left: -400px; animation: passaNuvem 45s linear infinite 5s; background: rgba(255, 255, 255, 0.1); }
+        .nuvem-ios.n3 { width: 280px; height: 90px; top: 180px; left: -400px; animation: passaNuvem 45s linear infinite 5s; background: rgba(255, 255, 255, 0.15); }
         .nuvem-ios.n3::before { width: 130px; height: 130px; top: -60px; left: 30px; }
         .nuvem-ios.n3::after { width: 90px; height: 90px; top: -40px; right: 30px; }
         
-        /* ANIMAÇÕES ATUALIZADAS */
+        /* ANIMAÇÕES */
         @keyframes brilhoSol { 0% { transform: scale(0.95); opacity: 0.8; } 100% { transform: scale(1.05); opacity: 1; } }
-        @keyframes giraRaios { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes oscilaRaio { 0% { opacity: 0.5; transform: rotate(15deg) scaleY(0.9); } 100% { opacity: 1; transform: rotate(15deg) scaleY(1.1); } }
         @keyframes passaNuvem { 0% { transform: translateX(-10%); } 100% { transform: translateX(2500px); } }
         @keyframes moverNuvem { 0% { transform: translateX(0); } 100% { transform: translateX(300px); } }
-        @keyframes trovao { 0%, 94%, 98%, 100% { filter: brightness(1); } 95%, 97% { filter: brightness(1.3); } }
+        @keyframes trovao { 0%, 94%, 98%, 100% { filter: brightness(1); } 95%, 97% { filter: brightness(1.4); } }
 
-        .header-clima { position: absolute; top: 80px; left: 0; width: 100%; text-align: center; z-index: 4;}
+        .header-clima { position: absolute; top: 80px; left: 0; width: 100%; text-align: center; z-index: 5;}
         .cidade-clima { font-size: 45px; font-weight: 600; margin: 0; color: #fff; letter-spacing: 1px;}
         .sub-clima { font-size: 22px; font-weight: 300; color: #bdc3c7; margin-top: 5px; }
-        .grid-clima { display: grid; grid-template-columns: repeat(7, 1fr); gap: 20px; width: 90%; max-width: 1750px; z-index: 4; margin-top: 90px; }
+        .grid-clima { display: grid; grid-template-columns: repeat(7, 1fr); gap: 20px; width: 90%; max-width: 1750px; z-index: 5; margin-top: 90px; }
         .card-dia { background: rgba(255, 255, 255, 0.07); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); border-radius: 24px; padding: 30px 15px; border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 15px 35px rgba(0,0,0,0.2); text-align: center; display: flex; flex-direction: column; align-items: center; position: relative;}
         .dia-titulo { font-size: 32px; font-weight: 600; color: #fff; margin-bottom: 25px; }
         .dia-hoje { color: #3498db; }
@@ -133,7 +134,7 @@
         .turno-icone svg { width: 35px; height: 35px; }
         .turno-temp { font-size: 18px; font-weight: 600; }
         
-        #rainCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; pointer-events: none; display: none; }
+        #rainCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 6; pointer-events: none; display: none; }
     </style>
 </head>
 <body data-transicao="fade">
@@ -153,9 +154,11 @@
             <div class="container-master escondido" id="camadaClima">
                 <div id="bgClima">
                     
-                    <!-- NOVO: Estrutura Premium do Sol, Raios e Lens Flare -->
+                    <!-- NOVO: Estrutura 100% Compatível do Sol e Flares -->
                     <div class="sol-container">
-                        <div class="raios-solares"></div>
+                        <div class="raio r1"></div>
+                        <div class="raio r2"></div>
+                        <div class="raio r3"></div>
                         <div class="sol-nucleo"></div>
                         <div class="lens-flare flare1"></div>
                         <div class="lens-flare flare2"></div>
