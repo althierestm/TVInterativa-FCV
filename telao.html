@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TV Corporativa - FCV</title>
+    <meta name="theme-color" content="#000000">
+    <link rel="manifest" href="manifest.json">
     <link rel="icon" href="logo%20icon%20TV%20do%20Ponto%20FCV.png" type="image/png">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -51,6 +53,24 @@
         .clima-tempestade { background: linear-gradient(135deg, #141e30 0%, #243b55 100%) !important; animation: trovao 8s infinite; }
         @keyframes trovao { 0%, 94%, 98%, 100% { filter: brightness(1); } 95%, 97% { filter: brightness(1.3); } }
 
+        .nuvens-container { position: absolute; top: 0; left: 0; width: 100%; height: 500px; pointer-events: none; z-index: 2; overflow: hidden; display: none; }
+        .clima-nublado .nuvens-container { display: block; }
+        .nuvem-ios { position: absolute; background: #2c3e50; border-radius: 50px; opacity: 0.8; filter: blur(6px); }
+        .nuvem-ios::before, .nuvem-ios::after { content: ''; position: absolute; background: inherit; border-radius: 50%; }
+        .nuvem-ios.n1 { width: 350px; height: 110px; top: 40px; left: -500px; animation: passaNuvem 45s linear infinite; }
+        .nuvem-ios.n1::before { width: 160px; height: 160px; top: -70px; left: 40px; }
+        .nuvem-ios.n1::after { width: 110px; height: 110px; top: -50px; right: 50px; }
+        .nuvem-ios.n2 { width: 450px; height: 130px; top: 120px; left: -600px; animation: passaNuvem 60s linear infinite 15s; background: #1a252f; opacity: 0.9;}
+        .nuvem-ios.n2::before { width: 190px; height: 190px; top: -90px; left: 60px; }
+        .nuvem-ios.n2::after { width: 140px; height: 140px; top: -60px; right: 60px; }
+        .nuvem-ios.n3 { width: 280px; height: 90px; top: 180px; left: -400px; animation: passaNuvem 35s linear infinite 5s; background: #34495e; opacity: 0.7;}
+        .nuvem-ios.n3::before { width: 130px; height: 130px; top: -60px; left: 30px; }
+        .nuvem-ios.n3::after { width: 90px; height: 90px; top: -40px; right: 30px; }
+        @keyframes passaNuvem {
+            0% { transform: translateX(-10%); }
+            100% { transform: translateX(2500px); }
+        }
+
         .header-clima { position: absolute; top: 80px; left: 0; width: 100%; text-align: center; z-index: 4;}
         .cidade-clima { font-size: 45px; font-weight: 600; margin: 0; color: #fff; letter-spacing: 1px;}
         .sub-clima { font-size: 22px; font-weight: 300; color: #bdc3c7; margin-top: 5px; }
@@ -87,7 +107,13 @@
             <div id="aguardando">Aguardando informações da rede...</div>
 
             <div class="container-master escondido" id="camadaClima">
-                <div id="bgClima"></div>
+                <div id="bgClima">
+                    <div class="nuvens-container">
+                        <div class="nuvem-ios n1"></div>
+                        <div class="nuvem-ios n2"></div>
+                        <div class="nuvem-ios n3"></div>
+                    </div>
+                </div>
                 <canvas id="rainCanvas"></canvas>
                 <div class="header-clima">
                     <h1 class="cidade-clima">Previsão do Tempo - Muriaé, MG</h1>
@@ -564,6 +590,18 @@
             };
             imgPreload.onerror = () => { clearTimeout(timerCarregamento); setTimeout(decidirProximo, 1000); };
             imgPreload.src = fotoDaVez.url_imagem || fotoDaVez.url_thumb;
+        }
+    </script>
+    
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').then(reg => {
+                    console.log('PWA Service Worker registrado com sucesso:', reg);
+                }).catch(err => {
+                    console.log('Falha ao registrar PWA:', err);
+                });
+            });
         }
     </script>
 </body>
