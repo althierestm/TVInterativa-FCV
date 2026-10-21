@@ -41,20 +41,35 @@
         #barraProgresso { height: 100%; width: 0%; background: linear-gradient(to right, #2894f9, #002061); }
         
         #bgClima { position: absolute; width: 100%; height: 100%; top: 0; left: 0; z-index: 1; background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); overflow: hidden; transition: background 1s ease; }
+        
+        /* CLASSES DE CLIMAS */
         .clima-sol { background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%) !important; }
         .clima-sol::after { content: ""; position: absolute; top: -10%; left: -10%; width: 800px; height: 800px; background: radial-gradient(circle, rgba(241,196,15,0.15) 0%, transparent 60%); border-radius: 50%; animation: pulsarSol 6s ease-in-out infinite alternate; pointer-events: none; }
-        @keyframes pulsarSol { 0% { transform: scale(1); opacity: 0.5; } 100% { transform: scale(1.2) translate(30px, 30px); opacity: 1; } }
+        
+        .clima-parc-nublado { background: linear-gradient(135deg, #2a5298 0%, #1e3c72 100%) !important; }
+        .clima-parc-nublado::after { content: ""; position: absolute; top: -10%; left: -10%; width: 600px; height: 600px; background: radial-gradient(circle, rgba(241,196,15,0.15) 0%, transparent 60%); border-radius: 50%; animation: pulsarSol 6s ease-in-out infinite alternate; pointer-events: none; }
+        .clima-parc-nublado::before { content: ""; position: absolute; width: 1000px; height: 500px; top: 5%; left: -100px; background: rgba(255,255,255,0.06); filter: blur(60px); border-radius: 50%; animation: moverNuvem1 25s ease-in-out infinite alternate; pointer-events: none; }
+
         .clima-nublado { background: linear-gradient(135deg, #4b6cb7 0%, #182848 100%) !important; }
         .clima-nublado::before { content: ""; position: absolute; width: 1200px; height: 600px; top: 5%; left: -200px; background: rgba(255,255,255,0.08); filter: blur(60px); border-radius: 50%; animation: moverNuvem1 20s ease-in-out infinite alternate; pointer-events: none; }
         .clima-nublado::after { content: ""; position: absolute; width: 1000px; height: 500px; bottom: 10%; right: -200px; background: rgba(255,255,255,0.05); filter: blur(50px); border-radius: 50%; animation: moverNuvem2 25s ease-in-out infinite alternate; pointer-events: none; }
+        
+        .clima-chuva { background: linear-gradient(135deg, #2b3b4e 0%, #1e2a38 100%) !important; }
+        
+        .clima-tempestade { background: linear-gradient(135deg, #141e30 0%, #243b55 100%) !important; animation: trovao 8s infinite; }
+        
+        @keyframes pulsarSol { 0% { transform: scale(1); opacity: 0.5; } 100% { transform: scale(1.2) translate(30px, 30px); opacity: 1; } }
         @keyframes moverNuvem1 { 0% { transform: translateX(0); } 100% { transform: translateX(300px); } }
         @keyframes moverNuvem2 { 0% { transform: translateX(0); } 100% { transform: translateX(-300px); } }
-        .clima-chuva { background: linear-gradient(135deg, #2b3b4e 0%, #1e2a38 100%) !important; }
-        .clima-tempestade { background: linear-gradient(135deg, #141e30 0%, #243b55 100%) !important; animation: trovao 8s infinite; }
         @keyframes trovao { 0%, 94%, 98%, 100% { filter: brightness(1); } 95%, 97% { filter: brightness(1.3); } }
 
+        /* Nuvens estilo iOS para o topo do Telão */
         .nuvens-container { position: absolute; top: 0; left: 0; width: 100%; height: 500px; pointer-events: none; z-index: 2; overflow: hidden; display: none; }
-        .clima-nublado .nuvens-container { display: block; }
+        .clima-nublado .nuvens-container,
+        .clima-parc-nublado .nuvens-container,
+        .clima-chuva .nuvens-container,
+        .clima-tempestade .nuvens-container { display: block; }
+        
         .nuvem-ios { position: absolute; background: #2c3e50; border-radius: 50px; opacity: 0.8; filter: blur(6px); }
         .nuvem-ios::before, .nuvem-ios::after { content: ''; position: absolute; background: inherit; border-radius: 50%; }
         .nuvem-ios.n1 { width: 350px; height: 110px; top: 40px; left: -500px; animation: passaNuvem 45s linear infinite; }
@@ -272,16 +287,6 @@
                     let tNoite = Math.round(data.hourly.temperature_2m[idxNoite]);
                     let cNoite = getClimaIcon(data.hourly.weathercode[idxNoite], true);
 
-                    if (i === 0) {
-                        const bgClima = document.getElementById('bgClima');
-                        bgClima.className = ''; 
-                        isRaining = false;
-                        if (mainCode === 0) bgClima.classList.add('clima-sol');
-                        else if (mainCode >= 1 && mainCode <= 48) bgClima.classList.add('clima-nublado');
-                        else if (mainCode >= 51 && mainCode <= 82) { bgClima.classList.add('clima-chuva'); isRaining = true; }
-                        else if (mainCode >= 95) { bgClima.classList.add('clima-tempestade'); isRaining = true; }
-                    }
-
                     gridHtml += `<div class="card-dia"><div class="dia-titulo">${tituloDia}</div><div class="icone-principal">${iconeMain.i}</div><div class="temp-principal">${tempMedia}°</div><div class="desc-principal">${iconeMain.t}</div><div class="maxmin"><div class="t-max">↑ ${max}°</div><div class="t-min">↓ ${min}°</div></div><div class="turnos-container"><div class="turno"><div class="turno-nome">manhã</div><div class="turno-icone">${cManha.i}</div><div class="turno-temp">${tManha}°</div></div><div class="turno"><div class="turno-nome">tarde</div><div class="turno-icone">${cTarde.i}</div><div class="turno-temp">${tTarde}°</div></div><div class="turno"><div class="turno-nome">noite</div><div class="turno-icone">${cNoite.i}</div><div class="turno-temp">${tNoite}°</div></div></div></div>`;
                 }
                 document.getElementById('gridClima').innerHTML = gridHtml;
@@ -378,6 +383,33 @@
             rainAnimId = requestAnimationFrame(drawRain);
         }
 
+        // --- FUNÇÃO CORRIGIDA: TRAVA DE SEGURANÇA ADICIONADA ---
+        function aplicarClimaFundo(tipo) {
+            const bgClima = document.getElementById('bgClima');
+            bgClima.className = ''; 
+            isRaining = false;
+            
+            if (tipo === 'sol') bgClima.classList.add('clima-sol');
+            else if (tipo === 'parc_nublado') bgClima.classList.add('clima-parc-nublado');
+            else if (tipo === 'nublado') bgClima.classList.add('clima-nublado');
+            else if (tipo === 'chuva') { bgClima.classList.add('clima-chuva'); isRaining = true; }
+            else if (tipo === 'tempestade') { bgClima.classList.add('clima-tempestade'); isRaining = true; }
+            
+            if (camadaClima.classList.contains('visivel')) {
+                if (isRaining) {
+                    rainCanvas.style.display = 'block';
+                    if (!rainActive) { // ISSO IMPEDE O CURTO-CIRCUITO E O DESAPARECIMENTO
+                        rainActive = true;
+                        drawRain();
+                    }
+                } else {
+                    rainActive = false;
+                    cancelAnimationFrame(rainAnimId);
+                    rainCanvas.style.display = 'none';
+                }
+            }
+        }
+
         let comunicadosAtivos = [];
         let fotosAprovadas = [];
         let indexCom = -1;
@@ -392,7 +424,17 @@
         let timerExibicao = null;
         let toggleImgLayer = 1;
 
-        onSnapshot(doc(db, "controle_tv", "status_clima"), (docSnap) => { if(docSnap.exists()) mostrarClimaNaTV = docSnap.data().mostrar_clima; });
+        onSnapshot(doc(db, "controle_tv", "status_clima"), (docSnap) => { 
+            if(docSnap.exists()) {
+                mostrarClimaNaTV = docSnap.data().mostrar_clima !== false;
+                let climaManual = docSnap.data().clima_manual || 'sol';
+                aplicarClimaFundo(climaManual);
+            } else {
+                mostrarClimaNaTV = true;
+                aplicarClimaFundo('sol');
+            }
+        });
+
         onSnapshot(doc(db, "controle_tv", "status"), (docSnap) => { if(docSnap.exists()) mostrarFotosNaTV = docSnap.data().mostrar_fotos; });
         onSnapshot(doc(db, "controle_tv", "status_transicao"), (docSnap) => {
             if(docSnap.exists() && docSnap.data().efeito) document.body.setAttribute('data-transicao', docSnap.data().efeito);
@@ -449,6 +491,7 @@
             }, 50);
         }
 
+        // --- FUNÇÃO CORRIGIDA: TRAVA DE SEGURANÇA ADICIONADA ---
         function transitarPara(novaCamada) {
             const camadas = [camadaClima, camadaImagem1, camadaImagem2, camadaVideo, camadaTexto];
             camadas.forEach(c => {
@@ -468,8 +511,10 @@
 
             if (novaCamada === camadaClima && isRaining) {
                 rainCanvas.style.display = 'block';
-                rainActive = true;
-                drawRain();
+                if (!rainActive) { // ISSO IMPEDE O CURTO-CIRCUITO E O DESAPARECIMENTO
+                    rainActive = true;
+                    drawRain();
+                }
             } else {
                 rainActive = false;
                 cancelAnimationFrame(rainAnimId);
