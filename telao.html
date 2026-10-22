@@ -3,11 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>TV Corporativa - FCV</title>
     <meta name="theme-color" content="#000000">
     <link rel="manifest" href="manifest.json">
     <link rel="icon" href="logo%20icon%20TV%20do%20Ponto%20FCV.png" type="image/png">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        if ('caches' in window) {
+            caches.keys().then(function(names) {
+                for (let name of names) caches.delete(name);
+            });
+        }
+    </script>
     <style>
         body { margin: 0; padding: 0; background-color: #000; color: white; font-family: 'Montserrat', sans-serif; overflow: hidden; }
         #viewportWrapper { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; overflow: hidden; }
@@ -737,7 +747,7 @@
         onSnapshot(doc(db, "controle_tv", "status_clima"), (docSnap) => { 
             if(docSnap.exists()) {
                 mostrarClimaNaTV = docSnap.data().mostrar_clima !== false;
-                modoClima = docSnap.data().modo_clima || 'auto';
+                modoClima = docSnap.data().clima_manual || docSnap.data().modo_clima || 'auto';
             } else {
                 mostrarClimaNaTV = true;
                 modoClima = 'auto';
@@ -961,8 +971,8 @@
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js').then(reg => {
-                    console.log('PWA Service Worker registrado com sucesso:', reg);
+                navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {
+                    reg.update();
                 }).catch(err => {
                     console.log('Falha ao registrar PWA:', err);
                 });
