@@ -3,11 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Moderação TV FCV</title>
     <link rel="icon" href="logo%20icon%20TV%20do%20Ponto%20FCV.png" type="image/png">
     <link rel="apple-touch-icon" href="logo%20icon%20TV%20do%20Ponto%20FCV.png">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    <script>
+        if ('caches' in window) {
+            caches.keys().then(function(names) {
+                for (let name of names) caches.delete(name);
+            });
+        }
+    </script>
     <style>
         body { font-family: 'Montserrat', sans-serif; background-color: #2c3e50; color: white; padding: 15px; text-align: center; margin: 0; }
         h1 { margin-top: 10px; font-size: 24px; color: #f1c40f; font-weight: 700; }
@@ -335,7 +345,7 @@
         onSnapshot(doc(db, "controle_tv", "status_clima"), (docSnap) => {
             if(docSnap.exists()) {
                 toggleClima.checked = docSnap.data().mostrar_clima !== false;
-                selectClimaManual.value = docSnap.data().modo_clima || 'auto';
+                selectClimaManual.value = docSnap.data().clima_manual || docSnap.data().modo_clima || 'auto';
             } else {
                 toggleClima.checked = true;
                 selectClimaManual.value = 'auto';
@@ -343,7 +353,7 @@
         });
 
         selectClimaManual.addEventListener('change', async (e) => {
-            await setDoc(doc(db, "controle_tv", "status_clima"), { modo_clima: e.target.value }, { merge: true });
+            await setDoc(doc(db, "controle_tv", "status_clima"), { clima_manual: e.target.value, modo_clima: e.target.value }, { merge: true });
         });
 
         onSnapshot(doc(db, "controle_tv", "status"), (docSnap) => {
