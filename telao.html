@@ -184,7 +184,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
-        import { getFirestore, collection, query, where, onSnapshot, doc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+        import { getFirestore, collection, query, where, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyB8ZK0jSY-1E9y90TLfznxi9PI8mf_bJuc",
@@ -720,6 +720,7 @@
             atualizarMotoresClima();
         }
 
+        let todosComunicados = [];
         let comunicadosAtivos = [];
         let fotosAprovadas = [];
         let indexCom = -1;
@@ -776,21 +777,68 @@
                 }
             }
         });
+
+        function verificarExpirado(data, hojeISO, horaAtual) {
+            if (data.data_fim) {
+                const hFim = data.hora_fim || "23:59";
+                if (hojeISO > data.data_fim) return true;
+                if (hojeISO === data.data_fim && horaAtual > hFim) return true;
+            } else if (data.hora_fim) {
+                if (horaAtual > data.hora_fim) return true;
+            }
+            return false;
+        }
+
+        function verificarNaoIniciado(data, hojeISO, horaAtual) {
+            if (data.data_inicio) {
+                const hIni = data.hora_inicio || "00:00";
+                if (hojeISO < data.data_inicio) return true;
+                if (hojeISO === data.data_inicio && horaAtual < hIni) return true;
+            } else if (data.hora_inicio) {
+                if (horaAtual < data.hora_inicio) return true;
+            }
+            return false;
+        }
+
+        function filtrarComunicadosAtivos() {
+            const agora = new Date();
+            const hojeISO = agora.toLocaleDateString('en-CA');
+            const horaAtual = agora.toTimeString().slice(0, 5);
+            const novaLista = [];
+
+            todosComunicados.forEach(data => {
+                if (data.ativo === false) return;
+
+                if (verificarExpirado(data, hojeISO, horaAtual)) {
+                    data.ativo = false;
+                    updateDoc(doc(db, "comunicados_criancas", data.id), { ativo: false }).catch(e => console.log(e));
+                    return;
+                }
+
+                if (data.exibir_corredor === false) return;
+                if (verificarNaoIniciado(data, hojeISO, horaAtual)) return;
+
+                novaLista.push(data);
+            });
+
+            novaLista.sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
+            comunicadosAtivos = novaLista;
+
+            if (!loopRodando) {
+                loopRodando = true;
+                decidirProximo();
+            }
+        }
        
         onSnapshot(collection(db, "comunicados_criancas"), (snapshot) => {
-            comunicadosAtivos = [];
-            const hojeISO = new Date().toLocaleDateString('en-CA'); 
-            snapshot.forEach(doc => {
-                const data = doc.data();
-                if (data.ativo === false) return; 
-                if (data.exibir_corredor === false) return;
-                if (data.data_inicio && hojeISO < data.data_inicio) return; 
-                if (data.data_fim && hojeISO > data.data_fim) return;       
-                comunicadosAtivos.push(data);
+            todosComunicados = [];
+            snapshot.forEach(docSnap => {
+                todosComunicados.push({ id: docSnap.id, ...docSnap.data() });
             });
-            comunicadosAtivos.sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
-            if (!loopRodando) { loopRodando = true; decidirProximo(); }
+            filtrarComunicadosAtivos();
         });
+
+        setInterval(filtrarComunicadosAtivos, 15000);
 
         function animarBarra(tempoMs) {
             barraProgresso.style.transition = 'none';
@@ -839,6 +887,8 @@
             clearTimeout(timerExibicao);
             videoPainel.onloadedmetadata = null;
             videoPainel.onerror = null;
+
+            filtrarComunicadosAtivos();
 
             let temComs = comunicadosAtivos.length > 0;
             let temFotos = mostrarFotosNaTV && fotosAprovadas.length > 0;
