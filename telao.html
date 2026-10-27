@@ -734,6 +734,7 @@
         let timerCarregamento = null;
         let timerExibicao = null;
         let toggleImgLayer = 1;
+        let chaveComExibido = null;
 
         const camadaClima = document.getElementById('camadaClima');
         const camadaImagem1 = document.getElementById('camadaImagem1');
@@ -744,8 +745,10 @@
         const textoDoComunicado = document.getElementById('textoDoComunicado');
         const aguardando = document.getElementById('aguardando');
         const barraProgresso = document.getElementById('barraProgresso');
+        const barraProgressoContainer = document.getElementById('barraProgressoContainer');
 
-        onSnapshot(doc(db, "controle_tv", "status_clima"), (docSnap) => { 
+        onSnapshot(doc(db, "controle_tv", "status_clima"), (docSnap) => {
+            const antes = mostrarClimaNaTV;
             if(docSnap.exists()) {
                 mostrarClimaNaTV = docSnap.data().mostrar_clima !== false;
                 modoClima = docSnap.data().clima_manual || docSnap.data().modo_clima || 'auto';
@@ -754,6 +757,15 @@
                 modoClima = 'auto';
             }
             aplicarClimaFundo(modoClima === 'auto' ? climaAutomatico : modoClima);
+            if (loopRodando && antes !== mostrarClimaNaTV) {
+                if (!mostrarClimaNaTV && camadaClima.classList.contains('visivel')) {
+                    proximaAcao = 'COMS';
+                    decidirProximo();
+                } else if (mostrarClimaNaTV) {
+                    chaveComExibido = null;
+                    decidirProximo();
+                }
+            }
         });
 
         onSnapshot(doc(db, "controle_tv", "status"), (docSnap) => { if(docSnap.exists()) mostrarFotosNaTV = docSnap.data().mostrar_fotos; });
@@ -876,10 +888,20 @@
                 }
             });
 
+            if (novaCamada === camadaClima || novaCamada === null) {
+                chaveComExibido = null;
+            }
+
             atualizarMotoresClima();
 
             if (novaCamada !== camadaImagem1 && novaCamada !== camadaImagem2) { document.getElementById('numeroDiscreto').style.opacity = 0; }
             aguardando.style.display = "none";
+        }
+
+        function ehModoEstaticoUnico() {
+            let temFotos = mostrarFotosNaTV && fotosAprovadas.length > 0;
+            let podeExibirClima = mostrarClimaNaTV && dadosClimaProntos;
+            return (!podeExibirClima && !temFotos && comunicadosAtivos.length === 1);
         }
 
         function decidirProximo() {
@@ -895,8 +917,11 @@
             let podeExibirClima = mostrarClimaNaTV && dadosClimaProntos;
 
             if (!podeExibirClima && !temComs && !temFotos) {
+                barraProgressoContainer.style.display = 'none';
                 aguardando.style.display = "block"; transitarPara(null); setTimeout(decidirProximo, 2000); return;
             }
+
+            barraProgressoContainer.style.display = ehModoEstaticoUnico() ? 'none' : 'block';
 
             if (proximaAcao === 'CLIMA') {
                 if (podeExibirClima) { proximaAcao = temComs ? 'COMS' : (temFotos ? 'FOTOS' : 'CLIMA'); renderizarClima(); } 
@@ -929,8 +954,11 @@
             indexCom = (indexCom + 1) >= comunicadosAtivos.length ? 0 : (indexCom + 1);
             const com = comunicadosAtivos[indexCom];
             let tempoTextoArte = obterTempoValido(com.tempo_exibicao);
+            const chaveAtual = com.id + '_' + (com.url_imagem || com.url_video || com.texto || '');
+            const estatico = ehModoEstaticoUnico();
 
             if (com.tipo === 'video' || com.url_video) {
+                chaveComExibido = chaveAtual;
                 videoPainel.onloadedmetadata = null;
                 videoPainel.onerror = null;
                 videoPainel.src = com.url_video;
@@ -947,7 +975,7 @@
                     if (!duracao || isNaN(duracao) || duracao === Infinity) duracao = 15000;
                     transitarPara(camadaVideo);
                     videoPainel.play().catch(e => console.log(e));
-                    animarBarra(duracao);
+                    if (!estatico) animarBarra(duracao);
                     timerExibicao = setTimeout(() => {
                         videoPainel.onerror = null;
                         decidirProximo();
@@ -959,7 +987,12 @@
                     videoPainel.onerror = null;
                     setTimeout(decidirProximo, 1000);
                 };
-            } else if (com.tipo === 'imagem' || com.url_imagem) { 
+            } else if (com.tipo === 'imagem' || com.url_imagem) {
+                if (estatico && chaveComExibido === chaveAtual && (camadaImagem1.classList.contains('visivel') || camadaImagem2.classList.contains('visivel'))) {
+                    timerExibicao = setTimeout(() => { decidirProximo(); }, tempoTextoArte);
+                    return;
+                }
+
                 toggleImgLayer = toggleImgLayer === 1 ? 2 : 1;
                 const camadaAtual = toggleImgLayer === 1 ? camadaImagem1 : camadaImagem2;
                 const imgAtual = document.getElementById('imgPainel' + toggleImgLayer);
@@ -971,20 +1004,29 @@
 
                 imgPreload.onload = () => {
                     clearTimeout(timerCarregamento);
+                    chaveComExibido = chaveAtual;
                     imgAtual.classList.add('modo-arte'); imgAtual.src = com.url_imagem || com.url_thumb;
                     molduraAtual.style.display = 'none'; nomePanelAtual.style.display = 'none'; document.getElementById('numeroDiscreto').style.opacity = 0;
                     transitarPara(camadaAtual);
-                    animarBarra(tempoTextoArte); timerExibicao = setTimeout(() => { decidirProximo(); }, tempoTextoArte); 
+                    if (!estatico) animarBarra(tempoTextoArte);
+                    timerExibicao = setTimeout(() => { decidirProximo(); }, tempoTextoArte); 
                 };
                 imgPreload.onerror = () => { clearTimeout(timerCarregamento); setTimeout(decidirProximo, 1000); };
                 imgPreload.src = com.url_imagem || com.url_thumb;
-            } else { 
+            } else {
+                if (estatico && chaveComExibido === chaveAtual && camadaTexto.classList.contains('visivel')) {
+                    timerExibicao = setTimeout(() => { decidirProximo(); }, tempoTextoArte);
+                    return;
+                }
+                chaveComExibido = chaveAtual;
                 textoDoComunicado.innerText = com.texto; transitarPara(camadaTexto);
-                animarBarra(tempoTextoArte); timerExibicao = setTimeout(decidirProximo, tempoTextoArte); 
+                if (!estatico) animarBarra(tempoTextoArte);
+                timerExibicao = setTimeout(decidirProximo, tempoTextoArte); 
             }
         }
 
         function renderizarFoto() {
+            chaveComExibido = null;
             indexFoto = (indexFoto + 1) >= fotosAprovadas.length ? 0 : (indexFoto + 1); 
             const fotoDaVez = fotosAprovadas[indexFoto];
             localStorage.setItem('fcv_ultimo', fotoDaVez.numeroFila);
