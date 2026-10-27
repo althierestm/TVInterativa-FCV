@@ -555,4 +555,479 @@
 
         function agendarProximoTrovao() {
             clearTimeout(lightningTimer);
-            if (!isStorm || !camadaClima
+            if (!isStorm || !camadaClima.classList.contains('visivel')) return;
+
+            const intervalo = 2300 + Math.random() * 1400;
+            lightningTimer = setTimeout(() => {
+                dispararTrovao();
+                agendarProximoTrovao();
+            }, intervalo);
+        }
+
+        function pararTrovoes() {
+            clearTimeout(lightningTimer);
+            lightningTimer = null;
+            activeBolt = null;
+            if (flashTempestade) flashTempestade.style.opacity = 0;
+            if (bgClimaEl) bgClimaEl.classList.remove('trovao-ativo');
+        }
+
+        function drawRain() {
+            if(!rainActive) return;
+            ctx.clearRect(0, 0, rainCanvas.width, rainCanvas.height);
+            ctx.lineCap = 'round';
+
+            if (isStorm && activeBolt && activeBolt.alpha > 0.02) {
+                ctx.save();
+                ctx.strokeStyle = `rgba(235, 245, 255, ${activeBolt.alpha})`;
+                ctx.lineWidth = 3.2;
+                ctx.shadowColor = 'rgba(140, 190, 255, 0.95)';
+                ctx.shadowBlur = 22;
+
+                ctx.beginPath();
+                activeBolt.main.forEach((pt, idx) => {
+                    if (idx === 0) ctx.moveTo(pt.x, pt.y);
+                    else ctx.lineTo(pt.x, pt.y);
+                });
+                ctx.stroke();
+
+                ctx.lineWidth = 1.4;
+                activeBolt.branches.forEach(branch => {
+                    ctx.beginPath();
+                    branch.forEach((pt, idx) => {
+                        if (idx === 0) ctx.moveTo(pt.x, pt.y);
+                        else ctx.lineTo(pt.x, pt.y);
+                    });
+                    ctx.stroke();
+                });
+                ctx.restore();
+
+                activeBolt.alpha -= 0.07;
+            }
+
+            const cards = document.querySelectorAll('.card-dia');
+            const cardRects = Array.from(cards).map(c => {
+                const rect = c.getBoundingClientRect();
+                return {
+                    top: (rect.top - (window.innerHeight - 1080 * currentScaleY) / 2) / currentScaleY,
+                    left: (rect.left - (window.innerWidth - 1920 * currentScaleX) / 2) / currentScaleX,
+                    right: (rect.right - (window.innerWidth - 1920 * currentScaleX) / 2) / currentScaleX
+                };
+            });
+
+            for (let i = splashes.length - 1; i >= 0; i--) {
+                let s = splashes[i];
+                ctx.beginPath();
+                ctx.ellipse(s.x, s.y, s.r, s.r/3, 0, 0, Math.PI * 2);
+                ctx.strokeStyle = `rgba(255, 255, 255, ${s.a})`;
+                ctx.lineWidth = 1;
+                ctx.stroke();
+                s.r += 1.2;
+                s.a -= 0.08;
+                if (s.a <= 0) splashes.splice(i, 1);
+            }
+
+            for (let i = 0; i < drops.length; i++) {
+                let d = drops[i];
+                ctx.strokeStyle = `rgba(255, 255, 255, ${d.z * 0.4 + 0.1})`;
+                ctx.lineWidth = d.z * 1.5 + 0.5;
+                
+                ctx.beginPath();
+                ctx.moveTo(d.x, d.y);
+                ctx.lineTo(d.x, d.y + d.l);
+                ctx.stroke();
+
+                d.y += d.v;
+
+                let hit = false;
+                if(d.z > 0.4) { 
+                    for(let rect of cardRects) {
+                        if (d.x > rect.left && d.x < rect.right && d.y + d.l > rect.top && d.y - d.v <= rect.top) {
+                            hit = true;
+                            splashes.push({x: d.x, y: rect.top, r: 2, a: 0.6});
+                            break;
+                        }
+                    }
+                }
+
+                if (hit || d.y > rainCanvas.height) {
+                    d.y = -20;
+                    d.x = Math.random() * rainCanvas.width;
+                    d.v = Math.random() * 15 + 20;
+                }
+            }
+            rainAnimId = requestAnimationFrame(drawRain);
+        }
+
+        function atualizarMotoresClima() {
+            if (camadaClima.classList.contains('visivel')) {
+                if (isSunny) {
+                    sunCanvas.style.display = 'block';
+                    if (!sunActive) {
+                        sunActive = true;
+                        drawSun();
+                    }
+                } else {
+                    sunActive = false;
+                    cancelAnimationFrame(sunAnimId);
+                    sunCanvas.style.display = 'none';
+                }
+
+                if (isRaining) {
+                    rainCanvas.style.display = 'block';
+                    if (!rainActive) {
+                        rainActive = true;
+                        drawRain();
+                    }
+                } else {
+                    rainActive = false;
+                    cancelAnimationFrame(rainAnimId);
+                    rainCanvas.style.display = 'none';
+                }
+
+                if (isStorm) {
+                    dispararTrovao();
+                    agendarProximoTrovao();
+                } else {
+                    pararTrovoes();
+                }
+            } else {
+                sunActive = false;
+                cancelAnimationFrame(sunAnimId);
+                sunCanvas.style.display = 'none';
+
+                rainActive = false;
+                cancelAnimationFrame(rainAnimId);
+                rainCanvas.style.display = 'none';
+
+                pararTrovoes();
+            }
+        }
+
+        function aplicarClimaFundo(tipo) {
+            const bgClima = document.getElementById('bgClima');
+            bgClima.className = ''; 
+            isRaining = false;
+            isStorm = false;
+            isSunny = false;
+            
+            if (tipo === 'sol') { bgClima.classList.add('clima-sol'); isSunny = true; }
+            else if (tipo === 'parc_nublado') { bgClima.classList.add('clima-parc-nublado'); isSunny = true; }
+            else if (tipo === 'nublado') bgClima.classList.add('clima-nublado');
+            else if (tipo === 'chuva') { bgClima.classList.add('clima-chuva'); isRaining = true; }
+            else if (tipo === 'tempestade') { bgClima.classList.add('clima-tempestade'); isRaining = true; isStorm = true; }
+            
+            atualizarMotoresClima();
+        }
+
+        let todosComunicados = [];
+        let comunicadosAtivos = [];
+        let fotosAprovadas = [];
+        let indexCom = -1;
+        let indexFoto = -1;
+        let loopRodando = false;
+        let mostrarClimaNaTV = true; 
+        let mostrarFotosNaTV = false;
+        let proximaAcao = 'CLIMA'; 
+        let fotosExibidasNoCiclo = parseInt(localStorage.getItem('fcv_ciclo_p2')) || 0;
+        let maiorNumeroExibido = parseInt(localStorage.getItem('fcv_maior_p2')) || 0;
+        let timerCarregamento = null;
+        let timerExibicao = null;
+        let toggleImgLayer = 1;
+
+        const camadaClima = document.getElementById('camadaClima');
+        const camadaImagem1 = document.getElementById('camadaImagem1');
+        const camadaImagem2 = document.getElementById('camadaImagem2');
+        const camadaVideo = document.getElementById('camadaVideo');
+        const videoPainel = document.getElementById('videoPainel');
+        const camadaTexto = document.getElementById('camadaTexto');
+        const textoDoComunicado = document.getElementById('textoDoComunicado');
+        const aguardando = document.getElementById('aguardando');
+        const barraProgresso = document.getElementById('barraProgresso');
+
+        onSnapshot(doc(db, "controle_tv", "status_clima"), (docSnap) => { 
+            if(docSnap.exists()) {
+                mostrarClimaNaTV = docSnap.data().mostrar_clima !== false;
+                modoClima = docSnap.data().clima_manual || docSnap.data().modo_clima || 'auto';
+            } else {
+                mostrarClimaNaTV = true;
+                modoClima = 'auto';
+            }
+            aplicarClimaFundo(modoClima === 'auto' ? climaAutomatico : modoClima);
+        });
+
+        onSnapshot(doc(db, "controle_tv", "status"), (docSnap) => { if(docSnap.exists()) mostrarFotosNaTV = docSnap.data().mostrar_fotos; });
+        onSnapshot(doc(db, "controle_tv", "status_transicao"), (docSnap) => {
+            if(docSnap.exists() && docSnap.data().efeito) document.body.setAttribute('data-transicao', docSnap.data().efeito);
+            else document.body.setAttribute('data-transicao', 'fade');
+        });
+
+        onSnapshot(query(collection(db, "fotos_criancas"), where("status", "==", "aprovado")), (snapshot) => {
+            fotosAprovadas = [];
+            snapshot.forEach(doc => fotosAprovadas.push(doc.data()));
+            fotosAprovadas.sort((a, b) => (a.numeroFila || 0) - (b.numeroFila || 0));
+            if (fotosAprovadas.length > 0) {
+                const ultimaFila = fotosAprovadas[fotosAprovadas.length - 1].numeroFila || 0;
+                if (ultimaFila > maiorNumeroExibido && maiorNumeroExibido > 0) {
+                    clearTimeout(window.timerFuraFila);
+                    window.timerFuraFila = setTimeout(() => {
+                        proximaAcao = 'FOTOS'; fotosExibidasNoCiclo = 0; localStorage.setItem('fcv_ciclo_p2', 0);
+                        if (loopRodando) decidirProximo();
+                    }, 1000);
+                }
+            }
+        });
+
+        function verificarExpirado(data, hojeISO, horaAtual) {
+            if (data.data_fim) {
+                const hFim = data.hora_fim || "23:59";
+                if (hojeISO > data.data_fim) return true;
+                if (hojeISO === data.data_fim && horaAtual > hFim) return true;
+            } else if (data.hora_fim) {
+                if (horaAtual > data.hora_fim) return true;
+            }
+            return false;
+        }
+
+        function verificarNaoIniciado(data, hojeISO, horaAtual) {
+            if (data.data_inicio) {
+                const hIni = data.hora_inicio || "00:00";
+                if (hojeISO < data.data_inicio) return true;
+                if (hojeISO === data.data_inicio && horaAtual < hIni) return true;
+            } else if (data.hora_inicio) {
+                if (horaAtual < data.hora_inicio) return true;
+            }
+            return false;
+        }
+
+        function filtrarComunicadosAtivos() {
+            const agora = new Date();
+            const hojeISO = agora.toLocaleDateString('en-CA');
+            const horaAtual = agora.toTimeString().slice(0, 5);
+            const novaLista = [];
+
+            todosComunicados.forEach(data => {
+                if (data.ativo === false) return;
+
+                if (verificarExpirado(data, hojeISO, horaAtual)) {
+                    data.ativo = false;
+                    updateDoc(doc(db, "comunicados_criancas", data.id), { ativo: false }).catch(e => console.log(e));
+                    return;
+                }
+
+                if (data.exibir_ponto2 !== true) return;
+                if (verificarNaoIniciado(data, hojeISO, horaAtual)) return;
+
+                novaLista.push(data);
+            });
+
+            novaLista.sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
+            comunicadosAtivos = novaLista;
+
+            if (!loopRodando) {
+                loopRodando = true;
+                decidirProximo();
+            }
+        }
+       
+        onSnapshot(collection(db, "comunicados_criancas"), (snapshot) => {
+            todosComunicados = [];
+            snapshot.forEach(docSnap => {
+                todosComunicados.push({ id: docSnap.id, ...docSnap.data() });
+            });
+            filtrarComunicadosAtivos();
+        });
+
+        setInterval(filtrarComunicadosAtivos, 15000);
+
+        function animarBarra(tempoMs) {
+            barraProgresso.style.transition = 'none';
+            barraProgresso.style.width = '0%';
+            setTimeout(() => {
+                barraProgresso.style.transition = `width ${tempoMs}ms linear`;
+                barraProgresso.style.width = '100%';
+            }, 50);
+        }
+
+        function transitarPara(novaCamada) {
+            const camadas = [camadaClima, camadaImagem1, camadaImagem2, camadaVideo, camadaTexto];
+            camadas.forEach(c => {
+                if (c === novaCamada) {
+                    c.classList.remove('escondido');
+                    c.classList.add('visivel');
+                    c.style.zIndex = "2";
+                } else {
+                    if (c.classList.contains('visivel')) {
+                        c.classList.remove('visivel');
+                        c.classList.add('escondido');
+                        c.style.zIndex = "1";
+                        if (c === camadaVideo) {
+                            videoPainel.onloadedmetadata = null;
+                            videoPainel.onerror = null;
+                            setTimeout(() => {
+                                if (!camadaVideo.classList.contains('visivel')) {
+                                    videoPainel.pause();
+                                    videoPainel.removeAttribute('src');
+                                    videoPainel.load();
+                                }
+                            }, 800);
+                        }
+                    }
+                }
+            });
+
+            atualizarMotoresClima();
+
+            if (novaCamada !== camadaImagem1 && novaCamada !== camadaImagem2) { document.getElementById('numeroDiscreto').style.opacity = 0; }
+            aguardando.style.display = "none";
+        }
+
+        function decidirProximo() {
+            clearTimeout(timerCarregamento);
+            clearTimeout(timerExibicao);
+            videoPainel.onloadedmetadata = null;
+            videoPainel.onerror = null;
+
+            filtrarComunicadosAtivos();
+
+            let temComs = comunicadosAtivos.length > 0;
+            let temFotos = mostrarFotosNaTV && fotosAprovadas.length > 0;
+            let podeExibirClima = mostrarClimaNaTV && dadosClimaProntos;
+
+            if (!podeExibirClima && !temComs && !temFotos) {
+                aguardando.style.display = "block"; transitarPara(null); setTimeout(decidirProximo, 2000); return;
+            }
+
+            if (proximaAcao === 'CLIMA') {
+                if (podeExibirClima) { proximaAcao = temComs ? 'COMS' : (temFotos ? 'FOTOS' : 'CLIMA'); renderizarClima(); } 
+                else { proximaAcao = temComs ? 'COMS' : 'FOTOS'; decidirProximo(); }
+            } else if (proximaAcao === 'COMS') {
+                if (temComs) {
+                    renderizarComunicado();
+                    if (indexCom === comunicadosAtivos.length - 1) { proximaAcao = temFotos ? 'FOTOS' : (podeExibirClima ? 'CLIMA' : 'COMS'); } 
+                    else { proximaAcao = 'COMS'; }
+                } else { proximaAcao = temFotos ? 'FOTOS' : 'CLIMA'; decidirProximo(); }
+            } else if (proximaAcao === 'FOTOS') {
+                if (temFotos) {
+                    if (fotosExibidasNoCiclo >= 4) { 
+                        fotosExibidasNoCiclo = 0; localStorage.setItem('fcv_ciclo_p2', 0);
+                        proximaAcao = podeExibirClima ? 'CLIMA' : (temComs ? 'COMS' : 'FOTOS'); decidirProximo();
+                    } else { renderizarFoto(); }
+                } else { proximaAcao = podeExibirClima ? 'CLIMA' : 'COMS'; decidirProximo(); }
+            }
+        }
+
+        function renderizarClima() {
+            transitarPara(camadaClima);
+            animarBarra(15000); 
+            timerExibicao = setTimeout(decidirProximo, 15000); 
+        }
+
+        function obterTempoValido(tempoRaw) { let t = parseInt(tempoRaw); return (isNaN(t) || t < 5000 || t > 60000) ? 15000 : t; }
+
+        function renderizarComunicado() {
+            indexCom = (indexCom + 1) >= comunicadosAtivos.length ? 0 : (indexCom + 1);
+            const com = comunicadosAtivos[indexCom];
+            let tempoTextoArte = obterTempoValido(com.tempo_exibicao);
+
+            if (com.tipo === 'video' || com.url_video) {
+                videoPainel.onloadedmetadata = null;
+                videoPainel.onerror = null;
+                videoPainel.src = com.url_video;
+                timerCarregamento = setTimeout(() => {
+                    videoPainel.onloadedmetadata = null;
+                    videoPainel.onerror = null;
+                    decidirProximo();
+                }, 10000);
+
+                videoPainel.onloadedmetadata = function() {
+                    clearTimeout(timerCarregamento);
+                    videoPainel.onloadedmetadata = null;
+                    let duracao = videoPainel.duration * 1000;
+                    if (!duracao || isNaN(duracao) || duracao === Infinity) duracao = 15000;
+                    transitarPara(camadaVideo);
+                    videoPainel.play().catch(e => console.log(e));
+                    animarBarra(duracao);
+                    timerExibicao = setTimeout(() => {
+                        videoPainel.onerror = null;
+                        decidirProximo();
+                    }, duracao);
+                };
+                videoPainel.onerror = () => {
+                    clearTimeout(timerCarregamento);
+                    videoPainel.onloadedmetadata = null;
+                    videoPainel.onerror = null;
+                    setTimeout(decidirProximo, 1000);
+                };
+            } else if (com.tipo === 'imagem' || com.url_imagem) { 
+                toggleImgLayer = toggleImgLayer === 1 ? 2 : 1;
+                const camadaAtual = toggleImgLayer === 1 ? camadaImagem1 : camadaImagem2;
+                const imgAtual = document.getElementById('imgPainel' + toggleImgLayer);
+                const molduraAtual = document.getElementById('molduraFoto' + toggleImgLayer);
+                const nomePanelAtual = document.getElementById('nomePainel' + toggleImgLayer);
+                
+                const imgPreload = new Image();
+                timerCarregamento = setTimeout(() => { decidirProximo(); }, 8000); 
+
+                imgPreload.onload = () => {
+                    clearTimeout(timerCarregamento);
+                    imgAtual.classList.add('modo-arte'); imgAtual.src = com.url_imagem || com.url_thumb;
+                    molduraAtual.style.display = 'none'; nomePanelAtual.style.display = 'none'; document.getElementById('numeroDiscreto').style.opacity = 0;
+                    transitarPara(camadaAtual);
+                    animarBarra(tempoTextoArte); timerExibicao = setTimeout(() => { decidirProximo(); }, tempoTextoArte); 
+                };
+                imgPreload.onerror = () => { clearTimeout(timerCarregamento); setTimeout(decidirProximo, 1000); };
+                imgPreload.src = com.url_imagem || com.url_thumb;
+            } else { 
+                textoDoComunicado.innerText = com.texto; transitarPara(camadaTexto);
+                animarBarra(tempoTextoArte); timerExibicao = setTimeout(decidirProximo, tempoTextoArte); 
+            }
+        }
+
+        function renderizarFoto() {
+            indexFoto = (indexFoto + 1) >= fotosAprovadas.length ? 0 : (indexFoto + 1); 
+            const fotoDaVez = fotosAprovadas[indexFoto];
+            localStorage.setItem('fcv_ultimo_p2', fotoDaVez.numeroFila);
+            if ((fotoDaVez.numeroFila || 0) > maiorNumeroExibido) { maiorNumeroExibido = fotoDaVez.numeroFila; localStorage.setItem('fcv_maior_p2', maiorNumeroExibido); }
+
+            toggleImgLayer = toggleImgLayer === 1 ? 2 : 1;
+            const camadaAtual = toggleImgLayer === 1 ? camadaImagem1 : camadaImagem2;
+            const imgAtual = document.getElementById('imgPainel' + toggleImgLayer);
+            const molduraAtual = document.getElementById('molduraFoto' + toggleImgLayer);
+            const nomePanelAtual = document.getElementById('nomePainel' + toggleImgLayer);
+            const lblNomeAtual = document.getElementById('lblNome' + toggleImgLayer);
+            const lblSetorAtual = document.getElementById('lblSetor' + toggleImgLayer);
+
+            const imgPreload = new Image();
+            timerCarregamento = setTimeout(() => { decidirProximo(); }, 8000); 
+            
+            imgPreload.onload = () => {
+                clearTimeout(timerCarregamento); fotosExibidasNoCiclo++; localStorage.setItem('fcv_ciclo_p2', fotosExibidasNoCiclo);
+                imgAtual.classList.remove('modo-arte'); imgAtual.src = fotoDaVez.url_imagem || fotoDaVez.url_thumb;
+                document.getElementById('numeroDiscreto').innerText = fotoDaVez.numeroFila ? `#${fotoDaVez.numeroFila}` : "";
+                document.getElementById('numeroDiscreto').style.opacity = 1; molduraAtual.style.display = 'block';
+
+                if(fotoDaVez.nome === "Não Informado" && !fotoDaVez.setor) { nomePanelAtual.style.display = 'none'; } 
+                else { nomePanelAtual.style.display = 'block'; lblNomeAtual.innerText = fotoDaVez.nome; lblSetorAtual.innerText = fotoDaVez.setor ? fotoDaVez.setor : ""; }
+
+                transitarPara(camadaAtual);
+                animarBarra(7000); timerExibicao = setTimeout(() => { decidirProximo(); }, 7000);
+            };
+            imgPreload.onerror = () => { clearTimeout(timerCarregamento); setTimeout(decidirProximo, 1000); };
+            imgPreload.src = fotoDaVez.url_imagem || fotoDaVez.url_thumb;
+        }
+    </script>
+    
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {
+                    reg.update();
+                }).catch(err => {
+                    console.log('Falha ao registrar PWA:', err);
+                });
+            });
+        }
+    </script>
+</body>
+</html>
