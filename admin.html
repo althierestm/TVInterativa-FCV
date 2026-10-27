@@ -205,9 +205,6 @@
                 <label>Tempo de Exibição na TV:</label>
                 <select id="confTempo">
                     <option value="5000">5 segundos</option>
-                    <option value="6000">6 segundos</option>
-                    <option value="7000">7 segundos</option>
-                    <option value="8000">8 segundos</option>
                     <option value="10000">10 segundos</option>
                     <option value="15000" selected>15 segundos</option>
                     <option value="20000">20 segundos</option>
@@ -252,10 +249,21 @@
         </div>
         <div class="glass-panel">
             <div class="text-left">
-                <h3>Previsão do Tempo</h3>
+                <h3>Previsão do Tempo (TV Corredor)</h3>
+                <p>Exibir tela de clima no ciclo principal.</p>
             </div>
             <label class="ios-switch">
                 <input type="checkbox" id="toggleClima" checked>
+                <span class="slider"></span>
+            </label>
+        </div>
+        <div class="glass-panel">
+            <div class="text-left">
+                <h3>Previsão do Tempo (Ponto 2)</h3>
+                <p>Exibir tela de clima na TV Ponto 2.</p>
+            </div>
+            <label class="ios-switch">
+                <input type="checkbox" id="toggleClimaPonto2" checked>
                 <span class="slider"></span>
             </label>
         </div>
@@ -356,6 +364,7 @@
         const listaComunicados = document.getElementById('listaComunicados');
 
         const toggleClima = document.getElementById('toggleClima');
+        const toggleClimaPonto2 = document.getElementById('toggleClimaPonto2');
         const toggleFotos = document.getElementById('toggleFotos');
         const selectTransicao = document.getElementById('selectTransicao');
         const selectClimaManual = document.getElementById('selectClimaManual');
@@ -363,9 +372,11 @@
         onSnapshot(doc(db, "controle_tv", "status_clima"), (docSnap) => {
             if(docSnap.exists()) {
                 toggleClima.checked = docSnap.data().mostrar_clima !== false;
+                toggleClimaPonto2.checked = docSnap.data().mostrar_clima_ponto2 !== false;
                 selectClimaManual.value = docSnap.data().clima_manual || docSnap.data().modo_clima || 'auto';
             } else {
                 toggleClima.checked = true;
+                toggleClimaPonto2.checked = true;
                 selectClimaManual.value = 'auto';
             }
         });
@@ -401,6 +412,10 @@
 
         toggleClima.addEventListener('change', async (e) => {
             await setDoc(doc(db, "controle_tv", "status_clima"), { mostrar_clima: e.target.checked }, { merge: true });
+        });
+
+        toggleClimaPonto2.addEventListener('change', async (e) => {
+            await setDoc(doc(db, "controle_tv", "status_clima"), { mostrar_clima_ponto2: e.target.checked }, { merge: true });
         });
 
         toggleFotos.addEventListener('change', async (e) => {
