@@ -111,6 +111,7 @@
             const _u = String.fromCharCode(109, 97, 114, 107, 101, 116, 105, 110, 103);
             const _p = String.fromCharCode(64, 116, 118, 99, 111, 114, 114, 101, 100, 111, 114, 35);
             if (user === _u && pass === _p) {
+                localStorage.setItem('fcv_admin_auth', 'true');
                 document.getElementById('loginOverlay').style.display = 'none';
                 document.getElementById('painelPrincipal').style.display = 'block';
             } else {
@@ -118,6 +119,11 @@
             }
         }
         document.addEventListener('DOMContentLoaded', () => {
+            if (localStorage.getItem('fcv_admin_auth') === 'true') {
+                document.getElementById('loginOverlay').style.display = 'none';
+                document.getElementById('painelPrincipal').style.display = 'block';
+            }
+
             document.getElementById('btnAccordionRanking').addEventListener('click', function() {
                 const content = document.getElementById('rankingSetores');
                 const svg = this.querySelector('svg');
@@ -163,8 +169,8 @@
     <div id="loginOverlay">
         <div class="login-box">
             <h2>Acesso Restrito</h2>
-            <input type="text" id="loginUser" placeholder="Usuário">
-            <input type="password" id="loginPass" placeholder="Senha" onkeypress="if(event.key === 'Enter') verificarLogin();">
+            <input type="text" id="loginUser" placeholder="Usuário" onkeydown="if(event.key === 'Enter') verificarLogin();">
+            <input type="password" id="loginPass" placeholder="Senha" onkeydown="if(event.key === 'Enter') verificarLogin();">
             <button id="btnEntrar" onclick="verificarLogin()">Acessar Moderação</button>
         </div>
     </div>
@@ -172,9 +178,12 @@
         <div class="config-box">
             <h3 id="tituloModalConfig">Configurar Comunicado</h3>
             <label style="margin-top: 10px; font-size: 13px; color: #f1c40f;">ONDE EXIBIR?</label>
-            <div style="display: flex; gap: 15px; margin-bottom: 20px; align-items: center;">
+            <div style="display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; align-items: center;">
                 <label style="display: flex; align-items: center; gap: 5px; cursor: pointer; color: white;">
                     <input type="checkbox" id="chkCorredor" checked style="width: auto; margin: 0;"> TV Corredor
+                </label>
+                <label style="display: flex; align-items: center; gap: 5px; cursor: pointer; color: white;">
+                    <input type="checkbox" id="chkPonto2" style="width: auto; margin: 0;"> Ponto 2
                 </label>
                 <label style="display: flex; align-items: center; gap: 5px; cursor: pointer; color: white;">
                     <input type="checkbox" id="chkRefeitorio" style="width: auto; margin: 0;"> TV Refeitório
@@ -196,6 +205,9 @@
                 <label>Tempo de Exibição na TV:</label>
                 <select id="confTempo">
                     <option value="5000">5 segundos</option>
+                    <option value="6000">6 segundos</option>
+                    <option value="7000">7 segundos</option>
+                    <option value="8000">8 segundos</option>
                     <option value="10000">10 segundos</option>
                     <option value="15000" selected>15 segundos</option>
                     <option value="20000">20 segundos</option>
@@ -502,6 +514,7 @@
             document.getElementById('confFim').value = "";
             document.getElementById('confHoraFim').value = "";
             document.getElementById('chkCorredor').checked = true;
+            document.getElementById('chkPonto2').checked = false;
             document.getElementById('chkRefeitorio').checked = false;
             document.getElementById('linhaTempo').style.display = 'block';
             document.getElementById('confTempo').value = "15000";
@@ -517,6 +530,7 @@
             document.getElementById('confFim').value = "";
             document.getElementById('confHoraFim').value = "";
             document.getElementById('chkCorredor').checked = true;
+            document.getElementById('chkPonto2').checked = false;
             document.getElementById('chkRefeitorio').checked = false;
             if (arteSelecionada.type.startsWith('video/')) {
                 document.getElementById('linhaTempo').style.display = 'none';
@@ -537,6 +551,7 @@
             const hora_fim = document.getElementById('confHoraFim').value;
             const tempo_exibicao = parseInt(document.getElementById('confTempo').value) || 15000;
             const ex_corr = document.getElementById('chkCorredor').checked;
+            const ex_ponto2 = document.getElementById('chkPonto2').checked;
             const ex_ref = document.getElementById('chkRefeitorio').checked;
             const timestamp = Date.now(); 
 
@@ -545,12 +560,12 @@
             try {
                 if(acaoUpload.tipo === 'editar') {
                     await updateDoc(doc(db, "comunicados_criancas", acaoUpload.id), {
-                        nome: nome, data_inicio: data_inicio, hora_inicio: hora_inicio, data_fim: data_fim, hora_fim: hora_fim, tempo_exibicao: tempo_exibicao, exibir_corredor: ex_corr, exibir_refeitorio: ex_ref
+                        nome: nome, data_inicio: data_inicio, hora_inicio: hora_inicio, data_fim: data_fim, hora_fim: hora_fim, tempo_exibicao: tempo_exibicao, exibir_corredor: ex_corr, exibir_ponto2: ex_ponto2, exibir_refeitorio: ex_ref
                     });
                 } else if(acaoUpload.tipo === 'texto') {
                     await addDoc(collection(db, "comunicados_criancas"), {
                         tipo: 'texto', texto: acaoUpload.texto, nome: nome, data_inicio: data_inicio, hora_inicio: hora_inicio, data_fim: data_fim, hora_fim: hora_fim, tempo_exibicao: tempo_exibicao,
-                        ativo: true, ordem: timestamp, timestamp: serverTimestamp(), exibir_corredor: ex_corr, exibir_refeitorio: ex_ref
+                        ativo: true, ordem: timestamp, timestamp: serverTimestamp(), exibir_corredor: ex_corr, exibir_ponto2: ex_ponto2, exibir_refeitorio: ex_ref
                     });
                     document.getElementById('inputComunicadoTxt').value = "";
                 } else if(acaoUpload.tipo === 'midia') {
@@ -565,7 +580,7 @@
 
                         await addDoc(collection(db, "comunicados_criancas"), {
                             tipo: 'video', url_video: dados.secure_url, nome: nome, data_inicio: data_inicio, hora_inicio: hora_inicio, data_fim: data_fim, hora_fim: hora_fim, tempo_exibicao: tempo_exibicao,
-                            ativo: true, ordem: timestamp, timestamp: serverTimestamp(), exibir_corredor: ex_corr, exibir_refeitorio: ex_ref
+                            ativo: true, ordem: timestamp, timestamp: serverTimestamp(), exibir_corredor: ex_corr, exibir_ponto2: ex_ponto2, exibir_refeitorio: ex_ref
                         });
                     } else {
                         const formData = new FormData(); formData.append("image", acaoUpload.file);
@@ -574,7 +589,7 @@
                         
                         await addDoc(collection(db, "comunicados_criancas"), {
                             tipo: 'imagem', url_imagem: dados.data.url, url_thumb: dados.data.thumb.url, nome: nome, data_inicio: data_inicio, hora_inicio: hora_inicio, data_fim: data_fim, hora_fim: hora_fim, tempo_exibicao: tempo_exibicao,
-                            ativo: true, ordem: timestamp, timestamp: serverTimestamp(), exibir_corredor: ex_corr, exibir_refeitorio: ex_ref
+                            ativo: true, ordem: timestamp, timestamp: serverTimestamp(), exibir_corredor: ex_corr, exibir_ponto2: ex_ponto2, exibir_refeitorio: ex_ref
                         });
                     }
                     document.getElementById('btnSelectComImg').innerText = "Escolher Arquivo";
@@ -642,6 +657,7 @@
                 else if (fimStr) periodo = `Até ${fimStr}`;
 
                 let badgesLocais = "";
+                if(dados.exibir_ponto2 === true) badgesLocais += '<span style="background:#e67e22; color:white; padding:2px 6px; border-radius:4px; font-size:9px; margin-right:4px;">Ponto 2</span>';
                 if(dados.exibir_refeitorio === true) badgesLocais += '<span style="background:#8e44ad; color:white; padding:2px 6px; border-radius:4px; font-size:9px; margin-right:4px;">Refeitório</span>';
                 const ativoChecked = dados.ativo !== false ? 'checked' : ''; 
                 div.innerHTML = `<div style="display:flex; align-items:center; flex:1; gap:10px; overflow:hidden;"><span class="drag-handle" title="Arrastar para reordenar">☰</span>${midiaHtml}<div class="info-com"><strong>${dados.nome || 'Comunicado Antigo'}</strong><div style="margin-top:2px;">${badgesLocais}<span>📅 ${periodo}</span></div></div></div><div class="acoes-com"><label class="ios-switch ios-switch-sm" title="Ligar/Desligar na TV"><input type="checkbox" onchange="alterarAtivoCom('${dados.id}', this.checked)" ${ativoChecked}><span class="slider"></span></label><button class="btn-editar-com" onclick="prepararEdicao('${dados.id}')">Editar</button><button class="btn-remover-com" onclick="excluirComunicado('${dados.id}')">Excluir</button></div>`;
@@ -669,6 +685,7 @@
             document.getElementById('confFim').value = com.data_fim || '';
             document.getElementById('confHoraFim').value = com.hora_fim || '';
             document.getElementById('chkCorredor').checked = com.exibir_corredor !== false;
+            document.getElementById('chkPonto2').checked = com.exibir_ponto2 === true;
             document.getElementById('chkRefeitorio').checked = com.exibir_refeitorio === true;
             if (com.tipo === 'video') { document.getElementById('linhaTempo').style.display = 'none'; } else { document.getElementById('linhaTempo').style.display = 'block'; document.getElementById('confTempo').value = com.tempo_exibicao ? com.tempo_exibicao : '15000'; }
             acaoUpload = { tipo: 'editar', id: id };
