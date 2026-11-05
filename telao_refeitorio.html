@@ -3,9 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>TV Refeitório - FCV</title>
     <link rel="icon" href="logo%20icon%20TV%20do%20Ponto%20FCV.png" type="image/png">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        if ('caches' in window) {
+            caches.keys().then(function(names) {
+                for (let name of names) caches.delete(name);
+            });
+        }
+    </script>
     <style>
         body { margin: 0; padding: 0; background-color: #000; color: white; font-family: 'Montserrat', sans-serif; overflow: hidden; }
         #viewportWrapper { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; overflow: hidden; }
@@ -79,7 +89,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
-        import { getFirestore, collection, query, where, onSnapshot, doc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+        import { getFirestore, collection, query, where, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyB8ZK0jSY-1E9y90TLfznxi9PI8mf_bJuc",
@@ -110,6 +120,7 @@
         setInterval(() => {
             const radio = document.getElementById('radioFCV');
             if (document.fullscreenElement) {
+                radio.pause();
                 radio.src = "https://stm17.srvstm.com:6944/stream?" + new Date().getTime();
                 radio.load();
                 radio.play().catch(e => console.log(e));
@@ -143,6 +154,7 @@
         setInterval(atualizarRelogio, 1000);
         atualizarRelogio();
 
+        let todosComunicados = [];
         let comunicadosAtivos = [];
         let indexCom = -1;
         let loopRodando = false;
@@ -192,27 +204,67 @@
         const aguardando = document.getElementById('aguardando');
         const barraProgresso = document.getElementById('barraProgresso');
 
-        onSnapshot(collection(db, "comunicados_criancas"), (snapshot) => {
-            comunicadosAtivos = [];
-            const hojeISO = new Date().toLocaleDateString('en-CA'); 
+        function verificarExpirado(data, hojeISO, horaAtual) {
+            if (data.data_fim) {
+                const hFim = data.hora_fim || "23:59";
+                if (hojeISO > data.data_fim) return true;
+                if (hojeISO === data.data_fim && horaAtual > hFim) return true;
+            } else if (data.hora_fim) {
+                if (horaAtual > data.hora_fim) return true;
+            }
+            return false;
+        }
 
-            snapshot.forEach(doc => {
-                const data = doc.data();
-                if (data.ativo === false) return; 
-                if (data.exibir_refeitorio !== true) return; 
-                if (data.data_inicio && hojeISO < data.data_inicio) return; 
-                if (data.data_fim && hojeISO > data.data_fim) return;       
-                
-                comunicadosAtivos.push(data);
+        function verificarNaoIniciado(data, hojeISO, horaAtual) {
+            if (data.data_inicio) {
+                const hIni = data.hora_inicio || "00:00";
+                if (hojeISO < data.data_inicio) return true;
+                if (hojeISO === data.data_inicio && horaAtual < hIni) return true;
+            } else if (data.hora_inicio) {
+                if (horaAtual < data.hora_inicio) return true;
+            }
+            return false;
+        }
+
+        function filtrarComunicadosAtivos() {
+            const agora = new Date();
+            const hojeISO = agora.toLocaleDateString('en-CA');
+            const horaAtual = agora.toTimeString().slice(0, 5);
+            const novaLista = [];
+
+            todosComunicados.forEach(data => {
+                if (data.ativo === false) return;
+
+                if (verificarExpirado(data, hojeISO, horaAtual)) {
+                    data.ativo = false;
+                    updateDoc(doc(db, "comunicados_criancas", data.id), { ativo: false }).catch(e => console.log(e));
+                    return;
+                }
+
+                if (data.exibir_refeitorio !== true) return;
+                if (verificarNaoIniciado(data, hojeISO, horaAtual)) return;
+
+                novaLista.push(data);
             });
 
-            comunicadosAtivos.sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
+            novaLista.sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
+            comunicadosAtivos = novaLista;
 
             if (!loopRodando) {
                 loopRodando = true;
                 decidirProximo();
             }
+        }
+
+        onSnapshot(collection(db, "comunicados_criancas"), (snapshot) => {
+            todosComunicados = [];
+            snapshot.forEach(docSnap => {
+                todosComunicados.push({ id: docSnap.id, ...docSnap.data() });
+            });
+            filtrarComunicadosAtivos();
         });
+
+        setInterval(filtrarComunicadosAtivos, 15000);
 
         function animarBarra(tempoMs) {
             barraProgresso.style.transition = 'none';
@@ -224,19 +276,38 @@
         }
 
         function transitarPara(novaCamada) {
+            const jaVisivel = novaCamada && novaCamada.classList.contains('visivel');
             const camadas = [camadaCardapio, camadaImagem1, camadaImagem2, camadaVideo, camadaTexto];
             camadas.forEach(c => {
                 if (c === novaCamada) {
-                    c.classList.remove('escondido');
-                    c.classList.add('visivel');
-                    c.style.zIndex = "2";
+                    if (!jaVisivel) {
+                        c.classList.remove('escondido');
+                        c.classList.add('visivel');
+                        c.style.zIndex = "2";
+                    }
                 } else {
                     if (c.classList.contains('visivel')) {
                         c.classList.remove('visivel');
                         c.classList.add('escondido');
                         c.style.zIndex = "1";
                         if (c === camadaVideo) {
-                            setTimeout(() => { videoPainel.pause(); videoPainel.src = ""; }, 800);
+                            videoPainel.onloadedmetadata = null;
+                            videoPainel.onerror = null;
+                            setTimeout(() => {
+                                if (!camadaVideo.classList.contains('visivel')) {
+                                    videoPainel.pause();
+                                    videoPainel.removeAttribute('src');
+                                    videoPainel.load();
+                                }
+                            }, 800);
+                        }
+                        if (c === camadaImagem1 || c === camadaImagem2) {
+                            const imgInativa = c.querySelector('img');
+                            setTimeout(() => {
+                                if (!c.classList.contains('visivel') && imgInativa) {
+                                    imgInativa.removeAttribute('src');
+                                }
+                            }, 900);
                         }
                     }
                 }
@@ -247,6 +318,10 @@
         function decidirProximo() {
             clearTimeout(timerCarregamento);
             clearTimeout(timerExibicao);
+            videoPainel.onloadedmetadata = null;
+            videoPainel.onerror = null;
+
+            filtrarComunicadosAtivos();
 
             let temComs = comunicadosAtivos.length > 0;
             document.getElementById('barraProgressoContainer').style.display = temComs ? 'block' : 'none';
@@ -287,9 +362,18 @@
             let tempoTextoArte = obterTempoValido(com.tempo_exibicao);
 
             if (com.tipo === 'video' || com.url_video) {
+                videoPainel.onloadedmetadata = null;
+                videoPainel.onerror = null;
                 videoPainel.src = com.url_video;
+                timerCarregamento = setTimeout(() => {
+                    videoPainel.onloadedmetadata = null;
+                    videoPainel.onerror = null;
+                    decidirProximo();
+                }, 10000);
                 
                 videoPainel.onloadedmetadata = function() {
+                    clearTimeout(timerCarregamento);
+                    videoPainel.onloadedmetadata = null;
                     let duracao = videoPainel.duration * 1000;
                     if (!duracao || isNaN(duracao) || duracao === Infinity) duracao = 15000;
                     
@@ -297,20 +381,26 @@
                     videoPainel.play().catch(e => console.log(e));
                     
                     animarBarra(duracao); 
-                    timerExibicao = setTimeout(() => { 
+                    timerExibicao = setTimeout(() => {
+                        videoPainel.onerror = null;
                         decidirProximo(); 
                     }, duracao);
                 };
                 
-                videoPainel.onerror = () => { setTimeout(decidirProximo, 1000); };
+                videoPainel.onerror = () => {
+                    clearTimeout(timerCarregamento);
+                    videoPainel.onloadedmetadata = null;
+                    videoPainel.onerror = null;
+                    setTimeout(decidirProximo, 1000);
+                };
                 
             } else if (com.tipo === 'imagem' || com.url_imagem) { 
                 toggleImgLayer = toggleImgLayer === 1 ? 2 : 1;
                 const camadaAtual = toggleImgLayer === 1 ? camadaImagem1 : camadaImagem2;
                 const imgAtual = document.getElementById('imgPainel' + toggleImgLayer);
                 
-                const imgPreload = new Image();
-                timerCarregamento = setTimeout(() => { decidirProximo(); }, 8000); 
+                let imgPreload = new Image();
+                timerCarregamento = setTimeout(() => { imgPreload = null; decidirProximo(); }, 8000); 
 
                 imgPreload.onload = () => {
                     clearTimeout(timerCarregamento);
@@ -319,9 +409,10 @@
                     
                     transitarPara(camadaAtual);
                     animarBarra(tempoTextoArte); 
-                    timerExibicao = setTimeout(() => { decidirProximo(); }, tempoTextoArte); 
+                    timerExibicao = setTimeout(() => { decidirProximo(); }, tempoTextoArte);
+                    imgPreload = null;
                 };
-                imgPreload.onerror = () => { clearTimeout(timerCarregamento); setTimeout(decidirProximo, 1000); };
+                imgPreload.onerror = () => { clearTimeout(timerCarregamento); imgPreload = null; setTimeout(decidirProximo, 1000); };
                 imgPreload.src = com.url_imagem || com.url_thumb;
             } else { 
                 textoDoComunicado.innerText = com.texto;
