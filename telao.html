@@ -72,10 +72,10 @@
         .nuvens-container { position: absolute; top: 0; left: 0; width: 100%; height: 600px; pointer-events: none; z-index: 3; overflow: hidden; display: none; }
         .clima-nublado .nuvens-container, .clima-parc-nublado .nuvens-container, .clima-chuva .nuvens-container, .clima-tempestade .nuvens-container { display: block; }
         
-        .clima-nublado::before, .clima-parc-nublado::before, .clima-chuva::before, .clima-tempestade::before { content: ""; position: absolute; width: 1200px; height: 600px; top: 5%; left: -200px; background: rgba(255,255,255,0.06); filter: blur(60px); border-radius: 50%; animation: moverNuvem 20s ease-in-out infinite alternate; pointer-events: none; z-index: 2;}
-        .clima-nublado::after, .clima-parc-nublado::after, .clima-chuva::after, .clima-tempestade::after { content: ""; position: absolute; width: 1000px; height: 500px; bottom: 10%; right: -200px; background: rgba(255,255,255,0.04); filter: blur(50px); border-radius: 50%; animation: moverNuvem 25s ease-in-out infinite alternate-reverse; pointer-events: none; z-index: 2;}
+        .clima-nublado::before, .clima-parc-nublado::before, .clima-chuva::before, .clima-tempestade::before { content: ""; position: absolute; width: 1200px; height: 600px; top: 5%; left: -200px; background: rgba(255,255,255,0.06); filter: blur(40px); border-radius: 50%; animation: moverNuvem 20s ease-in-out infinite alternate; pointer-events: none; z-index: 2;}
+        .clima-nublado::after, .clima-parc-nublado::after, .clima-chuva::after, .clima-tempestade::after { content: ""; position: absolute; width: 1000px; height: 500px; bottom: 10%; right: -200px; background: rgba(255,255,255,0.04); filter: blur(35px); border-radius: 50%; animation: moverNuvem 25s ease-in-out infinite alternate-reverse; pointer-events: none; z-index: 2;}
 
-        .nuvem-ios { position: absolute; border-radius: 100px; filter: blur(12px); transition: background 0.1s ease; }
+        .nuvem-ios { position: absolute; border-radius: 100px; filter: blur(10px); transition: background 0.1s ease; }
         .nuvem-ios::before, .nuvem-ios::after { content: ''; position: absolute; background: inherit; border-radius: 50%; }
         
         .nuvem-ios.n1 { width: 420px; height: 130px; top: 30px; left: -550px; animation: passaNuvem 50s linear infinite; background: rgba(45, 65, 85, 0.35); }
@@ -99,7 +99,7 @@
         .cidade-clima { font-size: 45px; font-weight: 600; margin: 0; color: #fff; letter-spacing: 1px;}
         .sub-clima { font-size: 22px; font-weight: 300; color: #bdc3c7; margin-top: 5px; }
         .grid-clima { display: grid; grid-template-columns: repeat(7, 1fr); gap: 20px; width: 90%; max-width: 1750px; z-index: 5; margin-top: 90px; }
-        .card-dia { background: rgba(255, 255, 255, 0.07); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); border-radius: 24px; padding: 30px 15px; border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 15px 35px rgba(0,0,0,0.2); text-align: center; display: flex; flex-direction: column; align-items: center; position: relative;}
+        .card-dia { background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border-radius: 24px; padding: 30px 15px; border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 15px 35px rgba(0,0,0,0.2); text-align: center; display: flex; flex-direction: column; align-items: center; position: relative;}
         .dia-titulo { font-size: 32px; font-weight: 600; color: #fff; margin-bottom: 25px; }
         .dia-hoje { color: #3498db; }
         .icone-principal svg { width: 100px; height: 100px; margin-bottom: 20px;}
@@ -215,6 +215,7 @@
         setInterval(() => {
             const radio = document.getElementById('radioFCV');
             if (document.fullscreenElement) {
+                radio.pause();
                 radio.src = "https://stm17.srvstm.com:6944/stream?" + new Date().getTime();
                 radio.load();
                 radio.play().catch(e => console.log(e));
@@ -235,11 +236,25 @@
         const scaleBox = document.getElementById('tvScaleBox');
         let currentScaleX = 1;
         let currentScaleY = 1;
+        let cachedCardRects = [];
+
+        function atualizarCacheCards() {
+            const cards = document.querySelectorAll('.card-dia');
+            cachedCardRects = Array.from(cards).map(c => {
+                const rect = c.getBoundingClientRect();
+                return {
+                    top: (rect.top - (window.innerHeight - 1080 * currentScaleY) / 2) / currentScaleY,
+                    left: (rect.left - (window.innerWidth - 1920 * currentScaleX) / 2) / currentScaleX,
+                    right: (rect.right - (window.innerWidth - 1920 * currentScaleX) / 2) / currentScaleX
+                };
+            });
+        }
         
         function ajustarEscala() {
             currentScaleX = window.innerWidth / 1920;
             currentScaleY = window.innerHeight / 1080;
             scaleBox.style.transform = `translate(-50%, -50%) scale(${currentScaleX}, ${currentScaleY})`;
+            setTimeout(atualizarCacheCards, 200);
         }
         window.addEventListener('resize', ajustarEscala);
         ajustarEscala(); 
@@ -324,6 +339,7 @@
                 }
                 document.getElementById('gridClima').innerHTML = gridHtml;
                 dadosClimaProntos = true;
+                setTimeout(atualizarCacheCards, 100);
             } catch (e) {
                 console.log(e);
                 dadosClimaProntos = false;
@@ -340,31 +356,55 @@
         let sunTime = 0;
         let sunRays = [];
         let sunParticles = [];
+        let lastSunFrame = 0;
+        let cachedCoreGrad = null;
+        let cachedAmbGrad = null;
 
         function initSun() {
-            sunCanvas.width = 1920;
-            sunCanvas.height = 1080;
+            sunCanvas.width = 960;
+            sunCanvas.height = 540;
             sunRays = [];
             sunParticles = [];
 
-            for (let i = 0; i < 16; i++) {
+            const sunX = 110;
+            const sunY = 75;
+
+            cachedAmbGrad = sunCtx.createRadialGradient(sunX, sunY, 10, sunX, sunY, 800);
+            cachedAmbGrad.addColorStop(0, 'rgba(255, 245, 200, 0.45)');
+            cachedAmbGrad.addColorStop(0.2, 'rgba(255, 195, 80, 0.2)');
+            cachedAmbGrad.addColorStop(0.5, 'rgba(255, 140, 30, 0.05)');
+            cachedAmbGrad.addColorStop(1, 'rgba(255, 100, 0, 0)');
+
+            cachedCoreGrad = sunCtx.createRadialGradient(sunX, sunY, 5, sunX, sunY, 220);
+            cachedCoreGrad.addColorStop(0, 'rgba(255, 255, 255, 0.95)');
+            cachedCoreGrad.addColorStop(0.25, 'rgba(255, 240, 190, 0.8)');
+            cachedCoreGrad.addColorStop(0.55, 'rgba(255, 190, 80, 0.3)');
+            cachedCoreGrad.addColorStop(1, 'rgba(255, 150, 30, 0)');
+
+            for (let i = 0; i < 12; i++) {
+                const len = 1500 + Math.random() * 700;
+                const alpha = 0.025 + Math.random() * 0.035;
+                const rayGrad = sunCtx.createRadialGradient(sunX, sunY, 20, sunX, sunY, len);
+                rayGrad.addColorStop(0, `rgba(255, 240, 180, ${alpha * 1.4})`);
+                rayGrad.addColorStop(0.4, `rgba(255, 210, 110, ${alpha})`);
+                rayGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+
                 sunRays.push({
-                    baseAngle: (i / 16) * (Math.PI * 0.75) - 0.15,
+                    baseAngle: (i / 12) * (Math.PI * 0.75) - 0.15,
                     spread: 0.04 + Math.random() * 0.07,
-                    length: 1500 + Math.random() * 700,
-                    alpha: 0.025 + Math.random() * 0.035, 
-                    speed: (Math.random() * 0.0004 + 0.0001) * (i % 2 === 0 ? 1 : -1),
+                    length: len,
+                    grad: rayGrad,
                     phase: Math.random() * Math.PI * 2
                 });
             }
 
-            for (let i = 0; i < 20; i++) {
+            for (let i = 0; i < 15; i++) {
                 sunParticles.push({
                     x: Math.random() * 1920,
                     y: Math.random() * 1080,
                     r: Math.random() * 3 + 1,
-                    vx: Math.random() * 0.3 + 0.1,
-                    vy: (Math.random() - 0.5) * 0.2,
+                    vx: Math.random() * 0.5 + 0.15,
+                    vy: (Math.random() - 0.5) * 0.3,
                     alpha: Math.random() * 0.25 + 0.05,
                     phase: Math.random() * Math.PI * 2
                 });
@@ -372,22 +412,17 @@
         }
         initSun();
 
-        function drawPolygonHex(ctx, x, y, radius, rotation) {
-            ctx.beginPath();
-            for (let i = 0; i < 6; i++) {
-                const a = rotation + (i * Math.PI) / 3;
-                const px = x + Math.cos(a) * radius;
-                const py = y + Math.sin(a) * radius;
-                if (i === 0) ctx.moveTo(px, py);
-                else ctx.lineTo(px, py);
-            }
-            ctx.closePath();
-        }
-
-        function drawSun() {
+        function drawSun(timestamp = 0) {
             if (!sunActive) return;
-            sunCtx.clearRect(0, 0, sunCanvas.width, sunCanvas.height);
-            sunTime += 0.015;
+            if (timestamp - lastSunFrame < 33) {
+                sunAnimId = requestAnimationFrame(drawSun);
+                return;
+            }
+            lastSunFrame = timestamp;
+
+            sunCtx.setTransform(0.5, 0, 0, 0.5, 0, 0);
+            sunCtx.clearRect(0, 0, 1920, 1080);
+            sunTime += 0.03;
 
             const sunX = 110;
             const sunY = 75;
@@ -395,25 +430,12 @@
             sunCtx.save();
             sunCtx.globalCompositeOperation = 'lighter';
 
-            const pulse = Math.sin(sunTime) * 30;
-            const ambGrad = sunCtx.createRadialGradient(sunX, sunY, 10, sunX, sunY, 800 + pulse);
-            ambGrad.addColorStop(0, 'rgba(255, 245, 200, 0.45)');
-            ambGrad.addColorStop(0.2, 'rgba(255, 195, 80, 0.2)');
-            ambGrad.addColorStop(0.5, 'rgba(255, 140, 30, 0.05)');
-            ambGrad.addColorStop(1, 'rgba(255, 100, 0, 0)');
-            sunCtx.fillStyle = ambGrad;
-            sunCtx.fillRect(0, 0, sunCanvas.width, sunCanvas.height);
+            sunCtx.fillStyle = cachedAmbGrad;
+            sunCtx.fillRect(0, 0, 1920, 1080);
 
             sunRays.forEach(ray => {
                 const currentAngle = ray.baseAngle + Math.sin(sunTime * 0.6 + ray.phase) * 0.05;
-                const currentAlpha = ray.alpha * (0.7 + 0.3 * Math.sin(sunTime * 1.1 + ray.phase));
-
-                const rayGrad = sunCtx.createRadialGradient(sunX, sunY, 20, sunX, sunY, ray.length);
-                rayGrad.addColorStop(0, `rgba(255, 240, 180, ${currentAlpha * 1.4})`);
-                rayGrad.addColorStop(0.4, `rgba(255, 210, 110, ${currentAlpha})`);
-                rayGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
-
-                sunCtx.fillStyle = rayGrad;
+                sunCtx.fillStyle = ray.grad;
                 sunCtx.beginPath();
                 sunCtx.moveTo(sunX, sunY);
                 sunCtx.arc(sunX, sunY, ray.length, currentAngle - ray.spread, currentAngle + ray.spread);
@@ -421,12 +443,7 @@
                 sunCtx.fill();
             });
 
-            const coreGrad = sunCtx.createRadialGradient(sunX, sunY, 5, sunX, sunY, 220);
-            coreGrad.addColorStop(0, 'rgba(255, 255, 255, 0.95)');
-            coreGrad.addColorStop(0.25, 'rgba(255, 240, 190, 0.8)');
-            coreGrad.addColorStop(0.55, 'rgba(255, 190, 80, 0.3)');
-            coreGrad.addColorStop(1, 'rgba(255, 150, 30, 0)');
-            sunCtx.fillStyle = coreGrad;
+            sunCtx.fillStyle = cachedCoreGrad;
             sunCtx.beginPath();
             sunCtx.arc(sunX, sunY, 220, 0, Math.PI * 2);
             sunCtx.fill();
@@ -458,21 +475,22 @@
         let splashes = [];
         let rainAnimId = null;
         let rainActive = false;
+        let lastRainFrame = 0;
 
         let lightningTimer = null;
         let activeBolt = null;
 
         function initRain() {
-            rainCanvas.width = 1920;
-            rainCanvas.height = 1080;
+            rainCanvas.width = 960;
+            rainCanvas.height = 540;
             drops = [];
             splashes = [];
-            for(let i=0; i<180; i++) {
+            for(let i=0; i<120; i++) {
                 drops.push({
-                    x: Math.random() * rainCanvas.width,
-                    y: Math.random() * rainCanvas.height,
-                    l: Math.random() * 20 + 10,
-                    v: Math.random() * 15 + 20,
+                    x: Math.random() * 1920,
+                    y: Math.random() * 1080,
+                    l: Math.random() * 20 + 12,
+                    v: Math.random() * 22 + 28,
                     z: Math.random() 
                 });
             }
@@ -572,9 +590,16 @@
             if (bgClimaEl) bgClimaEl.classList.remove('trovao-ativo');
         }
 
-        function drawRain() {
+        function drawRain(timestamp = 0) {
             if(!rainActive) return;
-            ctx.clearRect(0, 0, rainCanvas.width, rainCanvas.height);
+            if (timestamp - lastRainFrame < 33) {
+                rainAnimId = requestAnimationFrame(drawRain);
+                return;
+            }
+            lastRainFrame = timestamp;
+
+            ctx.setTransform(0.5, 0, 0, 0.5, 0, 0);
+            ctx.clearRect(0, 0, 1920, 1080);
             ctx.lineCap = 'round';
 
             if (isStorm && activeBolt && activeBolt.alpha > 0.02) {
@@ -582,7 +607,7 @@
                 ctx.strokeStyle = `rgba(235, 245, 255, ${activeBolt.alpha})`;
                 ctx.lineWidth = 3.2;
                 ctx.shadowColor = 'rgba(140, 190, 255, 0.95)';
-                ctx.shadowBlur = 22;
+                ctx.shadowBlur = 18;
 
                 ctx.beginPath();
                 activeBolt.main.forEach((pt, idx) => {
@@ -602,18 +627,10 @@
                 });
                 ctx.restore();
 
-                activeBolt.alpha -= 0.07;
+                activeBolt.alpha -= 0.12;
             }
 
-            const cards = document.querySelectorAll('.card-dia');
-            const cardRects = Array.from(cards).map(c => {
-                const rect = c.getBoundingClientRect();
-                return {
-                    top: (rect.top - (window.innerHeight - 1080 * currentScaleY) / 2) / currentScaleY,
-                    left: (rect.left - (window.innerWidth - 1920 * currentScaleX) / 2) / currentScaleX,
-                    right: (rect.right - (window.innerWidth - 1920 * currentScaleX) / 2) / currentScaleX
-                };
-            });
+            if (cachedCardRects.length === 0) atualizarCacheCards();
 
             for (let i = splashes.length - 1; i >= 0; i--) {
                 let s = splashes[i];
@@ -622,8 +639,8 @@
                 ctx.strokeStyle = `rgba(255, 255, 255, ${s.a})`;
                 ctx.lineWidth = 1;
                 ctx.stroke();
-                s.r += 1.2;
-                s.a -= 0.08;
+                s.r += 2.0;
+                s.a -= 0.14;
                 if (s.a <= 0) splashes.splice(i, 1);
             }
 
@@ -640,8 +657,9 @@
                 d.y += d.v;
 
                 let hit = false;
-                if(d.z > 0.4) { 
-                    for(let rect of cardRects) {
+                if(d.z > 0.4 && splashes.length < 40) { 
+                    for(let j = 0; j < cachedCardRects.length; j++) {
+                        let rect = cachedCardRects[j];
                         if (d.x > rect.left && d.x < rect.right && d.y + d.l > rect.top && d.y - d.v <= rect.top) {
                             hit = true;
                             splashes.push({x: d.x, y: rect.top, r: 2, a: 0.6});
@@ -650,10 +668,10 @@
                     }
                 }
 
-                if (hit || d.y > rainCanvas.height) {
+                if (hit || d.y > 1080) {
                     d.y = -20;
-                    d.x = Math.random() * rainCanvas.width;
-                    d.v = Math.random() * 15 + 20;
+                    d.x = Math.random() * 1920;
+                    d.v = Math.random() * 22 + 28;
                 }
             }
             rainAnimId = requestAnimationFrame(drawRain);
@@ -686,8 +704,10 @@
                 }
 
                 if (isStorm) {
-                    dispararTrovao();
-                    agendarProximoTrovao();
+                    if (!lightningTimer) {
+                        dispararTrovao();
+                        agendarProximoTrovao();
+                    }
                 } else {
                     pararTrovoes();
                 }
@@ -734,7 +754,6 @@
         let timerCarregamento = null;
         let timerExibicao = null;
         let toggleImgLayer = 1;
-        let chaveComExibido = null;
 
         const camadaClima = document.getElementById('camadaClima');
         const camadaImagem1 = document.getElementById('camadaImagem1');
@@ -745,10 +764,8 @@
         const textoDoComunicado = document.getElementById('textoDoComunicado');
         const aguardando = document.getElementById('aguardando');
         const barraProgresso = document.getElementById('barraProgresso');
-        const barraProgressoContainer = document.getElementById('barraProgressoContainer');
 
-        onSnapshot(doc(db, "controle_tv", "status_clima"), (docSnap) => {
-            const antes = mostrarClimaNaTV;
+        onSnapshot(doc(db, "controle_tv", "status_clima"), (docSnap) => { 
             if(docSnap.exists()) {
                 mostrarClimaNaTV = docSnap.data().mostrar_clima !== false;
                 modoClima = docSnap.data().clima_manual || docSnap.data().modo_clima || 'auto';
@@ -757,15 +774,6 @@
                 modoClima = 'auto';
             }
             aplicarClimaFundo(modoClima === 'auto' ? climaAutomatico : modoClima);
-            if (loopRodando && antes !== mostrarClimaNaTV) {
-                if (!mostrarClimaNaTV && camadaClima.classList.contains('visivel')) {
-                    proximaAcao = 'COMS';
-                    decidirProximo();
-                } else if (mostrarClimaNaTV) {
-                    chaveComExibido = null;
-                    decidirProximo();
-                }
-            }
         });
 
         onSnapshot(doc(db, "controle_tv", "status"), (docSnap) => { if(docSnap.exists()) mostrarFotosNaTV = docSnap.data().mostrar_fotos; });
@@ -862,12 +870,15 @@
         }
 
         function transitarPara(novaCamada) {
+            const jaVisivel = novaCamada && novaCamada.classList.contains('visivel');
             const camadas = [camadaClima, camadaImagem1, camadaImagem2, camadaVideo, camadaTexto];
             camadas.forEach(c => {
                 if (c === novaCamada) {
-                    c.classList.remove('escondido');
-                    c.classList.add('visivel');
-                    c.style.zIndex = "2";
+                    if (!jaVisivel) {
+                        c.classList.remove('escondido');
+                        c.classList.add('visivel');
+                        c.style.zIndex = "2";
+                    }
                 } else {
                     if (c.classList.contains('visivel')) {
                         c.classList.remove('visivel');
@@ -884,24 +895,24 @@
                                 }
                             }, 800);
                         }
+                        if (c === camadaImagem1 || c === camadaImagem2) {
+                            const imgInativa = c.querySelector('img');
+                            setTimeout(() => {
+                                if (!c.classList.contains('visivel') && imgInativa) {
+                                    imgInativa.removeAttribute('src');
+                                }
+                            }, 900);
+                        }
                     }
                 }
             });
 
-            if (novaCamada === camadaClima || novaCamada === null) {
-                chaveComExibido = null;
+            if (!jaVisivel) {
+                atualizarMotoresClima();
             }
-
-            atualizarMotoresClima();
 
             if (novaCamada !== camadaImagem1 && novaCamada !== camadaImagem2) { document.getElementById('numeroDiscreto').style.opacity = 0; }
             aguardando.style.display = "none";
-        }
-
-        function ehModoEstaticoUnico() {
-            let temFotos = mostrarFotosNaTV && fotosAprovadas.length > 0;
-            let podeExibirClima = mostrarClimaNaTV && dadosClimaProntos;
-            return (!podeExibirClima && !temFotos && comunicadosAtivos.length === 1);
         }
 
         function decidirProximo() {
@@ -917,11 +928,8 @@
             let podeExibirClima = mostrarClimaNaTV && dadosClimaProntos;
 
             if (!podeExibirClima && !temComs && !temFotos) {
-                barraProgressoContainer.style.display = 'none';
                 aguardando.style.display = "block"; transitarPara(null); setTimeout(decidirProximo, 2000); return;
             }
-
-            barraProgressoContainer.style.display = ehModoEstaticoUnico() ? 'none' : 'block';
 
             if (proximaAcao === 'CLIMA') {
                 if (podeExibirClima) { proximaAcao = temComs ? 'COMS' : (temFotos ? 'FOTOS' : 'CLIMA'); renderizarClima(); } 
@@ -954,11 +962,8 @@
             indexCom = (indexCom + 1) >= comunicadosAtivos.length ? 0 : (indexCom + 1);
             const com = comunicadosAtivos[indexCom];
             let tempoTextoArte = obterTempoValido(com.tempo_exibicao);
-            const chaveAtual = com.id + '_' + (com.url_imagem || com.url_video || com.texto || '');
-            const estatico = ehModoEstaticoUnico();
 
             if (com.tipo === 'video' || com.url_video) {
-                chaveComExibido = chaveAtual;
                 videoPainel.onloadedmetadata = null;
                 videoPainel.onerror = null;
                 videoPainel.src = com.url_video;
@@ -975,7 +980,7 @@
                     if (!duracao || isNaN(duracao) || duracao === Infinity) duracao = 15000;
                     transitarPara(camadaVideo);
                     videoPainel.play().catch(e => console.log(e));
-                    if (!estatico) animarBarra(duracao);
+                    animarBarra(duracao);
                     timerExibicao = setTimeout(() => {
                         videoPainel.onerror = null;
                         decidirProximo();
@@ -987,46 +992,33 @@
                     videoPainel.onerror = null;
                     setTimeout(decidirProximo, 1000);
                 };
-            } else if (com.tipo === 'imagem' || com.url_imagem) {
-                if (estatico && chaveComExibido === chaveAtual && (camadaImagem1.classList.contains('visivel') || camadaImagem2.classList.contains('visivel'))) {
-                    timerExibicao = setTimeout(() => { decidirProximo(); }, tempoTextoArte);
-                    return;
-                }
-
+            } else if (com.tipo === 'imagem' || com.url_imagem) { 
                 toggleImgLayer = toggleImgLayer === 1 ? 2 : 1;
                 const camadaAtual = toggleImgLayer === 1 ? camadaImagem1 : camadaImagem2;
                 const imgAtual = document.getElementById('imgPainel' + toggleImgLayer);
                 const molduraAtual = document.getElementById('molduraFoto' + toggleImgLayer);
                 const nomePanelAtual = document.getElementById('nomePainel' + toggleImgLayer);
                 
-                const imgPreload = new Image();
-                timerCarregamento = setTimeout(() => { decidirProximo(); }, 8000); 
+                let imgPreload = new Image();
+                timerCarregamento = setTimeout(() => { imgPreload = null; decidirProximo(); }, 8000); 
 
                 imgPreload.onload = () => {
                     clearTimeout(timerCarregamento);
-                    chaveComExibido = chaveAtual;
                     imgAtual.classList.add('modo-arte'); imgAtual.src = com.url_imagem || com.url_thumb;
                     molduraAtual.style.display = 'none'; nomePanelAtual.style.display = 'none'; document.getElementById('numeroDiscreto').style.opacity = 0;
                     transitarPara(camadaAtual);
-                    if (!estatico) animarBarra(tempoTextoArte);
-                    timerExibicao = setTimeout(() => { decidirProximo(); }, tempoTextoArte); 
+                    animarBarra(tempoTextoArte); timerExibicao = setTimeout(() => { decidirProximo(); }, tempoTextoArte);
+                    imgPreload = null;
                 };
-                imgPreload.onerror = () => { clearTimeout(timerCarregamento); setTimeout(decidirProximo, 1000); };
+                imgPreload.onerror = () => { clearTimeout(timerCarregamento); imgPreload = null; setTimeout(decidirProximo, 1000); };
                 imgPreload.src = com.url_imagem || com.url_thumb;
-            } else {
-                if (estatico && chaveComExibido === chaveAtual && camadaTexto.classList.contains('visivel')) {
-                    timerExibicao = setTimeout(() => { decidirProximo(); }, tempoTextoArte);
-                    return;
-                }
-                chaveComExibido = chaveAtual;
+            } else { 
                 textoDoComunicado.innerText = com.texto; transitarPara(camadaTexto);
-                if (!estatico) animarBarra(tempoTextoArte);
-                timerExibicao = setTimeout(decidirProximo, tempoTextoArte); 
+                animarBarra(tempoTextoArte); timerExibicao = setTimeout(decidirProximo, tempoTextoArte); 
             }
         }
 
         function renderizarFoto() {
-            chaveComExibido = null;
             indexFoto = (indexFoto + 1) >= fotosAprovadas.length ? 0 : (indexFoto + 1); 
             const fotoDaVez = fotosAprovadas[indexFoto];
             localStorage.setItem('fcv_ultimo', fotoDaVez.numeroFila);
@@ -1040,8 +1032,8 @@
             const lblNomeAtual = document.getElementById('lblNome' + toggleImgLayer);
             const lblSetorAtual = document.getElementById('lblSetor' + toggleImgLayer);
 
-            const imgPreload = new Image();
-            timerCarregamento = setTimeout(() => { decidirProximo(); }, 8000); 
+            let imgPreload = new Image();
+            timerCarregamento = setTimeout(() => { imgPreload = null; decidirProximo(); }, 8000); 
             
             imgPreload.onload = () => {
                 clearTimeout(timerCarregamento); fotosExibidasNoCiclo++; localStorage.setItem('fcv_ciclo', fotosExibidasNoCiclo);
@@ -1054,8 +1046,9 @@
 
                 transitarPara(camadaAtual);
                 animarBarra(7000); timerExibicao = setTimeout(() => { decidirProximo(); }, 7000);
+                imgPreload = null;
             };
-            imgPreload.onerror = () => { clearTimeout(timerCarregamento); setTimeout(decidirProximo, 1000); };
+            imgPreload.onerror = () => { clearTimeout(timerCarregamento); imgPreload = null; setTimeout(decidirProximo, 1000); };
             imgPreload.src = fotoDaVez.url_imagem || fotoDaVez.url_thumb;
         }
     </script>
