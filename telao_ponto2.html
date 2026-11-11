@@ -24,6 +24,8 @@
         .tv-scale-box { width: 1920px; height: 1080px; position: absolute; top: 50%; left: 50%; transform-origin: center center; background-color: #000; }
         #btnFullscreen { position: fixed; top: 20px; right: 20px; z-index: 99999; background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.5); padding: 10px 15px; border-radius: 8px; cursor: pointer; font-family: 'Montserrat', sans-serif; font-weight: 600; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); transition: 0.3s; }
         #btnFullscreen:hover { background: rgba(255,255,255,0.4); }
+        #btnInstalarPWA { position: fixed; top: 20px; right: 140px; z-index: 99999; background: rgba(46, 204, 113, 0.35); color: white; border: 1px solid rgba(46, 204, 113, 0.8); padding: 10px 15px; border-radius: 8px; cursor: pointer; font-family: 'Montserrat', sans-serif; font-weight: 600; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); transition: 0.3s; }
+        #btnInstalarPWA:hover { background: rgba(46, 204, 113, 0.6); }
         .marca-dagua { position: absolute; top: 25px; right: 40px; width: 200px; opacity: 0.7; z-index: 9990; pointer-events: none; }
         #relogioTV { position: absolute; bottom: 40px; right: 40px; background: rgba(255, 255, 255, 0.5); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.4); box-shadow: 0 4px 15px rgba(0,0,0,0.3); border-radius: 12px; color: #224387; padding: 10px 25px; text-align: center; font-size: 32px; font-weight: 700; letter-spacing: 2px; z-index: 9990; pointer-events: none; }
         body[data-transicao="fade"] .container-master { transition: opacity 0.8s ease; }
@@ -120,6 +122,7 @@
 
     <audio id="radioFCV" src="https://stm17.srvstm.com:6944/stream" preload="none" crossorigin="anonymous"></audio>
 
+    <button id="btnInstalarPWA">Instalar App</button>
     <button id="btnFullscreen">Tela Cheia</button>
 
     <div id="viewportWrapper">
@@ -169,7 +172,7 @@
             </div>
 
             <div class="container-master escondido" id="camadaVideo">
-                <video id="videoPainel" class="modo-arte" src="" playsinline muted></video>
+                <video id="videoPainel" class="modo-arte" src="" preload="metadata" playsinline muted></video>
             </div>
             <div class="container-master escondido" id="camadaTexto">
                 <div id="containerTexto">
@@ -197,12 +200,45 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        document.getElementById('btnFullscreen').addEventListener('click', () => {
+        let eventoInstalacaoPWA = null;
+        const btnInstalarPWA = document.getElementById('btnInstalarPWA');
+        const btnFullscreen = document.getElementById('btnFullscreen');
+
+        if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
+            btnInstalarPWA.style.display = 'none';
+        }
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            eventoInstalacaoPWA = e;
+            btnInstalarPWA.style.display = 'block';
+        });
+
+        btnInstalarPWA.addEventListener('click', async () => {
+            btnInstalarPWA.style.display = 'none';
+            const radio = document.getElementById('radioFCV');
+            radio.play().catch(e => console.log(e));
+            if (eventoInstalacaoPWA) {
+                eventoInstalacaoPWA.prompt();
+                await eventoInstalacaoPWA.userChoice;
+                eventoInstalacaoPWA = null;
+            } else {
+                alert("Para fixar na TV: abra o menu de 3 pontinhos do navegador (canto superior direito) e clique em 'Instalar aplicativo' ou 'Adicionar à tela inicial'.");
+            }
+        });
+
+        window.addEventListener('appinstalled', () => {
+            btnInstalarPWA.style.display = 'none';
+            eventoInstalacaoPWA = null;
+        });
+
+        btnFullscreen.addEventListener('click', () => {
+            btnInstalarPWA.style.display = 'none';
             const radio = document.getElementById('radioFCV');
             radio.play().catch(e => console.log(e));
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen().catch(err => console.log(err));
-                document.getElementById('btnFullscreen').style.display = 'none'; 
+                btnFullscreen.style.display = 'none'; 
             }
         });
 
@@ -765,6 +801,36 @@
         const aguardando = document.getElementById('aguardando');
         const barraProgresso = document.getElementById('barraProgresso');
 
+        function otimizarUrlVideo(url) {
+            if (!url) return "";
+            if (url.includes("cloudinary.com") && url.includes("/video/upload/") && !url.includes("q_auto")) {
+                return url.replace("/video/upload/", "/video/upload/f_mp4,vc_h264,q_auto:eco,w_1280,br_2000k/");
+            }
+            return url;
+        }
+
+        function limparCacheMorto() {
+            if ('caches' in window) {
+                caches.keys().then(function(names) {
+                    for (let name of names) caches.delete(name);
+                });
+            }
+            if (!camadaVideo.classList.contains('visivel')) {
+                videoPainel.pause();
+                videoPainel.removeAttribute('src');
+                videoPainel.load();
+            }
+            if (!camadaImagem1.classList.contains('visivel')) {
+                const img1 = document.getElementById('imgPainel1');
+                if (img1) img1.removeAttribute('src');
+            }
+            if (!camadaImagem2.classList.contains('visivel')) {
+                const img2 = document.getElementById('imgPainel2');
+                if (img2) img2.removeAttribute('src');
+            }
+        }
+        setInterval(limparCacheMorto, 1200000);
+
         onSnapshot(doc(db, "controle_tv", "status_clima"), (docSnap) => { 
             if(docSnap.exists()) {
                 mostrarClimaNaTV = docSnap.data().mostrar_clima !== false;
@@ -966,7 +1032,19 @@
             if (com.tipo === 'video' || com.url_video) {
                 videoPainel.onloadedmetadata = null;
                 videoPainel.onerror = null;
-                videoPainel.src = com.url_video;
+                const urlLeve = otimizarUrlVideo(com.url_video);
+                
+                if (camadaVideo.classList.contains('visivel') && videoPainel.src === urlLeve) {
+                    let duracao = videoPainel.duration * 1000;
+                    if (!duracao || isNaN(duracao) || duracao === Infinity) duracao = 15000;
+                    videoPainel.currentTime = 0;
+                    videoPainel.play().catch(e => console.log(e));
+                    animarBarra(duracao);
+                    timerExibicao = setTimeout(() => { decidirProximo(); }, duracao);
+                    return;
+                }
+
+                videoPainel.src = urlLeve;
                 timerCarregamento = setTimeout(() => {
                     videoPainel.onloadedmetadata = null;
                     videoPainel.onerror = null;
