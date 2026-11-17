@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Painel Festa FCV</title>
+    <meta name="theme-color" content="#000000">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <script>
+        if ('caches' in window) {
+            caches.keys().then(function(names) {
+                for (let name of names) caches.delete(name);
+            });
+        }
+    </script>
+    <style>
+        body { margin: 0; padding: 0; background-color: #000; color: white; font-family: 'Montserrat', sans-serif; overflow: hidden; }
+        #viewportWrapper { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; overflow: hidden; display: flex; justify-content: center; align-items: center; }
+        .tv-scale-box { width: 1080px; height: 1440px; position: absolute; top: 50%; left: 50%; transform-origin: center center; background-color: #111; overflow: hidden; box-shadow: 0 0 50px rgba(0,0,0,0.8); }
+        #btnFullscreen { position: fixed; top: 20px; right: 20px; z-index: 99999; background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.5); padding: 10px 15px; border-radius: 8px; cursor: pointer; font-weight: 600; backdrop-filter: blur(10px); transition: 0.3s; }
+        #btnFullscreen:hover { background: rgba(255,255,255,0.4); }
+        .camada-fundo, .camada-sobreposicao { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
+        .camada-fundo { z-index: 1; }
+        .camada-sobreposicao { z-index: 10; }
+        .camada-fotos { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; display: flex; justify-content: center; align-items: center; }
+        .foto-display { position: absolute; width: 100%; height: 100%; object-fit: contain; transition: opacity 1s ease-in-out; opacity: 1; }
+        .escondido { opacity: 0 !important; }
+        #aguardando { position: absolute; z-index: 20; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 24px; color: #fff; background: rgba(0,0,0,0.6); padding: 20px 40px; border-radius: 12px; backdrop-filter: blur(10px); display: none; }
+    </style>
+</head>
+<body>
+
+    <button id="btnFullscreen">Tela Cheia</button>
+
+    <div id="viewportWrapper">
+        <div class="tv-scale-box" id="tvScaleBox">
+            <img id="bgImg" class="camada-fundo" src="">
+            <div class="camada-fotos">
+                <img id="fotoA" class="foto-display" src="">
+                <img id="fotoB" class="foto-display escondido" src="">
+            </div>
+            <img id="overlayImg" class="camada-sobreposicao" src="">
+            <div id="aguardando">Aguardando fotos...</div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+        import { getFirestore, collection, query, where, onSnapshot, doc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyB8ZK0jSY-1E9y90TLfznxi9PI8mf_bJuc",
+            authDomain: "festadafirmafcv.firebaseapp.com",
+            projectId: "festadafirmafcv",
+            storageBucket: "festadafirmafcv.firebasestorage.app",
+            messagingSenderId: "930815464098",
+            appId: "1:930815464098:web:890c2300a6e1a79abd3dfb"
+        };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const btnFullscreen = document.getElementById('btnFullscreen');
+        btnFullscreen.addEventListener('click', () => {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => console.log(err));
+                btnFullscreen.style.display = 'none';
+            }
+        });
+
+        const scaleBox = document.getElementById('tvScaleBox');
+        function ajustarEscala() {
+            const scaleX = window.innerWidth / 1080;
+            const scaleY = window.innerHeight / 1440;
+            const scale = Math.min(scaleX, scaleY);
+            scaleBox.style.transform = `translate(-50%, -50%) scale(${scale})`;
+        }
+        window.addEventListener('resize', ajustarEscala);
+        ajustarEscala();
+
+        const bgImg = document.getElementById('bgImg');
+        const overlayImg = document.getElementById('overlayImg');
+        const fotoA = document.getElementById('fotoA');
+        const fotoB = document.getElementById('fotoB');
+        const aguardando = document.getElementById('aguardando');
+
+        let fotosAtivas = [];
+        let indiceAtual = -1;
+        let toggleFoto = 'A';
+        let timerLoop = null;
+
+        onSnapshot(doc(db, "config_festa", "visual"), (docSnap) => {
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                if (data.url_bg && bgImg.src !== data.url_bg) bgImg.src = data.url_bg;
+                if (data.url_overlay && overlayImg.src !== data.url_overlay) overlayImg.src = data.url_overlay;
+            }
+        });
+
+        onSnapshot(query(collection(db, "fotos_festa"), where("status", "==", "aprovado")), (snapshot) => {
+            const novasFotos = [];
+            snapshot.forEach(doc => novasFotos.push(doc.data()));
+            novasFotos.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+            fotosAtivas = novasFotos;
+
+            if (fotosAtivas.length === 0) {
+                aguardando.style.display = 'block';
+                fotoA.classList.add('escondido');
+                fotoB.classList.add('escondido');
+                clearTimeout(timerLoop);
+                timerLoop = null;
+            } else {
+                aguardando.style.display = 'none';
+                if (!timerLoop) rodarProximaFoto();
+            }
+        });
+
+        function rodarProximaFoto() {
+            if (fotosAtivas.length === 0) return;
+            
+            indiceAtual++;
+            if (indiceAtual >= fotosAtivas.length) indiceAtual = 0;
+
+            const proxFoto = fotosAtivas[indiceAtual];
+            const imgUrl = proxFoto.url_imagem || proxFoto.url_thumb;
+
+            const imgPreload = new Image();
+            imgPreload.onload = () => {
+                if (toggleFoto === 'A') {
+                    fotoB.src = imgUrl;
+                    fotoB.classList.remove('escondido');
+                    fotoA.classList.add('escondido');
+                    toggleFoto = 'B';
+                    setTimeout(() => { fotoA.removeAttribute('src'); }, 1200);
+                } else {
+                    fotoA.src = imgUrl;
+                    fotoA.classList.remove('escondido');
+                    fotoB.classList.add('escondido');
+                    toggleFoto = 'A';
+                    setTimeout(() => { fotoB.removeAttribute('src'); }, 1200);
+                }
+                timerLoop = setTimeout(rodarProximaFoto, 8000);
+            };
+            imgPreload.onerror = () => { timerLoop = setTimeout(rodarProximaFoto, 2000); };
+            imgPreload.src = imgUrl;
+        }
+    </script>
+</body>
+</html>
