@@ -227,6 +227,17 @@
                     svg.style.transform = 'rotate(0deg)';
                 }
             });
+
+            document.getElementById('btnAccordionRankingFesta').addEventListener('click', function() {
+                const content = document.getElementById('rankingSetoresFesta');
+                const svg = this.querySelector('svg');
+                content.classList.toggle('active');
+                if (content.classList.contains('active')) {
+                    svg.style.transform = 'rotate(180deg)';
+                } else {
+                    svg.style.transform = 'rotate(0deg)';
+                }
+            });
         });
 
         function abrirModal(url, isVideo = false) { 
@@ -304,6 +315,7 @@
         <h1 id="tituloPrincipal">Moderação TV FCV</h1>
         <p id="subtituloPrincipal">Gerencie os comunicados e as mídias da TV.</p>
 
+        <!-- SEÇÃO MODO FESTA -->
         <div id="secaoFesta" class="secao-admin">
             
             <div class="glass-panel" style="max-width: 800px; margin: 0 auto 25px auto;">
@@ -370,6 +382,23 @@
                 </div>
                 <p id="lblUploadStatus" style="font-size: 11px; color: #2ecc71; margin: 5px 0 0 0; display: none;">Upload concluído com sucesso!</p>
             </div>
+            
+            <div class="painel-estatisticas" style="max-width: 800px;">
+                <div class="estatisticas-linha">
+                    <span class="contador-total">Total Enviadas: <span id="lblTotalFesta">0</span></span>
+                    <span class="contador-pendentes">Aguardando: <span id="lblPendentesFesta">0</span></span>
+                    <span class="contador-aprovadas">No Telão: <span id="lblAprovadasFesta">0</span></span>
+                </div>
+                <div class="ranking-container">
+                    <div class="accordion-header" id="btnAccordionRankingFesta">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        Top Setores Engajados (Festa)
+                    </div>
+                    <div id="rankingSetoresFesta" class="ranking-lista accordion-content">
+                        <span style='color:#7f8c8d; font-size:12px;'>Calculando...</span>
+                    </div>
+                </div>
+            </div>
 
             <h2 class="titulo-festa">Aguardando Aprovação (<span id="countPendentesFesta">0</span>)</h2>
             <div class="grid-fotos" id="listaPendentesFesta" style="max-width: 800px; margin: 0 auto;"></div>
@@ -378,6 +407,7 @@
             <div class="grid-fotos" id="listaAprovadasFesta" style="max-width: 800px; margin: 0 auto;"></div>
         </div>
 
+        <!-- SEÇÃO NORMAL (DIA A DIA) -->
         <div id="secaoNormal" class="secao-admin">
             <h2 class="comunicado-titulo">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
@@ -520,7 +550,7 @@
     
     <div class="rodape-assinatura" style="display:flex; justify-content:center; margin-top: 30px; margin-bottom: 20px;">
         <a href="https://www.instagram.com/althierestm" target="_blank">
-            <img src="MKTFCV.png" alt="MKT FCV" style="width: 130px; opacity: 0.5;">
+            <img src="MKTFCV.png" alt="MKT FCV" style="width: 130px; opacity: 0.5; transition: opacity 0.3s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.5">
         </a>
     </div>
 
@@ -556,6 +586,32 @@
             const chkModeracaoFesta = document.getElementById('chkModeracaoFesta');
 
             let bloqueioAprovacaoFesta = false;
+            let qtdPendentesFesta = 0; let qtdAprovadasFesta = 0;
+            let fotosFestaPendentes = []; let fotosFestaAprovadas = [];
+
+            function atualizarContadoresFesta() {
+                document.getElementById('lblTotalFesta').innerText = qtdPendentesFesta + qtdAprovadasFesta;
+                document.getElementById('lblPendentesFesta').innerText = qtdPendentesFesta;
+                document.getElementById('lblAprovadasFesta').innerText = qtdAprovadasFesta;
+            }
+
+            function calcularRankingFesta() {
+                let contagem = {};
+                const todasAsFotos = [...fotosFestaPendentes, ...fotosFestaAprovadas];
+                todasAsFotos.forEach(foto => {
+                    let setorCru = foto.setor || "";
+                    if (setorCru.trim() === "") setorCru = "Não Informado";
+                    let setorNorm = setorCru.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9\s]/g, "");
+                    if (!contagem[setorNorm]) contagem[setorNorm] = { label: setorCru === "Não Informado" ? setorCru : setorCru.trim(), count: 0 };
+                    contagem[setorNorm].count++;
+                });
+                let ranking = Object.values(contagem).sort((a, b) => b.count - a.count);
+                const divRanking = document.getElementById('rankingSetoresFesta');
+                if (ranking.length === 0) return divRanking.innerHTML = "<span style='color:#7f8c8d; font-size:12px;'>Nenhum dado captado...</span>";
+                let html = "";
+                ranking.forEach(item => { html += `<span class="badge-setor">${item.label} <b>${item.count}</b></span>`; });
+                divRanking.innerHTML = html;
+            }
 
             const unsubModeracao = onSnapshot(doc(db, "config_festa", "moderacao"), (docSnap) => {
                 if(docSnap.exists()) chkModeracaoFesta.checked = docSnap.data().ativa !== false;
@@ -606,18 +662,19 @@
             const renderizarCardFesta = (dados, id, ehPendente) => {
                 const urlImagem = dados.url_thumb || dados.url_imagem;
                 const numeroExibicao = dados.numeroFila ? dados.numeroFila : "-";
+                const setor = dados.setor ? dados.setor : "Sem setor";
                 
                 let botoes = ehPendente ? 
                     `<button class="btn-ver" onclick="abrirModal('${dados.url_imagem}')">Ver</button><button class="btn-aprovar" onclick="atualizarStatusFesta('${id}', 'aprovado')">Aprovar</button><button class="btn-apagar" onclick="excluirFotoFesta('${id}')">Apagar</button>` : 
                     `<button class="btn-ver" onclick="abrirModal('${dados.url_imagem}')">Ver</button><button class="btn-apagar" onclick="excluirFotoFesta('${id}')">Remover</button>`;
                 
                 const card = document.createElement('div'); card.className = 'card';
-                card.innerHTML = `<div class="badge-numero">${numeroExibicao}</div><img src="${urlImagem}" loading="lazy"><div class="btn-group">${botoes}</div>`;
+                card.innerHTML = `<div class="badge-numero">${numeroExibicao}</div><img src="${urlImagem}" loading="lazy"><div class="nome" title="${dados.nome}">${dados.nome}</div><div class="setor" title="${setor}">${setor}</div><div class="btn-group">${botoes}</div>`;
                 return card;
             };
 
             const unsub1 = onSnapshot(query(collection(db, "fotos_festa"), where("status", "==", "pendente")), (snapshot) => {
-                listaPendentesFesta.innerHTML = ""; document.getElementById('countPendentesFesta').innerText = snapshot.size;
+                listaPendentesFesta.innerHTML = ""; qtdPendentesFesta = snapshot.size; atualizarContadoresFesta(); fotosFestaPendentes = [];
                 
                 const botoesAprovar = document.querySelectorAll('#listaPendentesFesta .btn-aprovar');
                 botoesAprovar.forEach(btn => {
@@ -630,20 +687,22 @@
 
                 if (snapshot.empty) { listaPendentesFesta.innerHTML = "<p class='vazio'>Nenhuma foto pendente.</p>"; } else {
                     const array = [];
-                    snapshot.forEach(doc => array.push({ id: doc.id, ...doc.data() }));
+                    snapshot.forEach(doc => { let d = doc.data(); array.push({ id: doc.id, ...d }); fotosFestaPendentes.push(d); });
                     array.sort((a, b) => (a.numeroFila || 0) - (b.numeroFila || 0)); 
                     array.forEach(dados => listaPendentesFesta.appendChild(renderizarCardFesta(dados, dados.id, true)));
                 }
+                calcularRankingFesta();
             });
 
             const unsub2 = onSnapshot(query(collection(db, "fotos_festa"), where("status", "==", "aprovado")), (snapshot) => {
-                listaAprovadasFesta.innerHTML = ""; document.getElementById('countAprovadasFesta').innerText = snapshot.size;
+                listaAprovadasFesta.innerHTML = ""; qtdAprovadasFesta = snapshot.size; atualizarContadoresFesta(); fotosFestaAprovadas = [];
                 if (snapshot.empty) { listaAprovadasFesta.innerHTML = "<p class='vazio'>Nenhuma foto na tela.</p>"; } else {
                     const array = [];
-                    snapshot.forEach(doc => array.push({ id: doc.id, ...doc.data() }));
+                    snapshot.forEach(doc => { let d = doc.data(); array.push({ id: doc.id, ...d }); fotosFestaAprovadas.push(d); });
                     array.sort((a, b) => (b.numeroFila || 0) - (a.numeroFila || 0)); 
                     array.forEach(dados => listaAprovadasFesta.appendChild(renderizarCardFesta(dados, dados.id, false)));
                 }
+                calcularRankingFesta();
             });
             inscricoesGlobais.push(unsub1, unsub2, unsubTextos, unsubTempo, unsubModeracao);
 
