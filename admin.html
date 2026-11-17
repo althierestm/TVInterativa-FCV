@@ -304,9 +304,19 @@
         <h1 id="tituloPrincipal">Moderação TV FCV</h1>
         <p id="subtituloPrincipal">Gerencie os comunicados e as mídias da TV.</p>
 
-        <!-- SEÇÃO MODO FESTA -->
         <div id="secaoFesta" class="secao-admin">
             
+            <div class="glass-panel" style="max-width: 800px; margin: 0 auto 25px auto;">
+                <div class="text-left" style="margin-bottom: 15px;">
+                    <h3 style="color:#e94560; font-size:18px;">Moderação de Fotos (Festa)</h3>
+                    <p>Se desativado, as fotos enviadas pelos colaboradores irão automaticamente para o telão de LED sem precisar da sua aprovação manual.</p>
+                </div>
+                <label class="ios-switch">
+                    <input type="checkbox" id="chkModeracaoFesta" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+
             <div class="glass-panel" style="max-width: 800px; margin: 0 auto 25px auto;">
                 <h3>Textos do Aplicativo (Celular)</h3>
                 <div class="upload-row">
@@ -368,7 +378,6 @@
             <div class="grid-fotos" id="listaAprovadasFesta" style="max-width: 800px; margin: 0 auto;"></div>
         </div>
 
-        <!-- SEÇÃO NORMAL (DIA A DIA) -->
         <div id="secaoNormal" class="secao-admin">
             <h2 class="comunicado-titulo">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
@@ -508,6 +517,12 @@
         <img id="modalImg" src="" alt="Foto Ampliada">
         <video id="modalVid" controls></video>
     </div>
+    
+    <div class="rodape-assinatura" style="display:flex; justify-content:center; margin-top: 30px; margin-bottom: 20px;">
+        <a href="https://www.instagram.com/althierestm" target="_blank">
+            <img src="MKTFCV.png" alt="MKT FCV" style="width: 130px; opacity: 0.5;">
+        </a>
+    </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
@@ -538,8 +553,18 @@
             const listaAprovadasFesta = document.getElementById('listaAprovadasFesta');
             const lblStatus = document.getElementById('lblUploadStatus');
             const selectTempoFesta = document.getElementById('selectTempoFesta');
+            const chkModeracaoFesta = document.getElementById('chkModeracaoFesta');
 
             let bloqueioAprovacaoFesta = false;
+
+            const unsubModeracao = onSnapshot(doc(db, "config_festa", "moderacao"), (docSnap) => {
+                if(docSnap.exists()) chkModeracaoFesta.checked = docSnap.data().ativa !== false;
+                else chkModeracaoFesta.checked = true;
+            });
+
+            chkModeracaoFesta.onchange = async (e) => {
+                await setDoc(doc(db, "config_festa", "moderacao"), { ativa: e.target.checked }, { merge: true });
+            };
 
             const unsubTextos = onSnapshot(doc(db, "config_festa", "textos"), (docSnap) => {
                 if(docSnap.exists()){
@@ -620,7 +645,7 @@
                     array.forEach(dados => listaAprovadasFesta.appendChild(renderizarCardFesta(dados, dados.id, false)));
                 }
             });
-            inscricoesGlobais.push(unsub1, unsub2, unsubTextos, unsubTempo);
+            inscricoesGlobais.push(unsub1, unsub2, unsubTextos, unsubTempo, unsubModeracao);
 
             window.atualizarStatusFesta = async (id, status) => { 
                 if (status === 'aprovado' && bloqueioAprovacaoFesta) return; 
