@@ -70,8 +70,10 @@
         <p id="subtituloAcao"></p>
 
         <input type="text" id="nomeInput" placeholder="Seu nome (ex: João do Violão)*">
-        <input type="text" id="setorInput" placeholder="Seu setor (ex: TI, Marketing)*">
-        <div class="obs">nome e setor não serão exibidos no painel de LED.</div>
+        <input type="text" id="setorInput" list="listaSetores" placeholder="Seu setor (Selecione na lista)*" autocomplete="off">
+        <datalist id="listaSetores"></datalist>
+
+        <div class="obs">Nome e setor não serão exibidos no painel de LED.</div>
         
         <div class="botoes-acao">
             <button class="btn-acao" id="btnGaleria">Abrir Câmera</button>
@@ -86,13 +88,13 @@
                 <img id="molduraPreview" src="" alt="Moldura">
             </div>
         </div>
-        
-        <label class="termos-uso">
+
+        <button id="btnEnviar">Enviar para o Painel de LED</button>
+
+        <label class="termos-uso" id="boxTermos" style="display:none;">
             <input type="checkbox" id="chkTermos">
             <span>Aceito os termos de uso de direito de imagem.</span>
         </label>
-
-        <button id="btnEnviar">Enviar para o Painel de LED</button>
         
         <div class="aviso-privacidade" id="avisoPrivacidade" style="display:none;"></div>
         
@@ -124,6 +126,40 @@
         const db = getFirestore(app);
         const IMGBB_API_KEY = "767bd935a2b389a4fbfad4f8d92bfae7"; 
 
+        const setoresPermitidos = [
+            "ADEQUACOES SISTEMA ROBOTICA", "ADMINISTRACAO DE PESSOAL", "ADMINISTRATIVO CULTURA", "AGENCIA TRANSFUSIONAL",
+            "ALMOXARIFADO BL IV", "ALMOXARIFADO CENTRAL", "AMB. DE QUIMIOTERAPIA CONVENIO", "AMB. QUIMIOTERAPIA - UBA",
+            "AMB. QUIMIOTERAPIA SUS", "AMBULATORIO DE RADIOTERAPIA", "AMBULATORIO DE TRIAGEM BL IV", "AUDITORIA DE CONTAS",
+            "AUTORIZACAO DE CONVENIOS", "BRONCOSCOPIA", "CAF", "CAMPANHA PREVENCAO", "CAPELANIA", "CAPTACAO DE RECURSOS",
+            "CASA DE APOIO", "CENTRAL DE REFRIGERACAO", "CENTRO CIRURGICO", "CENTRO DE EDUCACAO CORPORATIVA", "CENTRO MEDICO",
+            "CME", "COMPRAS", "COMPRAS OBRAS", "CONDOMINIO GERAL", "CONTABILIDADE", "CONTAS A PAGAR", "CONTAS A RECEBER",
+            "CONTROLADORIA", "CONTROLE E GESTAO", "COORDENACAO ADMINISTRATIVO CONTABIL", "COORDENACAO DE ATENDIMENTO",
+            "COORDENACAO DE COMPRAS", "COORDENACAO DE LABORATORIOS", "COORDENACAO EQUIPE MULTI", "COORDENACAO REGULACAO HOSPITALAR",
+            "CURSO TECNICO DE ENFERMAGEM", "DEPARTAMENTO COMERCIAL E RELACIONAMENTO", "DEPARTAMENTO PESQUISA/DESENVOL",
+            "DIRETORIA", "DRG", "ENGENHARIA CLINICA", "ENGENHARIA HOSPITALAR", "EXPERIENCIA DO PACIENTE", "FARMACIA AMBULATORIAL",
+            "FARMACIA CENTRAL", "FARMACIA CENTRO CIRURGICO", "FARMACIA CLINICA", "FARMACIA MANIP. QUIMIOT.", "FATURAMENTO",
+            "FISIOTERAPIA", "FONOAUDIOLOGIA", "GERENCIA ADMINISTRATIVA", "GERENCIA DE ENFERMAGEM", "GERENCIA DE OPERACOES",
+            "GERENCIA FINANCEIRA", "GESTAO AMBIENTAL", "GESTAO DE GOVERNANCA", "GESTAO DE NOTAS FISCAIS", "GESTAO DE OBRAS",
+            "GESTAO DE PESSOAS", "GESTAO DE RECURSOS GOVERNAMENTAIS", "GOVERNANCA MEDICA", "HIGIENIZACAO E LIMPEZA - SHL",
+            "HIGIENIZACAO E LIMPEZA SHL - UBA", "JURIDICO", "LAB. ANALISES CLINICAS", "LAB. ANATOMIA PATOLOGICA", "MAMOGRAFIA",
+            "MANUTENCAO ELETRICA", "MANUTENCAO PREDIAL", "MARKETING", "MEDICINA NUCLEAR", "MEMORIAL", "METODOS ENDOSCOPICOS E VIDEO.",
+            "NAVEGACAO DO PACIENTE", "NUTRICAO CLINICA", "OBRA EM ANDAMENTO MANHUACU", "OBRAS E REFORMAS EM ANDAMENTO",
+            "ODONTOLOGIA", "PEDAGOGIA", "PET-CT", "PRESIDENCIA", "PROCESSAMENTO DE ROUPA - SPR", "PRONAC 192934", "PRONAC 2310672",
+            "PRONAC 2311542", "PRONON CAMPANHA", "PRONON CEC - CAPACIT. DE RH", "PRONTO ATENDIMENTO", "PSICOLOGIA", "QUALIDADE",
+            "RADIOFARMACIA", "RADIOLOGIA", "RECEPCAO DE INTERNACAO", "RECRUTAMENTO E SELECAO", "REGULACAO HOSPITALAR",
+            "RESIDENCIA MEDICA", "RESSONANCIA MAGNETICA", "SAME", "SCIRAS", "SECRETARIA ADMINISTRATIVA", "SECRETARIA DE SADT BL I",
+            "SEGURANCA PATRIMONIAL", "SEGURANCA PATRIMONIAL - UBA", "SERVICO SOCIAL", "SESMT/CIPA", "TELEFONIA",
+            "TI - TECNOLOGIA DA INFORMACAO", "TMO", "TOMOGRAFIA", "TRANSPORTE", "UAN", "UNID DE INT CIRURGICA", "UNID DE INT CLINICA",
+            "UNID DE INT DE CONVENIOS", "UNID DE INT DE QUIMIOTERAPIA", "UTI"
+        ];
+
+        const datalist = document.getElementById('listaSetores');
+        setoresPermitidos.forEach(setor => {
+            const option = document.createElement('option');
+            option.value = setor;
+            datalist.appendChild(option);
+        });
+
         let arquivoSelecionado = null;
         let modoFestaAtivo = false;
         let moderacaoAtiva = true;
@@ -134,6 +170,7 @@
         const btnGaleria = document.getElementById('btnGaleria');
         const btnEnviar = document.getElementById('btnEnviar');
         const inputGaleria = document.getElementById('inputGaleria');
+        const boxTermos = document.getElementById('boxTermos');
 
         function configurarVisualNormal() {
             document.body.style.backgroundColor = '#ffd5c1';
@@ -157,7 +194,6 @@
             btnEnviar.innerText = "Enviar para o Painel de LED";
         }
 
-        // Listener de Moderação
         onSnapshot(doc(db, "config_festa", "moderacao"), (docSnap) => {
             if (docSnap.exists()) moderacaoAtiva = docSnap.data().ativa !== false;
         });
@@ -225,6 +261,7 @@
                 leitor.onload = function(e) {
                     fotoPreview.src = e.target.result;
                     previewContainer.style.display = 'block';
+                    boxTermos.style.display = 'flex'; 
                     mensagem.innerText = "";
                 }
                 leitor.readAsDataURL(arquivo);
@@ -235,11 +272,17 @@
 
         btnEnviar.addEventListener('click', async () => {
             const nome = document.getElementById('nomeInput').value.trim();
-            const setor = document.getElementById('setorInput').value.trim();
+            const setorInputVal = document.getElementById('setorInput').value.trim().toUpperCase();
             const aceitouTermos = document.getElementById('chkTermos').checked;
 
-            if (!nome || !setor) {
+            if (!nome || !setorInputVal) {
                 mensagem.innerText = "Por favor, preencha o seu nome e setor (obrigatório).";
+                mensagem.style.color = "red";
+                return;
+            }
+
+            if (!setoresPermitidos.includes(setorInputVal)) {
+                mensagem.innerText = "Setor inválido. Por favor, selecione um setor correto na lista de sugestões.";
                 mensagem.style.color = "red";
                 return;
             }
@@ -292,7 +335,7 @@
 
                 const docData = {
                     nome: nome,
-                    setor: setor,
+                    setor: setorInputVal,
                     url_imagem: dadosImgBB.data.url,
                     url_thumb: dadosImgBB.data.thumb.url,
                     numeroFila: meuNumeroFila,
@@ -317,6 +360,7 @@
                 document.getElementById('nomeInput').value = "";
                 document.getElementById('setorInput').value = "";
                 document.getElementById('chkTermos').checked = false;
+                boxTermos.style.display = 'none';
                 arquivoSelecionado = null;
                 previewContainer.style.display = 'none';
 
