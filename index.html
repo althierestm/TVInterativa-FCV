@@ -36,7 +36,10 @@
         #fotoPreview { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; }
         #molduraPreview { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; pointer-events: none; z-index: 10; display: none; }
 
-        #btnEnviar { font-family: 'Montserrat', sans-serif; background: linear-gradient(to right, #002061, #061e50); color: white; border: none; padding: 15px 20px; width: 90%; font-size: 16px; border-radius: 8px; cursor: pointer; font-weight: 700; margin-top: 20px; transition: 0.3s; }
+        .termos-uso { font-size: 11px; color: #555; text-align: left; margin: 15px auto 0 auto; width: 90%; display: flex; align-items: flex-start; gap: 8px; cursor: pointer; }
+        .termos-uso input { margin-top: 2px; cursor: pointer; }
+
+        #btnEnviar { font-family: 'Montserrat', sans-serif; background: linear-gradient(to right, #002061, #061e50); color: white; border: none; padding: 15px 20px; width: 90%; font-size: 16px; border-radius: 8px; cursor: pointer; font-weight: 700; margin-top: 15px; transition: 0.3s; }
         #btnEnviar:hover { opacity: 0.9; }
         #btnEnviar:disabled { background: #ccc !important; cursor: not-allowed; }
         
@@ -49,11 +52,12 @@
         .ramal-duvidas { font-size: 12px; color: #666; margin-top: 10px; font-weight: 400; }
         .ramal-duvidas strong { font-weight: 700; color: #002061; }
         
-        #mensagem { margin-top: 20px; font-weight: 600; font-size: 14px; line-height: 1.5; padding: 0 10px; }
+        #mensagem { margin-top: 20px; font-weight: 600; font-size: 13px; line-height: 1.5; padding: 0 10px; }
         .senha-destaque { font-size: 24px; color: #224387; font-weight: 700; margin-top: 10px; display: block; }
 
         .rodape-assinatura { margin-top: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding-bottom: 10px; }
-        .rodape-assinatura img { width: 130px; opacity: 0.6; margin-bottom: -20px; }
+        .rodape-assinatura img { width: 130px; opacity: 0.6; margin-bottom: -20px; transition: opacity 0.3s; }
+        .rodape-assinatura img:hover { opacity: 1; }
         .rodape-assinatura span { font-size: 7px; color: #999; font-weight: 700; letter-spacing: 1px; }
 
         button, input { touch-action: manipulation; }
@@ -65,8 +69,8 @@
         <h2 id="tituloAcao"></h2>
         <p id="subtituloAcao"></p>
 
-        <input type="text" id="nomeInput" placeholder="Seu nome (ex: João do Violão)">
-        <input type="text" id="setorInput" placeholder="Seu setor (ex: TI, Marketing)">
+        <input type="text" id="nomeInput" placeholder="Seu nome (ex: João do Violão)*">
+        <input type="text" id="setorInput" placeholder="Seu setor (ex: TI, Marketing)*">
         <div class="obs">nome e setor não serão exibidos no painel de LED.</div>
         
         <div class="botoes-acao">
@@ -83,6 +87,11 @@
             </div>
         </div>
         
+        <label class="termos-uso">
+            <input type="checkbox" id="chkTermos">
+            <span>Aceito os termos de uso de direito de imagem.</span>
+        </label>
+
         <button id="btnEnviar">Enviar para o Painel de LED</button>
         
         <div class="aviso-privacidade" id="avisoPrivacidade" style="display:none;"></div>
@@ -92,7 +101,9 @@
     </div>
 
     <div class="rodape-assinatura">
-        <img src="MKTFCV.png" alt="MKT FCV">
+        <a href="https://www.instagram.com/althierestm" target="_blank">
+            <img src="MKTFCV.png" alt="MKT FCV">
+        </a>
         <span>by Althieres Dias</span>
     </div>
 
@@ -115,6 +126,7 @@
 
         let arquivoSelecionado = null;
         let modoFestaAtivo = false;
+        let moderacaoAtiva = true;
         let unsubTextos = null;
 
         const molduraPreview = document.getElementById('molduraPreview');
@@ -131,6 +143,7 @@
             btnGaleria.innerText = "Escolher Foto da Galeria";
             inputGaleria.removeAttribute("capture");
             btnEnviar.style.background = 'linear-gradient(to right, #002061, #ffd5c1)';
+            btnEnviar.innerText = "Enviar para a TV";
         }
 
         function configurarVisualFesta() {
@@ -141,7 +154,13 @@
             btnGaleria.innerText = "Abrir Câmera";
             inputGaleria.setAttribute("capture", "environment");
             btnEnviar.style.background = 'linear-gradient(to right, #e94560, #d83a54)';
+            btnEnviar.innerText = "Enviar para o Painel de LED";
         }
+
+        // Listener de Moderação
+        onSnapshot(doc(db, "config_festa", "moderacao"), (docSnap) => {
+            if (docSnap.exists()) moderacaoAtiva = docSnap.data().ativa !== false;
+        });
 
         onSnapshot(doc(db, "config_geral", "modo_app"), (configDoc) => {
             if (configDoc.exists() && configDoc.data().evento_festa) {
@@ -215,11 +234,24 @@
         inputGaleria.addEventListener('change', processarArquivo);
 
         btnEnviar.addEventListener('click', async () => {
-            const nome = document.getElementById('nomeInput').value || "Anônimo";
-            const setor = document.getElementById('setorInput').value || "";
+            const nome = document.getElementById('nomeInput').value.trim();
+            const setor = document.getElementById('setorInput').value.trim();
+            const aceitouTermos = document.getElementById('chkTermos').checked;
+
+            if (!nome || !setor) {
+                mensagem.innerText = "Por favor, preencha o seu nome e setor (obrigatório).";
+                mensagem.style.color = "red";
+                return;
+            }
 
             if (!arquivoSelecionado) {
                 mensagem.innerText = modoFestaAtivo ? "Por favor, abra a câmera e tire uma foto primeiro." : "Por favor, escolha uma foto primeiro.";
+                mensagem.style.color = "red";
+                return;
+            }
+
+            if (!aceitouTermos) {
+                mensagem.innerText = "Você precisa aceitar os termos de direito de imagem para continuar.";
                 mensagem.style.color = "red";
                 return;
             }
@@ -256,20 +288,26 @@
                 });
                 const meuNumeroFila = maxFila + 1;
                 
+                const statusFinal = (modoFestaAtivo && !moderacaoAtiva) ? "aprovado" : "pendente";
+
                 const docData = {
                     nome: nome,
                     setor: setor,
                     url_imagem: dadosImgBB.data.url,
                     url_thumb: dadosImgBB.data.thumb.url,
                     numeroFila: meuNumeroFila,
-                    status: "pendente",
+                    status: statusFinal,
                     timestamp: serverTimestamp()
                 };
                 
                 await addDoc(collection(db, colecaoAlvo), docData);
 
                 if (modoFestaAtivo) {
-                    mensagem.innerHTML = `✅ Sucesso! Aguarde sua vez no Telão:<br><span class="senha-destaque">Sua Foto é a Nº ${meuNumeroFila}</span>`;
+                    if (moderacaoAtiva) {
+                        mensagem.innerHTML = `✅ Sucesso! Aguarde sua vez no telão. A sua foto passará por moderação antes de aparecer.<br><span class="senha-destaque">Sua Foto é a Nº ${meuNumeroFila}</span>`;
+                    } else {
+                        mensagem.innerHTML = `✅ Sucesso! Aguarde sua vez no telão.<br><span class="senha-destaque">Sua Foto é a Nº ${meuNumeroFila}</span>`;
+                    }
                 } else {
                     mensagem.innerHTML = `✅ Sucesso! Aguarde sua vez na TV:<br><span class="senha-destaque">Sua Foto é a Nº ${meuNumeroFila}</span>`;
                 }
@@ -278,6 +316,7 @@
                 
                 document.getElementById('nomeInput').value = "";
                 document.getElementById('setorInput').value = "";
+                document.getElementById('chkTermos').checked = false;
                 arquivoSelecionado = null;
                 previewContainer.style.display = 'none';
 
