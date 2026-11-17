@@ -19,7 +19,9 @@
     <style>
         body { margin: 0; padding: 0; background-color: #000; color: white; font-family: 'Montserrat', sans-serif; overflow: hidden; }
         #viewportWrapper { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; overflow: hidden; display: flex; justify-content: center; align-items: center; }
+        
         .tv-scale-box { width: 1080px; height: 1920px; position: absolute; top: 50%; left: 50%; transform-origin: center center; background-color: #111; overflow: hidden; box-shadow: 0 0 50px rgba(0,0,0,0.8); }
+        
         #btnFullscreen { position: fixed; top: 20px; right: 20px; z-index: 99999; background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.5); padding: 10px 15px; border-radius: 8px; cursor: pointer; font-weight: 600; backdrop-filter: blur(10px); transition: 0.3s; }
         #btnFullscreen:hover { background: rgba(255,255,255,0.4); }
         .camada-fundo, .camada-sobreposicao { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
@@ -28,21 +30,36 @@
         .camada-fotos { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; display: flex; justify-content: center; align-items: center; }
         .foto-display { position: absolute; width: 100%; height: 100%; object-fit: contain; transition: opacity 1s ease-in-out; opacity: 1; }
         .escondido { opacity: 0 !important; }
+        
         #aguardando { position: absolute; z-index: 20; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 24px; color: #fff; background: rgba(0,0,0,0.6); padding: 20px 40px; border-radius: 12px; backdrop-filter: blur(10px); display: none; text-align: center; }
+        
+        #numeroDiscreto { position: absolute; bottom: 30px; left: 40px; font-size: 50px; font-weight: 800; color: #fff; z-index: 15; text-shadow: 0 4px 8px rgba(0,0,0,0.8); transition: opacity 1s; }
+        #barraProgressoContainer { position: absolute; bottom: 0; left: 0; width: 100%; height: 12px; background: rgba(255,255,255,0.1); z-index: 20; }
+        #barraProgresso { height: 100%; width: 0%; background: linear-gradient(to right, #002061, #2894f9); }
     </style>
 </head>
 <body>
 
     <button id="btnFullscreen">Tela Cheia</button>
 
+    <a href="https://www.instagram.com/althierestm" target="_blank" style="position: absolute; top: 25px; right: 40px; z-index: 9999; pointer-events: auto;">
+        <img src="MKTFCV.png" style="width: 200px; opacity: 0.7;" alt="MKT FCV">
+    </a>
+
     <div id="viewportWrapper">
         <div class="tv-scale-box" id="tvScaleBox">
             <img id="bgImg" class="camada-fundo" src="">
+            
             <div class="camada-fotos">
                 <img id="fotoA" class="foto-display" src="">
                 <img id="fotoB" class="foto-display escondido" src="">
             </div>
+            
             <img id="overlayImg" class="camada-sobreposicao" src="">
+            
+            <div id="numeroDiscreto" style="opacity: 0;"></div>
+            <div id="barraProgressoContainer"><div id="barraProgresso"></div></div>
+            
             <div id="aguardando">Aguardando fotos...</div>
         </div>
     </div>
@@ -85,12 +102,22 @@
         const fotoA = document.getElementById('fotoA');
         const fotoB = document.getElementById('fotoB');
         const aguardando = document.getElementById('aguardando');
+        const barraProgresso = document.getElementById('barraProgresso');
 
         let fotosAtivas = [];
         let indiceAtual = -1;
         let toggleFoto = 'A';
         let timerLoop = null;
         let tempoExibicao = 15000; 
+
+        function animarBarra(tempoMs) {
+            barraProgresso.style.transition = 'none';
+            barraProgresso.style.width = '0%';
+            setTimeout(() => {
+                barraProgresso.style.transition = `width ${tempoMs}ms linear`;
+                barraProgresso.style.width = '100%';
+            }, 50);
+        }
 
         onSnapshot(doc(db, "config_festa", "visual"), (docSnap) => {
             if (docSnap.exists()) {
@@ -112,6 +139,7 @@
                 aguardando.style.display = 'block';
                 fotoA.classList.add('escondido');
                 fotoB.classList.add('escondido');
+                document.getElementById('numeroDiscreto').style.opacity = 0;
                 clearTimeout(timerLoop);
                 timerLoop = null;
                 indiceAtual = -1; 
@@ -132,6 +160,11 @@
 
             const imgPreload = new Image();
             imgPreload.onload = () => {
+                
+                document.getElementById('numeroDiscreto').innerText = proxFoto.numeroFila ? `#${proxFoto.numeroFila}` : "";
+                document.getElementById('numeroDiscreto').style.opacity = 1;
+                animarBarra(tempoExibicao);
+
                 if (toggleFoto === 'A') {
                     fotoB.src = imgUrl;
                     fotoB.classList.remove('escondido');
