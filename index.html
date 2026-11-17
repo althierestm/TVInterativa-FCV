@@ -16,11 +16,14 @@
         
         @keyframes fadeIn { to { opacity: 1; } }
 
+        #logoFesta { width: 140px; margin: 0 auto 10px auto; display: none; }
+
         h2 { color: #333; margin-bottom: 5px; font-weight: 700; min-height: 29px; }
         p { color: #666; margin-bottom: 25px; font-size: 14px; min-height: 17px; }
         .obs { font-size: 11px; color: #888; margin-top: -5px; margin-bottom: 20px; text-align: left; padding-left: 5%; }
         
-        input[type="text"] { font-family: 'Montserrat', sans-serif; width: 90%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; }
+        input[type="text"], select.select-setor { font-family: 'Montserrat', sans-serif; width: 90%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; background: white; }
+        select.select-setor { appearance: none; background-image: url('data:image/svg+xml;utf8,<svg fill="%23888" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>'); background-repeat: no-repeat; background-position-x: 95%; background-position-y: center; color: #333; }
         input[type="file"] { display: none; }
 
         .botoes-acao { display: flex; gap: 10px; width: 90%; margin: 0 auto; }
@@ -60,19 +63,21 @@
         .rodape-assinatura img:hover { opacity: 1; }
         .rodape-assinatura span { font-size: 7px; color: #999; font-weight: 700; letter-spacing: 1px; }
 
-        button, input { touch-action: manipulation; }
+        button, input, select { touch-action: manipulation; }
     </style>
 </head>
 <body>
 
     <div class="container" id="mainContainer">
+        <img id="logoFesta" src="https://i.ibb.co/Pvv0JG03/logo-tardezinha.png" alt="Tardezinha FCV">
+        
         <h2 id="tituloAcao"></h2>
         <p id="subtituloAcao"></p>
 
-        <input type="text" id="nomeInput" placeholder="Seu nome (ex: João do Violão)*">
-        <input type="text" id="setorInput" list="listaSetores" placeholder="Seu setor (Selecione na lista)*" autocomplete="off">
-        <datalist id="listaSetores"></datalist>
-
+        <input type="text" id="nomeInput" placeholder="Seu nome (ex: João Silva)*">
+        <select id="setorInput" class="select-setor">
+            <option value="" disabled selected>Selecione seu setor*</option>
+        </select>
         <div class="obs">Nome e setor não serão exibidos no painel de LED.</div>
         
         <div class="botoes-acao">
@@ -153,11 +158,12 @@
             "UNID DE INT DE CONVENIOS", "UNID DE INT DE QUIMIOTERAPIA", "UTI"
         ];
 
-        const datalist = document.getElementById('listaSetores');
+        const selectSetores = document.getElementById('setorInput');
         setoresPermitidos.forEach(setor => {
-            const option = document.createElement('option');
-            option.value = setor;
-            datalist.appendChild(option);
+            const opt = document.createElement('option');
+            opt.value = setor;
+            opt.innerText = setor;
+            selectSetores.appendChild(opt);
         });
 
         let arquivoSelecionado = null;
@@ -171,6 +177,7 @@
         const btnEnviar = document.getElementById('btnEnviar');
         const inputGaleria = document.getElementById('inputGaleria');
         const boxTermos = document.getElementById('boxTermos');
+        const logoFesta = document.getElementById('logoFesta');
 
         function configurarVisualNormal() {
             document.body.style.backgroundColor = '#ffd5c1';
@@ -181,6 +188,7 @@
             inputGaleria.removeAttribute("capture");
             btnEnviar.style.background = 'linear-gradient(to right, #002061, #ffd5c1)';
             btnEnviar.innerText = "Enviar para a TV";
+            logoFesta.style.display = 'none';
         }
 
         function configurarVisualFesta() {
@@ -192,6 +200,7 @@
             inputGaleria.setAttribute("capture", "environment");
             btnEnviar.style.background = 'linear-gradient(to right, #e94560, #d83a54)';
             btnEnviar.innerText = "Enviar para o Painel de LED";
+            logoFesta.style.display = 'block';
         }
 
         onSnapshot(doc(db, "config_festa", "moderacao"), (docSnap) => {
@@ -272,17 +281,11 @@
 
         btnEnviar.addEventListener('click', async () => {
             const nome = document.getElementById('nomeInput').value.trim();
-            const setorInputVal = document.getElementById('setorInput').value.trim().toUpperCase();
+            const setorInputVal = document.getElementById('setorInput').value;
             const aceitouTermos = document.getElementById('chkTermos').checked;
 
             if (!nome || !setorInputVal) {
-                mensagem.innerText = "Por favor, preencha o seu nome e setor (obrigatório).";
-                mensagem.style.color = "red";
-                return;
-            }
-
-            if (!setoresPermitidos.includes(setorInputVal)) {
-                mensagem.innerText = "Setor inválido. Por favor, selecione um setor correto na lista de sugestões.";
+                mensagem.innerText = "Por favor, preencha o seu nome e selecione o seu setor.";
                 mensagem.style.color = "red";
                 return;
             }
