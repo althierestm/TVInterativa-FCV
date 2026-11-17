@@ -112,7 +112,7 @@
                 const configDoc = await getDoc(doc(db, "config_geral", "modo_app"));
                 if (configDoc.exists() && configDoc.data().evento_festa) {
                     modoFestaAtivo = true;
-                    document.getElementById('tituloAcao').innerText = "Festa de Fim de Ano FCV";
+                    document.getElementById('tituloAcao').innerText = "Tardezinha FCV 2026";
                     document.getElementById('subtituloAcao').innerText = "Envie sua foto para o Telão da Festa!";
                     document.getElementById('avisoPrivacidade').innerText = "⚠️ Suas fotos aparecerão ao vivo no painel de LED.";
                 }
