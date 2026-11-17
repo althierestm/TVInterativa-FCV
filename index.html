@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Dia das Crianças - Fundação</title>
+    <title>FCV Interativa</title>
 
     <link rel="icon" href="logo%20icon%20TV%20do%20Ponto%20FCV.png" type="image/png">
     <link rel="apple-touch-icon" href="logo%20icon%20TV%20do%20Ponto%20FCV.png">
@@ -54,8 +54,8 @@
 <body>
 
     <div class="container">
-        <h2>Dia das Crianças FCV</h2>
-        <p>Envie sua foto de infância para a TV do Corredor!</p>
+        <h2 id="tituloAcao">Dia das Crianças FCV</h2>
+        <p id="subtituloAcao">Envie sua foto de infância para a TV do Corredor!</p>
 
         <input type="text" id="nomeInput" placeholder="Seu nome (ex: João Silva)">
         <input type="text" id="setorInput" placeholder="Seu setor (ex: TI, Marketing)">
@@ -68,13 +68,13 @@
         <input type="file" id="inputGaleria" accept="image/*">
 
         <div id="previewContainer">
-            <p>Sua foto de infância:</p>
+            <p>Sua foto:</p>
             <img id="fotoPreview" src="" alt="Pré-visualização">
         </div>
         
         <button id="btnEnviar">Enviar para a TV</button>
         
-        <div class="aviso-privacidade">
+        <div class="aviso-privacidade" id="avisoPrivacidade">
             ⚠️ Envie somente a sua foto, respeitando o direito de não querer participar dos demais colaboradores.
         </div>
         
@@ -89,7 +89,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, serverTimestamp, getDocs } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, serverTimestamp, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyB8ZK0jSY-1E9y90TLfznxi9PI8mf_bJuc",
@@ -105,6 +105,22 @@
         const IMGBB_API_KEY = "767bd935a2b389a4fbfad4f8d92bfae7"; 
 
         let arquivoSelecionado = null;
+        let modoFestaAtivo = false;
+
+        async function checarModoAtual() {
+            try {
+                const configDoc = await getDoc(doc(db, "config_geral", "modo_app"));
+                if (configDoc.exists() && configDoc.data().evento_festa) {
+                    modoFestaAtivo = true;
+                    document.getElementById('tituloAcao').innerText = "Festa de Fim de Ano FCV";
+                    document.getElementById('subtituloAcao').innerText = "Envie sua foto para o Telão da Festa!";
+                    document.getElementById('avisoPrivacidade').innerText = "⚠️ Suas fotos aparecerão ao vivo no painel de LED.";
+                }
+            } catch (e) {
+                console.log("Modo festa inativo ou erro de leitura", e);
+            }
+        }
+        checarModoAtual();
 
         const btnGaleria = document.getElementById('btnGaleria');
         const inputGaleria = document.getElementById('inputGaleria');
@@ -140,7 +156,7 @@
                 return;
             }
 
-            mensagem.innerText = "A enviar arquivo e gerar senha sequencial...";
+            mensagem.innerText = "A enviar arquivo...";
             mensagem.style.color = "orange";
             btnEnviar.disabled = true;
 
@@ -152,38 +168,49 @@
                     method: 'POST',
                     body: formData
                 });
-               const dadosImgBB = await respostaImgBB.json();
-
-console.log("Resposta detalhada do ImgBB:", dadosImgBB); 
+                const dadosImgBB = await respostaImgBB.json();
                 
-if (!dadosImgBB || !dadosImgBB.success) {
-    throw new Error(`Erro do ImgBB: ${dadosImgBB?.error?.message || 'Sem resposta de sucesso'}`);
-}
+                if (!dadosImgBB || !dadosImgBB.success) {
+                    throw new Error(`Erro do ImgBB`);
+                }
 
-                mensagem.innerText = "A gerar a sua senha sequencial...";
-
-                const querySnapshot = await getDocs(collection(db, "fotos_criancas"));
-                let maxFila = 0;
-                querySnapshot.forEach((doc) => {
-                    const dados = doc.data();
-                    const num = Number(dados.numeroFila);
-                    if (!isNaN(num) && num < 100000 && num > maxFila) {
-                        maxFila = num;
-                    }
-                });
-                const meuNumeroFila = maxFila + 1;
+                mensagem.innerText = "A processar envio...";
                 
-                await addDoc(collection(db, "fotos_criancas"), {
+                const colecaoAlvo = modoFestaAtivo ? "fotos_festa" : "fotos_criancas";
+
+                let meuNumeroFila = 0;
+                if (!modoFestaAtivo) {
+                    const querySnapshot = await getDocs(collection(db, colecaoAlvo));
+                    let maxFila = 0;
+                    querySnapshot.forEach((doc) => {
+                        const dados = doc.data();
+                        const num = Number(dados.numeroFila);
+                        if (!isNaN(num) && num < 100000 && num > maxFila) {
+                            maxFila = num;
+                        }
+                    });
+                    meuNumeroFila = maxFila + 1;
+                }
+                
+                const docData = {
                     nome: nome,
                     setor: setor,
-                    numeroFila: meuNumeroFila,
                     url_imagem: dadosImgBB.data.url,
                     url_thumb: dadosImgBB.data.thumb.url,
                     status: "pendente",
                     timestamp: serverTimestamp()
-                });
+                };
 
-                mensagem.innerHTML = `✅ Sucesso! Foto enviada para moderação. Aguarde sua vez na TV:<br><span class="senha-destaque">Sua Foto é a Nº ${meuNumeroFila}</span>`;
+                if (!modoFestaAtivo) docData.numeroFila = meuNumeroFila;
+                
+                await addDoc(collection(db, colecaoAlvo), docData);
+
+                if (modoFestaAtivo) {
+                    mensagem.innerHTML = `✅ Sucesso! Foto enviada para o telão da Festa.`;
+                } else {
+                    mensagem.innerHTML = `✅ Sucesso! Aguarde sua vez na TV:<br><span class="senha-destaque">Sua Foto é a Nº ${meuNumeroFila}</span>`;
+                }
+                
                 mensagem.style.color = "green";
                 
                 document.getElementById('nomeInput').value = "";
