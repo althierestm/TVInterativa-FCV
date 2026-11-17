@@ -67,7 +67,7 @@
 
         <input type="text" id="nomeInput" placeholder="Seu nome (ex: João do Violão)">
         <input type="text" id="setorInput" placeholder="Seu setor (ex: TI, Marketing)">
-        <div class="obs">nome e setor não serão exibidos no Painel de LED.</div>
+        <div class="obs">nome e setor não serão exibidos no painel de LED.</div>
         
         <div class="botoes-acao">
             <button class="btn-acao" id="btnGaleria">Abrir Câmera</button>
@@ -83,7 +83,7 @@
             </div>
         </div>
         
-        <button id="btnEnviar">Enviar para a o Painel de LED</button>
+        <button id="btnEnviar">Enviar para o Painel de LED</button>
         
         <div class="aviso-privacidade" id="avisoPrivacidade" style="display:none;"></div>
         
@@ -245,34 +245,31 @@
                 mensagem.innerText = "A processar envio...";
                 const colecaoAlvo = modoFestaAtivo ? "fotos_festa" : "fotos_criancas";
 
-                let meuNumeroFila = 0;
-                if (!modoFestaAtivo) {
-                    const querySnapshot = await getDocs(collection(db, colecaoAlvo));
-                    let maxFila = 0;
-                    querySnapshot.forEach((doc) => {
-                        const dados = doc.data();
-                        const num = Number(dados.numeroFila);
-                        if (!isNaN(num) && num < 100000 && num > maxFila) {
-                            maxFila = num;
-                        }
-                    });
-                    meuNumeroFila = maxFila + 1;
-                }
+                const querySnapshot = await getDocs(collection(db, colecaoAlvo));
+                let maxFila = 0;
+                querySnapshot.forEach((doc) => {
+                    const dados = doc.data();
+                    const num = Number(dados.numeroFila);
+                    if (!isNaN(num) && num < 100000 && num > maxFila) {
+                        maxFila = num;
+                    }
+                });
+                const meuNumeroFila = maxFila + 1;
                 
                 const docData = {
                     nome: nome,
                     setor: setor,
                     url_imagem: dadosImgBB.data.url,
                     url_thumb: dadosImgBB.data.thumb.url,
+                    numeroFila: meuNumeroFila,
                     status: "pendente",
                     timestamp: serverTimestamp()
                 };
-
-                if (!modoFestaAtivo) docData.numeroFila = meuNumeroFila;
+                
                 await addDoc(collection(db, colecaoAlvo), docData);
 
                 if (modoFestaAtivo) {
-                    mensagem.innerHTML = `✅ Sucesso! Sua foto foi enviada e está aguardando aprovação para aparecer no telão.`;
+                    mensagem.innerHTML = `✅ Sucesso! Aguarde sua vez no Telão:<br><span class="senha-destaque">Sua Foto é a Nº ${meuNumeroFila}</span>`;
                 } else {
                     mensagem.innerHTML = `✅ Sucesso! Aguarde sua vez na TV:<br><span class="senha-destaque">Sua Foto é a Nº ${meuNumeroFila}</span>`;
                 }
