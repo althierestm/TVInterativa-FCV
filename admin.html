@@ -306,6 +306,35 @@
 
         <!-- SEÇÃO MODO FESTA -->
         <div id="secaoFesta" class="secao-admin">
+            
+            <div class="glass-panel" style="max-width: 800px; margin: 0 auto 25px auto;">
+                <h3>Textos do Aplicativo (Celular)</h3>
+                <div class="upload-row">
+                    <label>Nome da Ação (Título):</label>
+                    <input type="text" id="inpTituloFesta" placeholder="Ex: Tardezinha FCV 2026" style="background:#1a1a2e; border:1px solid #0f3460; color:white; padding:10px; border-radius:6px; width:100%; font-family:'Montserrat', sans-serif;">
+                </div>
+                <div class="upload-row">
+                    <label>Subtítulo:</label>
+                    <input type="text" id="inpSubtituloFesta" placeholder="Ex: Tire sua foto ao vivo para o Telão da Festa!" style="background:#1a1a2e; border:1px solid #0f3460; color:white; padding:10px; border-radius:6px; width:100%; font-family:'Montserrat', sans-serif;">
+                </div>
+                <div class="upload-row">
+                    <label>Aviso / Mensagem de Privacidade:</label>
+                    <input type="text" id="inpAvisoFesta" placeholder="Ex: ⚠️ Suas fotos aparecerão ao vivo no painel..." style="background:#1a1a2e; border:1px solid #0f3460; color:white; padding:10px; border-radius:6px; width:100%; font-family:'Montserrat', sans-serif;">
+                </div>
+                <div style="display:flex; gap:15px; align-items: center; margin-bottom: 15px; width: 100%;">
+                    <div style="flex:1;">
+                        <label style="font-size:12px; color:#bdc3c7; font-weight:600; display:block; margin-bottom:5px; text-align:left;">Ramal para Dúvidas:</label>
+                        <input type="text" id="inpRamalFesta" placeholder="Ex: 7849" style="background:#1a1a2e; border:1px solid #0f3460; color:white; padding:10px; border-radius:6px; width:100%; font-family:'Montserrat', sans-serif; box-sizing:border-box;">
+                    </div>
+                    <div style="display:flex; flex-direction:column; align-items:center;">
+                        <label style="font-size:12px; color:#bdc3c7; font-weight:600; margin-bottom:5px;">Exibir Ramal?</label>
+                        <label class="ios-switch"><input type="checkbox" id="chkExibirRamal" checked><span class="slider"></span></label>
+                    </div>
+                </div>
+                <button class="btn-upload" style="background:#e94560; width:100%;" id="btnSalvarTextosFesta">Salvar Textos</button>
+                <p id="lblStatusTextos" style="font-size: 11px; color: #2ecc71; margin: 10px 0 0 0; display: none;">Textos atualizados com sucesso!</p>
+            </div>
+
             <div class="glass-panel" style="max-width: 800px; margin: 0 auto 25px auto;">
                 <h3>Customização do Painel (LED)</h3>
                 <div class="upload-row">
@@ -398,7 +427,7 @@
                     <p>Automático pela previsão ou forçar para testes.</p>
                 </div>
                 <select id="selectClimaManual" style="padding: 8px; border-radius: 6px; background: #2c3e50; color: white; border: 1px solid #7f8c8d; font-family: 'Montserrat', sans-serif; cursor: pointer; outline: none;">
-                    <option value="auto" selected>Automático</option>
+                    <option value="auto" selected>Automático (Previsão do Dia)</option>
                     <option value="sol">Sol</option>
                     <option value="parc_nublado">Parcialmente Nublado</option>
                     <option value="nublado">Nublado</option>
@@ -498,6 +527,33 @@
             const listaAprovadasFesta = document.getElementById('listaAprovadasFesta');
             const lblStatus = document.getElementById('lblUploadStatus');
 
+            const unsubTextos = onSnapshot(doc(db, "config_festa", "textos"), (docSnap) => {
+                if(docSnap.exists()){
+                    const d = docSnap.data();
+                    document.getElementById('inpTituloFesta').value = d.titulo || "";
+                    document.getElementById('inpSubtituloFesta').value = d.subtitulo || "";
+                    document.getElementById('inpAvisoFesta').value = d.aviso || "";
+                    document.getElementById('inpRamalFesta').value = d.ramal || "";
+                    document.getElementById('chkExibirRamal').checked = d.exibir_ramal !== false;
+                }
+            });
+
+            document.getElementById('btnSalvarTextosFesta').onclick = async () => {
+                const btn = document.getElementById('btnSalvarTextosFesta');
+                btn.innerText = "Salvando...";
+                await setDoc(doc(db, "config_festa", "textos"), {
+                    titulo: document.getElementById('inpTituloFesta').value,
+                    subtitulo: document.getElementById('inpSubtituloFesta').value,
+                    aviso: document.getElementById('inpAvisoFesta').value,
+                    ramal: document.getElementById('inpRamalFesta').value,
+                    exibir_ramal: document.getElementById('chkExibirRamal').checked
+                }, { merge: true });
+                btn.innerText = "Salvar Textos";
+                const lbl = document.getElementById('lblStatusTextos');
+                lbl.style.display = 'block';
+                setTimeout(() => lbl.style.display = 'none', 3000);
+            };
+
             const renderizarCardFesta = (dados, id, ehPendente) => {
                 const urlImagem = dados.url_thumb || dados.url_imagem;
                 let botoes = ehPendente ? 
@@ -527,7 +583,7 @@
                     array.forEach(dados => listaAprovadasFesta.appendChild(renderizarCardFesta(dados, dados.id, false)));
                 }
             });
-            inscricoesGlobais.push(unsub1, unsub2);
+            inscricoesGlobais.push(unsub1, unsub2, unsubTextos);
 
             window.atualizarStatusFesta = async (id, status) => { await updateDoc(doc(db, "fotos_festa", id), { status }); };
             window.excluirFotoFesta = async (id) => { if(confirm("Deseja EXCLUIR esta foto?")) await deleteDoc(doc(db, "fotos_festa", id)); };
