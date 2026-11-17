@@ -11,17 +11,20 @@
 
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Montserrat', sans-serif; text-align: center; background-color: #f0f8ff; padding: 20px; }
-        .container { max-width: 400px; margin: 0 auto; background: white; padding: 30px 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border-top: 5px solid #ff9800; }
-        h2 { color: #333; margin-bottom: 5px; font-weight: 700; }
-        p { color: #666; margin-bottom: 25px; font-size: 14px; }
+        body { font-family: 'Montserrat', sans-serif; text-align: center; background-color: #f0f8ff; padding: 20px; transition: background-color 0.5s; }
+        .container { max-width: 400px; margin: 0 auto; background: white; padding: 30px 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border-top: 5px solid #ff9800; transition: border-color 0.5s; opacity: 0; animation: fadeIn 0.5s forwards; }
+        
+        @keyframes fadeIn { to { opacity: 1; } }
+
+        h2 { color: #333; margin-bottom: 5px; font-weight: 700; min-height: 29px; }
+        p { color: #666; margin-bottom: 25px; font-size: 14px; min-height: 17px; }
         .obs { font-size: 11px; color: #888; margin-top: -5px; margin-bottom: 20px; text-align: left; padding-left: 5%; }
         
         input[type="text"] { font-family: 'Montserrat', sans-serif; width: 90%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; }
         input[type="file"] { display: none; }
 
         .botoes-acao { display: flex; gap: 10px; width: 90%; margin: 0 auto; }
-        .btn-acao { font-family: 'Montserrat', sans-serif; flex: 1; padding: 12px; border: 1px solid #ccc; background-color: #f9f9f9; color: #333; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; }
+        .btn-acao { font-family: 'Montserrat', sans-serif; flex: 1; padding: 12px; border: 1px solid #ccc; background-color: #f9f9f9; color: #333; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; transition: 0.3s; }
         .btn-acao:hover { background-color: #eee; }
         #btnGaleria { background-color: #ff9800; color: white; border-color: #e68a00; }
         #btnGaleria:hover { background-color: #e68a00; }
@@ -33,9 +36,9 @@
         #fotoPreview { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; }
         #molduraPreview { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; pointer-events: none; z-index: 10; display: none; }
 
-        #btnEnviar { font-family: 'Montserrat', sans-serif; background: linear-gradient(to right, #002061, #061e50); color: white; border: none; padding: 15px 20px; width: 90%; font-size: 16px; border-radius: 8px; cursor: pointer; font-weight: 700; margin-top: 20px; }
+        #btnEnviar { font-family: 'Montserrat', sans-serif; background: linear-gradient(to right, #002061, #061e50); color: white; border: none; padding: 15px 20px; width: 90%; font-size: 16px; border-radius: 8px; cursor: pointer; font-weight: 700; margin-top: 20px; transition: 0.3s; }
         #btnEnviar:hover { opacity: 0.9; }
-        #btnEnviar:disabled { background: #ccc; cursor: not-allowed; }
+        #btnEnviar:disabled { background: #ccc !important; cursor: not-allowed; }
         
         .aviso-privacidade {
             font-size: 11px; color: #d84315; background-color: #fbe9e7;
@@ -58,9 +61,9 @@
 </head>
 <body>
 
-    <div class="container">
-        <h2 id="tituloAcao">Dia das Crianças FCV</h2>
-        <p id="subtituloAcao">Envie sua foto de infância para a TV do Corredor!</p>
+    <div class="container" id="mainContainer">
+        <h2 id="tituloAcao"></h2>
+        <p id="subtituloAcao"></p>
 
         <input type="text" id="nomeInput" placeholder="Seu nome (ex: João Silva)">
         <input type="text" id="setorInput" placeholder="Seu setor (ex: TI, Marketing)">
@@ -82,11 +85,9 @@
         
         <button id="btnEnviar">Enviar para a TV</button>
         
-        <div class="aviso-privacidade" id="avisoPrivacidade">
-            ⚠️ Envie somente a sua foto, respeitando o direito de não querer participar dos demais colaboradores.
-        </div>
+        <div class="aviso-privacidade" id="avisoPrivacidade" style="display:none;"></div>
         
-        <div class="ramal-duvidas">Ramal para dúvidas: <strong>7849</strong></div>
+        <div class="ramal-duvidas" id="boxRamal" style="display:none;">Ramal para dúvidas: <strong id="textoRamal"></strong></div>
         <div id="mensagem"></div>
     </div>
 
@@ -97,7 +98,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, serverTimestamp, getDocs, doc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, serverTimestamp, getDocs, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyB8ZK0jSY-1E9y90TLfznxi9PI8mf_bJuc",
@@ -114,41 +115,85 @@
 
         let arquivoSelecionado = null;
         let modoFestaAtivo = false;
+        let unsubTextos = null;
 
         const molduraPreview = document.getElementById('molduraPreview');
-
-        async function checarModoAtual() {
-            try {
-                const configDoc = await getDoc(doc(db, "config_geral", "modo_app"));
-                if (configDoc.exists() && configDoc.data().evento_festa) {
-                    modoFestaAtivo = true;
-                    document.getElementById('tituloAcao').innerText = "Festa de Fim de Ano FCV";
-                    document.getElementById('subtituloAcao').innerText = "Tire sua foto ao vivo para o Telão da Festa!";
-                    document.getElementById('avisoPrivacidade').innerText = "⚠️ Suas fotos aparecerão ao vivo no painel vertical de LED (Stories).";
-                    
-                    onSnapshot(doc(db, "config_festa", "visual"), (docSnap) => {
-                        if (docSnap.exists()) {
-                            const data = docSnap.data();
-                            if (data.url_overlay) {
-                                molduraPreview.src = data.url_overlay;
-                                molduraPreview.style.display = 'block';
-                            } else {
-                                molduraPreview.style.display = 'none';
-                            }
-                        }
-                    });
-                }
-            } catch (e) {
-                console.log("Modo festa inativo ou erro de leitura", e);
-            }
-        }
-        checarModoAtual();
-
+        const container = document.getElementById('mainContainer');
         const btnGaleria = document.getElementById('btnGaleria');
+        const btnEnviar = document.getElementById('btnEnviar');
         const inputGaleria = document.getElementById('inputGaleria');
+
+        function configurarVisualNormal() {
+            document.body.style.backgroundColor = '#f0f8ff';
+            container.style.borderTopColor = '#ff9800';
+            btnGaleria.style.backgroundColor = '#ff9800';
+            btnGaleria.style.borderColor = '#e68a00';
+            btnGaleria.innerText = "Escolher Foto da Galeria";
+            inputGaleria.removeAttribute("capture");
+            btnEnviar.style.background = 'linear-gradient(to right, #002061, #061e50)';
+        }
+
+        function configurarVisualFesta() {
+            document.body.style.backgroundColor = '#1a1a2e';
+            container.style.borderTopColor = '#e94560';
+            btnGaleria.style.backgroundColor = '#e94560';
+            btnGaleria.style.borderColor = '#d83a54';
+            btnGaleria.innerText = "Abrir Câmera e Tirar Foto";
+            inputGaleria.setAttribute("capture", "environment");
+            btnEnviar.style.background = 'linear-gradient(to right, #e94560, #d83a54)';
+        }
+
+        onSnapshot(doc(db, "config_geral", "modo_app"), (configDoc) => {
+            if (configDoc.exists() && configDoc.data().evento_festa) {
+                modoFestaAtivo = true;
+                configurarVisualFesta();
+
+                if (unsubTextos) unsubTextos();
+                unsubTextos = onSnapshot(doc(db, "config_festa", "textos"), (textoDoc) => {
+                    const d = textoDoc.exists() ? textoDoc.data() : {};
+                    document.getElementById('tituloAcao').innerText = d.titulo || "Tardezinha FCV 2026";
+                    document.getElementById('subtituloAcao').innerText = d.subtitulo || "Envie sua foto para o Telão da Festa!";
+                    
+                    const aviso = document.getElementById('avisoPrivacidade');
+                    if(d.aviso) { aviso.innerText = d.aviso; aviso.style.display = 'block'; } 
+                    else { aviso.style.display = 'none'; }
+
+                    const boxRamal = document.getElementById('boxRamal');
+                    if(d.exibir_ramal !== false && d.ramal) {
+                        document.getElementById('textoRamal').innerText = d.ramal;
+                        boxRamal.style.display = 'block';
+                    } else { boxRamal.style.display = 'none'; }
+                });
+
+                onSnapshot(doc(db, "config_festa", "visual"), (docSnap) => {
+                    if (docSnap.exists() && docSnap.data().url_overlay) {
+                        molduraPreview.src = docSnap.data().url_overlay;
+                        molduraPreview.style.display = 'block';
+                    } else {
+                        molduraPreview.style.display = 'none';
+                    }
+                });
+
+            } else {
+                modoFestaAtivo = false;
+                if (unsubTextos) { unsubTextos(); unsubTextos = null; }
+                
+                configurarVisualNormal();
+                document.getElementById('tituloAcao').innerText = "Dia das Crianças FCV";
+                document.getElementById('subtituloAcao').innerText = "Envie sua foto de infância para a TV do Corredor!";
+                
+                document.getElementById('avisoPrivacidade').innerText = "⚠️ Envie somente a sua foto, respeitando o direito de não querer participar dos demais colaboradores.";
+                document.getElementById('avisoPrivacidade').style.display = 'block';
+                
+                document.getElementById('textoRamal').innerText = "7849";
+                document.getElementById('boxRamal').style.display = 'block';
+                
+                molduraPreview.style.display = 'none';
+            }
+        });
+
         const previewContainer = document.getElementById('previewContainer');
         const fotoPreview = document.getElementById('fotoPreview');
-        const btnEnviar = document.getElementById('btnEnviar');
         const mensagem = document.getElementById('mensagem');
 
         btnGaleria.addEventListener('click', () => inputGaleria.click());
@@ -174,12 +219,12 @@
             const setor = document.getElementById('setorInput').value || "";
 
             if (!arquivoSelecionado) {
-                mensagem.innerText = "Por favor, abra a câmera e tire uma foto primeiro.";
+                mensagem.innerText = modoFestaAtivo ? "Por favor, abra a câmera e tire uma foto primeiro." : "Por favor, escolha uma foto primeiro.";
                 mensagem.style.color = "red";
                 return;
             }
 
-            mensagem.innerText = "A enviar foto ao vivo...";
+            mensagem.innerText = modoFestaAtivo ? "A enviar foto ao vivo..." : "A enviar arquivo...";
             mensagem.style.color = "orange";
             btnEnviar.disabled = true;
 
@@ -198,7 +243,6 @@
                 }
 
                 mensagem.innerText = "A processar envio...";
-                
                 const colecaoAlvo = modoFestaAtivo ? "fotos_festa" : "fotos_criancas";
 
                 let meuNumeroFila = 0;
@@ -225,11 +269,10 @@
                 };
 
                 if (!modoFestaAtivo) docData.numeroFila = meuNumeroFila;
-                
                 await addDoc(collection(db, colecaoAlvo), docData);
 
                 if (modoFestaAtivo) {
-                    mensagem.innerHTML = `✅ Sucesso! Sua foto foi enviada e está aguardando aprovação do Marketing para aparecer no telão.`;
+                    mensagem.innerHTML = `✅ Sucesso! Sua foto foi enviada e está aguardando aprovação para aparecer no telão.`;
                 } else {
                     mensagem.innerHTML = `✅ Sucesso! Aguarde sua vez na TV:<br><span class="senha-destaque">Sua Foto é a Nº ${meuNumeroFila}</span>`;
                 }
@@ -243,7 +286,7 @@
 
             } catch (erro) {
                 console.error(erro);
-                mensagem.innerText = "Ocorreu um erro ao enviar. Tente tirar a foto novamente.";
+                mensagem.innerText = "Ocorreu um erro ao enviar. Tente novamente.";
                 mensagem.style.color = "red";
             } finally {
                 btnEnviar.disabled = false;
