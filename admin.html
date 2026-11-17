@@ -337,6 +337,17 @@
 
             <div class="glass-panel" style="max-width: 800px; margin: 0 auto 25px auto;">
                 <h3>Customização do Painel (LED)</h3>
+                
+                <div class="upload-row">
+                    <label>Tempo de Exibição das Fotos (LED):</label>
+                    <select id="selectTempoFesta" style="padding: 10px; border-radius: 6px; background: #1a1a2e; color: white; border: 1px solid #0f3460; font-family: 'Montserrat', sans-serif; cursor: pointer; outline: none; width: 100%;">
+                        <option value="5000">5 segundos</option>
+                        <option value="10000">10 segundos</option>
+                        <option value="15000" selected>15 segundos</option>
+                        <option value="20000">20 segundos</option>
+                    </select>
+                </div>
+
                 <div class="upload-row">
                     <label>1. Imagem de Fundo (BG da TV):</label>
                     <input type="file" id="inputBG" accept="image/*" style="display:none;">
@@ -526,6 +537,9 @@
             const listaPendentesFesta = document.getElementById('listaPendentesFesta');
             const listaAprovadasFesta = document.getElementById('listaAprovadasFesta');
             const lblStatus = document.getElementById('lblUploadStatus');
+            const selectTempoFesta = document.getElementById('selectTempoFesta');
+
+            let bloqueioAprovacaoFesta = false;
 
             const unsubTextos = onSnapshot(doc(db, "config_festa", "textos"), (docSnap) => {
                 if(docSnap.exists()){
@@ -537,6 +551,16 @@
                     document.getElementById('chkExibirRamal').checked = d.exibir_ramal !== false;
                 }
             });
+
+            const unsubTempo = onSnapshot(doc(db, "config_festa", "visual"), (docSnap) => {
+                if (docSnap.exists() && docSnap.data().tempo_exibicao) {
+                    selectTempoFesta.value = docSnap.data().tempo_exibicao;
+                }
+            });
+
+            selectTempoFesta.onchange = async (e) => {
+                await setDoc(doc(db, "config_festa", "visual"), { tempo_exibicao: parseInt(e.target.value) }, { merge: true });
+            };
 
             document.getElementById('btnSalvarTextosFesta').onclick = async () => {
                 const btn = document.getElementById('btnSalvarTextosFesta');
@@ -556,20 +580,33 @@
 
             const renderizarCardFesta = (dados, id, ehPendente) => {
                 const urlImagem = dados.url_thumb || dados.url_imagem;
+                const numeroExibicao = dados.numeroFila ? dados.numeroFila : "-";
+                
                 let botoes = ehPendente ? 
                     `<button class="btn-ver" onclick="abrirModal('${dados.url_imagem}')">Ver</button><button class="btn-aprovar" onclick="atualizarStatusFesta('${id}', 'aprovado')">Aprovar</button><button class="btn-apagar" onclick="excluirFotoFesta('${id}')">Apagar</button>` : 
                     `<button class="btn-ver" onclick="abrirModal('${dados.url_imagem}')">Ver</button><button class="btn-apagar" onclick="excluirFotoFesta('${id}')">Remover</button>`;
+                
                 const card = document.createElement('div'); card.className = 'card';
-                card.innerHTML = `<img src="${urlImagem}" loading="lazy"><div class="btn-group">${botoes}</div>`;
+                card.innerHTML = `<div class="badge-numero">${numeroExibicao}</div><img src="${urlImagem}" loading="lazy"><div class="btn-group">${botoes}</div>`;
                 return card;
             };
 
             const unsub1 = onSnapshot(query(collection(db, "fotos_festa"), where("status", "==", "pendente")), (snapshot) => {
                 listaPendentesFesta.innerHTML = ""; document.getElementById('countPendentesFesta').innerText = snapshot.size;
+                
+                const botoesAprovar = document.querySelectorAll('#listaPendentesFesta .btn-aprovar');
+                botoesAprovar.forEach(btn => {
+                    if (bloqueioAprovacaoFesta) {
+                        btn.disabled = true; btn.style.backgroundColor = '#7f8c8d'; btn.style.cursor = 'not-allowed'; btn.innerText = "Aguarde...";
+                    } else {
+                        btn.disabled = false; btn.style.backgroundColor = ''; btn.style.cursor = 'pointer'; btn.innerText = "Aprovar";
+                    }
+                });
+
                 if (snapshot.empty) { listaPendentesFesta.innerHTML = "<p class='vazio'>Nenhuma foto pendente.</p>"; } else {
                     const array = [];
                     snapshot.forEach(doc => array.push({ id: doc.id, ...doc.data() }));
-                    array.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+                    array.sort((a, b) => (a.numeroFila || 0) - (b.numeroFila || 0)); 
                     array.forEach(dados => listaPendentesFesta.appendChild(renderizarCardFesta(dados, dados.id, true)));
                 }
             });
@@ -579,13 +616,17 @@
                 if (snapshot.empty) { listaAprovadasFesta.innerHTML = "<p class='vazio'>Nenhuma foto na tela.</p>"; } else {
                     const array = [];
                     snapshot.forEach(doc => array.push({ id: doc.id, ...doc.data() }));
-                    array.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+                    array.sort((a, b) => (b.numeroFila || 0) - (a.numeroFila || 0)); 
                     array.forEach(dados => listaAprovadasFesta.appendChild(renderizarCardFesta(dados, dados.id, false)));
                 }
             });
-            inscricoesGlobais.push(unsub1, unsub2, unsubTextos);
+            inscricoesGlobais.push(unsub1, unsub2, unsubTextos, unsubTempo);
 
-            window.atualizarStatusFesta = async (id, status) => { await updateDoc(doc(db, "fotos_festa", id), { status }); };
+            window.atualizarStatusFesta = async (id, status) => { 
+                if (status === 'aprovado' && bloqueioAprovacaoFesta) return; 
+                if (status === 'aprovado') { bloqueioAprovacaoFesta = true; setTimeout(() => bloqueioAprovacaoFesta = false, 10000); }
+                await updateDoc(doc(db, "fotos_festa", id), { status }); 
+            };
             window.excluirFotoFesta = async (id) => { if(confirm("Deseja EXCLUIR esta foto?")) await deleteDoc(doc(db, "fotos_festa", id)); };
 
             window.fazerUploadVisual = async function(file, tipo) {
@@ -684,7 +725,7 @@
             }
 
             function atualizarVisualBotoesAprovar() {
-                const botoes = document.querySelectorAll('.btn-aprovar');
+                const botoes = document.querySelectorAll('#secaoNormal .btn-aprovar');
                 botoes.forEach(btn => {
                     if (bloqueioAprovacao) {
                         btn.disabled = true; btn.style.backgroundColor = '#7f8c8d'; btn.style.cursor = 'not-allowed'; btn.innerText = "Aguarde...";
