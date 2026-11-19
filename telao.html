@@ -25,7 +25,7 @@
         #btnFullscreen { position: fixed; top: 20px; right: 20px; z-index: 99999; background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.5); padding: 10px 15px; border-radius: 8px; cursor: pointer; font-family: 'Montserrat', sans-serif; font-weight: 600; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); transition: 0.3s; }
         #btnFullscreen:hover { background: rgba(255,255,255,0.4); }
         .marca-dagua { position: absolute; top: 25px; right: 40px; width: 200px; opacity: 0.7; z-index: 9990; pointer-events: none; }
-        #relogioTV { position: absolute; bottom: 40px; right: 40px; background: rgba(255, 255, 255, 0.5); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.4); box-shadow: 0 4px 15px rgba(0,0,0,0.3); border-radius: 12px; color: #224387; padding: 10px 25px; text-align: center; font-size: 32px; font-weight: 700; letter-spacing: 2px; z-index: 9990; pointer-events: none; }
+        #relogioTV { position: absolute; bottom: 40px; right: 40px; background: rgba(255, 255, 255, 0.72); border: 1px solid rgba(255, 255, 255, 0.5); box-shadow: 0 4px 15px rgba(0,0,0,0.3); border-radius: 12px; color: #224387; padding: 10px 25px; text-align: center; font-size: 32px; font-weight: 700; letter-spacing: 2px; z-index: 9990; pointer-events: none; }
         body[data-transicao="fade"] .container-master { transition: opacity 0.8s ease; }
         body[data-transicao="fade"] .escondido { opacity: 0; pointer-events: none; }
         body[data-transicao="fade"] .visivel { opacity: 1; pointer-events: auto; }
@@ -37,13 +37,13 @@
         body[data-transicao="zoom"] .visivel { transform: scale(1); opacity: 1; pointer-events: auto; }
         .container-master { width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; position: absolute; top:0; left:0; }
         .moldura-sobreposicao { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 5; pointer-events: none; }
-        #imgPainel1, #imgPainel2 { width: 100%; height: 100%; object-fit: contain; position: relative; z-index: 2; }
+        #imgPainel1, #imgPainel2, #videoPainel { width: 100%; height: 100%; object-fit: contain; position: relative; z-index: 2; }
         .modo-arte { object-fit: cover !important; }
-        .nome-rodape { position: absolute; bottom: 70px; left: 50%; transform: translateX(-50%); background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.3); box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2); border-radius: 30px; color: #ffffff; padding: 20px 55px; text-align: center; transition: opacity 1s ease-in-out; z-index: 10; }
+        .nome-rodape { position: absolute; bottom: 70px; left: 50%; transform: translateX(-50%); background: rgba(0, 32, 97, 0.55); border: 1px solid rgba(255, 255, 255, 0.3); box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25); border-radius: 30px; color: #ffffff; padding: 20px 55px; text-align: center; transition: opacity 1s ease-in-out; z-index: 10; }
         .nome-rodape .titular { font-size: 40px; font-weight: 700; letter-spacing: 1.5px; text-shadow: 0 2px 4px rgba(0, 32, 97, 0.4), 0 1px 2px rgba(0, 32, 97, 0.6); }
         .nome-rodape .setor { font-size: 24px; font-weight: 400; opacity: 0.9; margin-top: 5px; text-shadow: 0 2px 6px #002061, 0 0 4px #002061; }
         #numeroDiscreto { position: absolute; bottom: 30px; left: 40px; font-size: 35px; font-weight: 800; color: #224387; z-index: 15; text-shadow: 0 1px 2px rgba(255,255,255,0.8); transition: opacity 1s; }
-        #containerTexto { width: 80%; text-align: center; background: rgba(34, 67, 135, 0.85); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); padding: 80px; border-radius: 40px; border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
+        #containerTexto { width: 80%; text-align: center; background: rgba(34, 67, 135, 0.92); padding: 80px; border-radius: 40px; border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
         #textoDoComunicado { font-size: 70px; font-weight: 700; line-height: 1.3; margin: 0; color: #fff; }
         .aviso-label { font-size: 30px; color: #ff9800; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 25px; display: block;}
         #aguardando { font-size: 20px; color: #7f8c8d; font-weight: 600; z-index: 20; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: none; }
@@ -72,10 +72,10 @@
         .nuvens-container { position: absolute; top: 0; left: 0; width: 100%; height: 600px; pointer-events: none; z-index: 3; overflow: hidden; display: none; }
         .clima-nublado .nuvens-container, .clima-parc-nublado .nuvens-container, .clima-chuva .nuvens-container, .clima-tempestade .nuvens-container { display: block; }
         
-        .clima-nublado::before, .clima-parc-nublado::before, .clima-chuva::before, .clima-tempestade::before { content: ""; position: absolute; width: 1200px; height: 600px; top: 5%; left: -200px; background: rgba(255,255,255,0.06); filter: blur(40px); border-radius: 50%; animation: moverNuvem 20s ease-in-out infinite alternate; pointer-events: none; z-index: 2;}
-        .clima-nublado::after, .clima-parc-nublado::after, .clima-chuva::after, .clima-tempestade::after { content: ""; position: absolute; width: 1000px; height: 500px; bottom: 10%; right: -200px; background: rgba(255,255,255,0.04); filter: blur(35px); border-radius: 50%; animation: moverNuvem 25s ease-in-out infinite alternate-reverse; pointer-events: none; z-index: 2;}
+        .clima-nublado::before, .clima-parc-nublado::before, .clima-chuva::before, .clima-tempestade::before { content: ""; position: absolute; width: 1200px; height: 600px; top: 5%; left: -200px; background: radial-gradient(ellipse at center, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0) 70%); border-radius: 50%; animation: moverNuvem 20s ease-in-out infinite alternate; pointer-events: none; z-index: 2; will-change: transform; }
+        .clima-nublado::after, .clima-parc-nublado::after, .clima-chuva::after, .clima-tempestade::after { content: ""; position: absolute; width: 1000px; height: 500px; bottom: 10%; right: -200px; background: radial-gradient(ellipse at center, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 70%); border-radius: 50%; animation: moverNuvem 25s ease-in-out infinite alternate-reverse; pointer-events: none; z-index: 2; will-change: transform; }
 
-        .nuvem-ios { position: absolute; border-radius: 100px; filter: blur(10px); transition: background 0.1s ease; }
+        .nuvem-ios { position: absolute; border-radius: 100px; filter: blur(6px); transition: background 0.1s ease; will-change: transform; }
         .nuvem-ios::before, .nuvem-ios::after { content: ''; position: absolute; background: inherit; border-radius: 50%; }
         
         .nuvem-ios.n1 { width: 420px; height: 130px; top: 30px; left: -550px; animation: passaNuvem 50s linear infinite; background: rgba(45, 65, 85, 0.35); }
@@ -90,6 +90,8 @@
         .nuvem-ios.n3::before { width: 150px; height: 150px; top: -70px; left: 40px; }
         .nuvem-ios.n3::after { width: 100px; height: 100px; top: -45px; right: 40px; }
 
+        .escondido .nuvem-ios, .escondido #bgClima::before, .escondido #bgClima::after { animation-play-state: paused !important; }
+
         .trovao-ativo .nuvem-ios { background: rgba(210, 230, 255, 0.28) !important; }
         
         @keyframes passaNuvem { 0% { transform: translateX(-10%); } 100% { transform: translateX(2500px); } }
@@ -99,7 +101,7 @@
         .cidade-clima { font-size: 45px; font-weight: 600; margin: 0; color: #fff; letter-spacing: 1px;}
         .sub-clima { font-size: 22px; font-weight: 300; color: #bdc3c7; margin-top: 5px; }
         .grid-clima { display: grid; grid-template-columns: repeat(7, 1fr); gap: 20px; width: 90%; max-width: 1750px; z-index: 5; margin-top: 90px; }
-        .card-dia { background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border-radius: 24px; padding: 30px 15px; border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 15px 35px rgba(0,0,0,0.2); text-align: center; display: flex; flex-direction: column; align-items: center; position: relative;}
+        .card-dia { background: rgba(15, 28, 50, 0.42); border-radius: 24px; padding: 30px 15px; border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 10px 25px rgba(0,0,0,0.22); text-align: center; display: flex; flex-direction: column; align-items: center; position: relative;}
         .dia-titulo { font-size: 32px; font-weight: 600; color: #fff; margin-bottom: 25px; }
         .dia-hoje { color: #3498db; }
         .icone-principal svg { width: 100px; height: 100px; margin-bottom: 20px;}
@@ -169,7 +171,7 @@
             </div>
 
             <div class="container-master escondido" id="camadaVideo">
-                <video id="videoPainel" class="modo-arte" src="" playsinline muted></video>
+                <video id="videoPainel" class="modo-arte" src="" preload="metadata" playsinline muted></video>
             </div>
             <div class="container-master escondido" id="camadaTexto">
                 <div id="containerTexto">
@@ -197,6 +199,57 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
+        let offsetTempoMs = 0;
+
+        async function sincronizarHorarioBrasilia() {
+            try {
+                const res = await fetch('https://worldtimeapi.org/api/timezone/Etc/UTC', { cache: 'no-store' });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.unixtime) {
+                        offsetTempoMs = (data.unixtime * 1000) - Date.now();
+                        atualizarRelogio();
+                        return;
+                    }
+                }
+            } catch (e) {}
+            try {
+                const res2 = await fetch('https://timeapi.io/api/time/current/zone?timeZone=Etc/UTC', { cache: 'no-store' });
+                if (res2.ok) {
+                    const data2 = await res2.json();
+                    if (data2.dateTime) {
+                        const utcMs = Date.parse(data2.dateTime.endsWith('Z') ? data2.dateTime : data2.dateTime + 'Z');
+                        if (!isNaN(utcMs)) {
+                            offsetTempoMs = utcMs - Date.now();
+                            atualizarRelogio();
+                        }
+                    }
+                }
+            } catch (e) {}
+        }
+
+        function obterAgoraBrasilia() {
+            const msBrasilia = Date.now() + offsetTempoMs - (3 * 3600000);
+            const d = new Date(msBrasilia);
+            const ano = d.getUTCFullYear();
+            const mes = String(d.getUTCMonth() + 1).padStart(2, '0');
+            const dia = String(d.getUTCDate()).padStart(2, '0');
+            const hora = d.getUTCHours();
+            const minuto = d.getUTCMinutes();
+            const horaStr = String(hora).padStart(2, '0');
+            const minStr = String(minuto).padStart(2, '0');
+            return {
+                hora: hora,
+                minuto: minuto,
+                diaSemana: d.getUTCDay(),
+                hojeISO: `${ano}-${mes}-${dia}`,
+                horaAtual: `${horaStr}:${minStr}`
+            };
+        }
+
+        sincronizarHorarioBrasilia();
+        setInterval(sincronizarHorarioBrasilia, 1800000);
+
         document.getElementById('btnFullscreen').addEventListener('click', () => {
             const radio = document.getElementById('radioFCV');
             radio.play().catch(e => console.log(e));
@@ -208,7 +261,7 @@
 
         setInterval(() => {
             let r = document.getElementById('radioFCV');
-            let h = new Date().getHours();
+            let h = obterAgoraBrasilia().hora;
             r.volume = (h >= 20 || h < 7) ? 0.3 : 1.0;
         }, 30000);
 
@@ -260,8 +313,7 @@
         ajustarEscala(); 
 
         function atualizarRelogio() {
-            const agora = new Date();
-            document.getElementById('relogioTV').innerText = agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+            document.getElementById('relogioTV').innerText = obterAgoraBrasilia().horaAtual;
         }
         setInterval(atualizarRelogio, 1000);
         atualizarRelogio();
@@ -310,8 +362,8 @@
                 let gridHtml = '';
 
                 for(let i = 0; i < 7; i++) {
-                    let dObj = new Date(data.daily.time[i] + 'T00:00:00');
-                    let tituloDia = (i === 0) ? '<span class="dia-hoje">Hoje</span>' : diasNomes[dObj.getDay()];
+                    let dObj = new Date(data.daily.time[i] + 'T12:00:00Z');
+                    let tituloDia = (i === 0) ? '<span class="dia-hoje">Hoje</span>' : diasNomes[dObj.getUTCDay()];
                     let mainCode = data.daily.weathercode[i];
                     let max = Math.round(data.daily.temperature_2m_max[i]);
                     let min = Math.round(data.daily.temperature_2m_min[i]);
@@ -403,8 +455,8 @@
                     x: Math.random() * 1920,
                     y: Math.random() * 1080,
                     r: Math.random() * 3 + 1,
-                    vx: Math.random() * 0.5 + 0.15,
-                    vy: (Math.random() - 0.5) * 0.3,
+                    vx: Math.random() * 0.6 + 0.2,
+                    vy: (Math.random() - 0.5) * 0.35,
                     alpha: Math.random() * 0.25 + 0.05,
                     phase: Math.random() * Math.PI * 2
                 });
@@ -414,7 +466,7 @@
 
         function drawSun(timestamp = 0) {
             if (!sunActive) return;
-            if (timestamp - lastSunFrame < 33) {
+            if (timestamp - lastSunFrame < 42) {
                 sunAnimId = requestAnimationFrame(drawSun);
                 return;
             }
@@ -422,7 +474,7 @@
 
             sunCtx.setTransform(0.5, 0, 0, 0.5, 0, 0);
             sunCtx.clearRect(0, 0, 1920, 1080);
-            sunTime += 0.03;
+            sunTime += 0.035;
 
             const sunX = 110;
             const sunY = 75;
@@ -485,12 +537,12 @@
             rainCanvas.height = 540;
             drops = [];
             splashes = [];
-            for(let i=0; i<120; i++) {
+            for(let i=0; i<100; i++) {
                 drops.push({
                     x: Math.random() * 1920,
                     y: Math.random() * 1080,
                     l: Math.random() * 20 + 12,
-                    v: Math.random() * 22 + 28,
+                    v: Math.random() * 26 + 32,
                     z: Math.random() 
                 });
             }
@@ -592,7 +644,7 @@
 
         function drawRain(timestamp = 0) {
             if(!rainActive) return;
-            if (timestamp - lastRainFrame < 33) {
+            if (timestamp - lastRainFrame < 42) {
                 rainAnimId = requestAnimationFrame(drawRain);
                 return;
             }
@@ -607,7 +659,7 @@
                 ctx.strokeStyle = `rgba(235, 245, 255, ${activeBolt.alpha})`;
                 ctx.lineWidth = 3.2;
                 ctx.shadowColor = 'rgba(140, 190, 255, 0.95)';
-                ctx.shadowBlur = 18;
+                ctx.shadowBlur = 14;
 
                 ctx.beginPath();
                 activeBolt.main.forEach((pt, idx) => {
@@ -627,7 +679,7 @@
                 });
                 ctx.restore();
 
-                activeBolt.alpha -= 0.12;
+                activeBolt.alpha -= 0.14;
             }
 
             if (cachedCardRects.length === 0) atualizarCacheCards();
@@ -639,8 +691,8 @@
                 ctx.strokeStyle = `rgba(255, 255, 255, ${s.a})`;
                 ctx.lineWidth = 1;
                 ctx.stroke();
-                s.r += 2.0;
-                s.a -= 0.14;
+                s.r += 2.2;
+                s.a -= 0.16;
                 if (s.a <= 0) splashes.splice(i, 1);
             }
 
@@ -657,7 +709,7 @@
                 d.y += d.v;
 
                 let hit = false;
-                if(d.z > 0.4 && splashes.length < 40) { 
+                if(d.z > 0.4 && splashes.length < 30) { 
                     for(let j = 0; j < cachedCardRects.length; j++) {
                         let rect = cachedCardRects[j];
                         if (d.x > rect.left && d.x < rect.right && d.y + d.l > rect.top && d.y - d.v <= rect.top) {
@@ -671,7 +723,7 @@
                 if (hit || d.y > 1080) {
                     d.y = -20;
                     d.x = Math.random() * 1920;
-                    d.v = Math.random() * 22 + 28;
+                    d.v = Math.random() * 26 + 32;
                 }
             }
             rainAnimId = requestAnimationFrame(drawRain);
@@ -688,6 +740,7 @@
                 } else {
                     sunActive = false;
                     cancelAnimationFrame(sunAnimId);
+                    sunCtx.clearRect(0, 0, sunCanvas.width, sunCanvas.height);
                     sunCanvas.style.display = 'none';
                 }
 
@@ -700,6 +753,7 @@
                 } else {
                     rainActive = false;
                     cancelAnimationFrame(rainAnimId);
+                    ctx.clearRect(0, 0, rainCanvas.width, rainCanvas.height);
                     rainCanvas.style.display = 'none';
                 }
 
@@ -714,10 +768,12 @@
             } else {
                 sunActive = false;
                 cancelAnimationFrame(sunAnimId);
+                sunCtx.clearRect(0, 0, sunCanvas.width, sunCanvas.height);
                 sunCanvas.style.display = 'none';
 
                 rainActive = false;
                 cancelAnimationFrame(rainAnimId);
+                ctx.clearRect(0, 0, rainCanvas.width, rainCanvas.height);
                 rainCanvas.style.display = 'none';
 
                 pararTrovoes();
@@ -764,6 +820,36 @@
         const textoDoComunicado = document.getElementById('textoDoComunicado');
         const aguardando = document.getElementById('aguardando');
         const barraProgresso = document.getElementById('barraProgresso');
+
+        function otimizarUrlVideo(url) {
+            if (!url) return "";
+            if (url.includes("cloudinary.com") && url.includes("/video/upload/") && !url.includes("q_auto")) {
+                return url.replace("/video/upload/", "/video/upload/f_mp4,vc_h264,q_auto:eco,w_1280,br_2000k/");
+            }
+            return url;
+        }
+
+        function limparCacheMorto() {
+            if ('caches' in window) {
+                caches.keys().then(function(names) {
+                    for (let name of names) caches.delete(name);
+                });
+            }
+            if (!camadaVideo.classList.contains('visivel')) {
+                videoPainel.pause();
+                videoPainel.removeAttribute('src');
+                videoPainel.load();
+            }
+            if (!camadaImagem1.classList.contains('visivel')) {
+                const img1 = document.getElementById('imgPainel1');
+                if (img1) img1.removeAttribute('src');
+            }
+            if (!camadaImagem2.classList.contains('visivel')) {
+                const img2 = document.getElementById('imgPainel2');
+                if (img2) img2.removeAttribute('src');
+            }
+        }
+        setInterval(limparCacheMorto, 1200000);
 
         onSnapshot(doc(db, "controle_tv", "status_clima"), (docSnap) => { 
             if(docSnap.exists()) {
@@ -821,9 +907,9 @@
         }
 
         function filtrarComunicadosAtivos() {
-            const agora = new Date();
-            const hojeISO = agora.toLocaleDateString('en-CA');
-            const horaAtual = agora.toTimeString().slice(0, 5);
+            const agora = obterAgoraBrasilia();
+            const hojeISO = agora.hojeISO;
+            const horaAtual = agora.horaAtual;
             const novaLista = [];
 
             todosComunicados.forEach(data => {
@@ -966,7 +1052,19 @@
             if (com.tipo === 'video' || com.url_video) {
                 videoPainel.onloadedmetadata = null;
                 videoPainel.onerror = null;
-                videoPainel.src = com.url_video;
+                const urlLeve = otimizarUrlVideo(com.url_video);
+
+                if (camadaVideo.classList.contains('visivel') && videoPainel.src === urlLeve) {
+                    let duracao = videoPainel.duration * 1000;
+                    if (!duracao || isNaN(duracao) || duracao === Infinity) duracao = 15000;
+                    videoPainel.currentTime = 0;
+                    videoPainel.play().catch(e => console.log(e));
+                    animarBarra(duracao);
+                    timerExibicao = setTimeout(() => { decidirProximo(); }, duracao);
+                    return;
+                }
+
+                videoPainel.src = urlLeve;
                 timerCarregamento = setTimeout(() => {
                     videoPainel.onloadedmetadata = null;
                     videoPainel.onerror = null;
