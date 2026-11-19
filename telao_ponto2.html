@@ -92,6 +92,10 @@
         .nuvem-ios.n3::before { width: 150px; height: 150px; top: -70px; left: 40px; }
         .nuvem-ios.n3::after { width: 100px; height: 100px; top: -45px; right: 40px; }
 
+        #camadaClima.escondido .nuvem-ios,
+        #camadaClima.escondido #bgClima::before,
+        #camadaClima.escondido #bgClima::after { animation-play-state: paused !important; }
+
         .trovao-ativo .nuvem-ios { background: rgba(210, 230, 255, 0.28) !important; }
         
         @keyframes passaNuvem { 0% { transform: translateX(-10%); } 100% { transform: translateX(2500px); } }
@@ -200,6 +204,55 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
+        let offsetServidorMs = 0;
+
+        async function sincronizarHorarioBrasilia() {
+            try {
+                const resp = await fetch('https://timeapi.io/api/time/current/zone?timeZone=America/Sao_Paulo', { cache: 'no-store' });
+                if (resp.ok) {
+                    const data = await resp.json();
+                    const serverUtc = Date.parse(data.dateTime + '-03:00');
+                    if (!isNaN(serverUtc)) {
+                        offsetServidorMs = serverUtc - Date.now();
+                        atualizarRelogio();
+                        return;
+                    }
+                }
+            } catch (e) {}
+            try {
+                const resp = await fetch('https://worldtimeapi.org/api/timezone/America/Sao_Paulo', { cache: 'no-store' });
+                if (resp.ok) {
+                    const data = await resp.json();
+                    const serverUtc = data.unixtime * 1000;
+                    if (!isNaN(serverUtc)) {
+                        offsetServidorMs = serverUtc - Date.now();
+                        atualizarRelogio();
+                    }
+                }
+            } catch (e) {}
+        }
+
+        function getAgoraBrasilia() {
+            const utcMs = Date.now() + offsetServidorMs;
+            const brt = new Date(utcMs - 3 * 3600 * 1000);
+            const ano = brt.getUTCFullYear();
+            const mes = String(brt.getUTCMonth() + 1).padStart(2, '0');
+            const dia = String(brt.getUTCDate()).padStart(2, '0');
+            const hora = brt.getUTCHours();
+            const min = brt.getUTCMinutes();
+            const diaSemana = brt.getUTCDay();
+            return {
+                hora,
+                min,
+                diaSemana,
+                hojeISO: `${ano}-${mes}-${dia}`,
+                horaAtual: `${String(hora).padStart(2, '0')}:${String(min).padStart(2, '0')}`
+            };
+        }
+
+        sincronizarHorarioBrasilia();
+        setInterval(sincronizarHorarioBrasilia, 3600000);
+
         let eventoInstalacaoPWA = null;
         const btnInstalarPWA = document.getElementById('btnInstalarPWA');
         const btnFullscreen = document.getElementById('btnFullscreen');
@@ -244,7 +297,7 @@
 
         setInterval(() => {
             let r = document.getElementById('radioFCV');
-            let h = new Date().getHours();
+            let h = getAgoraBrasilia().hora;
             r.volume = (h >= 20 || h < 7) ? 0.3 : 1.0;
         }, 30000);
 
@@ -296,8 +349,7 @@
         ajustarEscala(); 
 
         function atualizarRelogio() {
-            const agora = new Date();
-            document.getElementById('relogioTV').innerText = agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+            document.getElementById('relogioTV').innerText = getAgoraBrasilia().horaAtual;
         }
         setInterval(atualizarRelogio, 1000);
         atualizarRelogio();
@@ -346,8 +398,8 @@
                 let gridHtml = '';
 
                 for(let i = 0; i < 7; i++) {
-                    let dObj = new Date(data.daily.time[i] + 'T00:00:00');
-                    let tituloDia = (i === 0) ? '<span class="dia-hoje">Hoje</span>' : diasNomes[dObj.getDay()];
+                    let dObj = new Date(data.daily.time[i] + 'T12:00:00Z');
+                    let tituloDia = (i === 0) ? '<span class="dia-hoje">Hoje</span>' : diasNomes[dObj.getUTCDay()];
                     let mainCode = data.daily.weathercode[i];
                     let max = Math.round(data.daily.temperature_2m_max[i]);
                     let min = Math.round(data.daily.temperature_2m_min[i]);
@@ -724,6 +776,7 @@
                 } else {
                     sunActive = false;
                     cancelAnimationFrame(sunAnimId);
+                    sunCtx.clearRect(0, 0, sunCanvas.width, sunCanvas.height);
                     sunCanvas.style.display = 'none';
                 }
 
@@ -736,6 +789,7 @@
                 } else {
                     rainActive = false;
                     cancelAnimationFrame(rainAnimId);
+                    ctx.clearRect(0, 0, rainCanvas.width, rainCanvas.height);
                     rainCanvas.style.display = 'none';
                 }
 
@@ -750,10 +804,12 @@
             } else {
                 sunActive = false;
                 cancelAnimationFrame(sunAnimId);
+                sunCtx.clearRect(0, 0, sunCanvas.width, sunCanvas.height);
                 sunCanvas.style.display = 'none';
 
                 rainActive = false;
                 cancelAnimationFrame(rainAnimId);
+                ctx.clearRect(0, 0, rainCanvas.width, rainCanvas.height);
                 rainCanvas.style.display = 'none';
 
                 pararTrovoes();
@@ -833,8 +889,9 @@
 
         onSnapshot(doc(db, "controle_tv", "status_clima"), (docSnap) => { 
             if(docSnap.exists()) {
-                mostrarClimaNaTV = docSnap.data().mostrar_clima !== false;
-                modoClima = docSnap.data().clima_manual || docSnap.data().modo_clima || 'auto';
+                const d = docSnap.data();
+                mostrarClimaNaTV = d.mostrar_clima_ponto2 !== undefined ? d.mostrar_clima_ponto2 !== false : d.mostrar_clima !== false;
+                modoClima = d.clima_manual || d.modo_clima || 'auto';
             } else {
                 mostrarClimaNaTV = true;
                 modoClima = 'auto';
@@ -887,9 +944,7 @@
         }
 
         function filtrarComunicadosAtivos() {
-            const agora = new Date();
-            const hojeISO = agora.toLocaleDateString('en-CA');
-            const horaAtual = agora.toTimeString().slice(0, 5);
+            const { hojeISO, horaAtual } = getAgoraBrasilia();
             const novaLista = [];
 
             todosComunicados.forEach(data => {
